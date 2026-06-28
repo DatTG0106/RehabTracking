@@ -1,0 +1,323 @@
+@page "/checkout"
+@using MediatR
+@using RehabTracking.Web.Features.ECommerce.Cart
+@using RehabTracking.Web.Features.ECommerce.Checkout
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject CartState CartState
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Thanh toán - RehabTracking</PageTitle>
+
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="/cart" class="btn btn-light btn-sm rounded-pill me-3">
+            <i class="bi bi-arrow-left me-1"></i>Giỏ hàng
+        </a>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Sản phẩm</a></li>
+                <li class="breadcrumb-item"><a href="/cart">Giỏ hàng</a></li>
+                <li class="breadcrumb-item active">Thanh toán</li>
+            </ol>
+        </nav>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger border-0 rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+            <span>@errorMessage</span>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Checkout Form -->
+        <div class="col-lg-7">
+            <EditForm Model="checkoutModel" OnValidSubmit="HandleCheckout">
+                <DataAnnotationsValidator />
+
+                <!-- Shipping Info Card -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">
+                            <span class="bg-primary text-white rounded-circle d-inline-flex justify-content-center align-items-center me-2" style="width:28px;height:28px;font-size:0.85rem;">1</span>
+                            Thông tin giao hàng
+                        </h5>
+
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label for="firstName" class="form-label fw-semibold small text-muted text-uppercase">Họ</label>
+                                <InputText type="text" class="form-control rounded-3 bg-light" id="firstName" @bind-Value="checkoutModel.FirstName" placeholder="Nguyễn" />
+                                <ValidationMessage For="() => checkoutModel.FirstName" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="lastName" class="form-label fw-semibold small text-muted text-uppercase">Tên</label>
+                                <InputText type="text" class="form-control rounded-3 bg-light" id="lastName" @bind-Value="checkoutModel.LastName" placeholder="Văn A" />
+                                <ValidationMessage For="() => checkoutModel.LastName" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-12">
+                                <label for="phone" class="form-label fw-semibold small text-muted text-uppercase">Số điện thoại</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light rounded-start-3"><i class="bi bi-telephone text-muted"></i></span>
+                                    <InputText type="tel" class="form-control bg-light rounded-end-3" id="phone" @bind-Value="checkoutModel.Phone" placeholder="0912 345 678" />
+                                </div>
+                                <ValidationMessage For="() => checkoutModel.Phone" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-12">
+                                <label for="address" class="form-label fw-semibold small text-muted text-uppercase">Địa chỉ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light rounded-start-3"><i class="bi bi-geo-alt text-muted"></i></span>
+                                    <InputText type="text" class="form-control bg-light rounded-end-3" id="address" @bind-Value="checkoutModel.Address" placeholder="123 Đường ABC, Phường XYZ, TP.HCM" />
+                                </div>
+                                <ValidationMessage For="() => checkoutModel.Address" class="text-danger small mt-1" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method Card -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">
+                            <span class="bg-primary text-white rounded-circle d-inline-flex justify-content-center align-items-center me-2" style="width:28px;height:28px;font-size:0.85rem;">2</span>
+                            Phương thức thanh toán
+                        </h5>
+
+                        <InputRadioGroup @bind-Value="checkoutModel.PaymentMethod">
+                            <div class="d-flex flex-column gap-2">
+                                <label class="payment-option @(checkoutModel.PaymentMethod == "COD" ? "selected" : "")">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <InputRadio Value="@("COD")" class="form-check-input mt-0" />
+                                        <div class="bg-success bg-opacity-10 text-success rounded-2 d-flex justify-content-center align-items-center" style="width:40px;height:40px;">
+                                            <i class="bi bi-cash-coin fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">Thanh toán khi nhận hàng (COD)</div>
+                                            <div class="text-muted small">Thanh toán tiền mặt khi nhận thiết bị</div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                <label class="payment-option @(checkoutModel.PaymentMethod == "VNPay" ? "selected" : "")">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <InputRadio Value="@("VNPay")" class="form-check-input mt-0" />
+                                        <div class="bg-primary bg-opacity-10 rounded-2 d-flex justify-content-center align-items-center" style="width:40px;height:40px;">
+                                            <img src="https://vnpay.vn/wp-content/uploads/2020/07/Logo-VNPAYQR-update.png" height="24" alt="VNPay" />
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">Thanh toán qua VNPay</div>
+                                            <div class="text-muted small">Thanh toán online an toàn, nhanh chóng</div>
+                                        </div>
+                                        <span class="ms-auto badge bg-info text-dark rounded-pill">Mock</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </InputRadioGroup>
+                    </div>
+                </div>
+
+                <button class="btn btn-modern-primary btn-lg w-100 rounded-pill shadow fw-semibold" type="submit" disabled="@isProcessing">
+                    @if (isProcessing)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Đang xử lý...</span>
+                    }
+                    else if (checkoutModel.PaymentMethod == "VNPay")
+                    {
+                        <i class="bi bi-credit-card me-2"></i>
+                        <span>Thanh toán qua VNPay</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-truck me-2"></i>
+                        <span>Đặt hàng (COD)</span>
+                    }
+                </button>
+            </EditForm>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 90px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="bi bi-receipt me-2 text-primary"></i>Tóm tắt đơn hàng
+                        <span class="badge bg-primary rounded-pill ms-2">@CartState.Items.Sum(i => i.Quantity)</span>
+                    </h5>
+
+                    <div class="d-flex flex-column gap-3 mb-3">
+                        @foreach (var item in CartState.Items)
+                        {
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="position-relative flex-shrink-0">
+                                    <img src="@(string.IsNullOrEmpty(item.Product.ImageUrl) ? "https://placehold.co/56x56/e0e7ff/6366f1?text=SP" : item.Product.ImageUrl)"
+                                         class="rounded-3 border" style="width:56px;height:56px;object-fit:cover;" alt="@item.Product.ProductName" />
+                                    <span class="position-absolute top-0 start-100 translate-middle badge bg-primary rounded-circle" style="width:20px;height:20px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;">@item.Quantity</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold small">@item.Product.ProductName</div>
+                                    <div class="text-muted" style="font-size:0.78rem;">@item.Product.ProductType</div>
+                                </div>
+                                <div class="fw-bold text-primary small">@((item.Product.Price * item.Quantity).ToString("N0"))₫</div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr class="my-3" />
+
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Tạm tính</span>
+                        <span>@CartState.GetTotal().ToString("N0")₫</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 small">
+                        <span class="text-muted">Phí vận chuyển</span>
+                        <span class="text-success fw-semibold"><i class="bi bi-truck me-1"></i>Miễn phí</span>
+                    </div>
+
+                    <hr class="my-3" />
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Tổng cộng</span>
+                        <span class="fw-bold fs-5 text-primary">@CartState.GetTotal().ToString("N0")₫</span>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-light rounded-3">
+                        <div class="d-flex align-items-center gap-2 text-muted small">
+                            <i class="bi bi-shield-check text-success fs-5"></i>
+                            <span>Giao dịch được bảo mật và mã hóa SSL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-option {
+        display: block;
+        padding: 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .payment-option:hover {
+        border-color: #4f46e5;
+        background: rgba(79,70,229,0.03);
+    }
+    .payment-option.selected {
+        border-color: #4f46e5;
+        background: rgba(79,70,229,0.05);
+    }
+    .input-group-text {
+        border-color: #dee2e6;
+    }
+    .form-control:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 0.2rem rgba(79,70,229,0.1);
+    }
+</style>
+
+@code {
+    private CheckoutModel checkoutModel = new();
+    private bool isProcessing = false;
+    private string errorMessage = string.Empty;
+    private int currentUserId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity == null || !authState.User.Identity.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login?returnUrl=/checkout");
+            return;
+        }
+
+        if (CartState.Items.Count == 0)
+        {
+            Navigation.NavigateTo("/cart");
+            return;
+        }
+
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            currentUserId = userId;
+        }
+    }
+
+    private async Task HandleCheckout()
+    {
+        if (currentUserId == 0)
+        {
+            errorMessage = "Vui lòng đăng nhập để tiếp tục thanh toán.";
+            return;
+        }
+
+        isProcessing = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            var command = new PlaceOrderCommand
+            {
+                UserId = currentUserId, // ✅ Fixed: use actual logged-in user ID
+                Items = CartState.Items.ToList(),
+                ShippingAddress = $"{checkoutModel.FirstName} {checkoutModel.LastName}, {checkoutModel.Address}",
+                PhoneNumber = checkoutModel.Phone,
+                PaymentMethod = checkoutModel.PaymentMethod
+            };
+
+            var orderId = await Mediator.Send(command);
+            CartState.ClearCart();
+
+            if (checkoutModel.PaymentMethod == "VNPay")
+            {
+                Navigation.NavigateTo($"/vnpay-mock?orderId={orderId}");
+            }
+            else
+            {
+                Navigation.NavigateTo("/checkout/success");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message.Contains("Sản phẩm") || ex.Message.Contains("kho")
+                ? ex.Message
+                : "Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.";
+            Console.WriteLine($"Error placing order: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    public class CheckoutModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập họ.")]
+        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = "Họ không được vượt quá 50 ký tự.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập tên.")]
+        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = "Tên không được vượt quá 50 ký tự.")]
+        public string LastName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập số điện thoại.")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Số điện thoại không hợp lệ (VD: 0912345678).")]
+        public string Phone { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập địa chỉ giao hàng.")]
+        [System.ComponentModel.DataAnnotations.StringLength(200, MinimumLength = 10, ErrorMessage = "Địa chỉ phải có từ 10 đến 200 ký tự.")]
+        public string Address { get; set; } = string.Empty;
+
+        public string PaymentMethod { get; set; } = "COD";
+    }
+}

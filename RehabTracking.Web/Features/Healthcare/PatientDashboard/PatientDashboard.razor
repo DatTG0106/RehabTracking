@@ -1,0 +1,451 @@
+@page "/patient-dashboard"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Patient")]
+@using MediatR
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Features.Healthcare.PatientDashboard
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using Radzen.Blazor
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@implements IAsyncDisposable
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard Bệnh nhân - RehabTracking</PageTitle>
+
+<div class="container-fluid py-4">
+    @if (isLoading)
+    {
+        <div class="d-flex align-items-center justify-content-center" style="min-height: 60vh;">
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;" role="status"></div>
+                <p class="text-muted fw-medium">Đang tải dữ liệu...</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Hero Welcome -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-lg-8">
+                <h1 class="fw-bold mb-1" style="font-size: 2rem; color: var(--text-main);">
+                    Chào mừng, <span style="color: var(--primary-color);">@patientName</span>! 👋
+                </h1>
+                <p class="text-muted">Bạn đang tiến bộ tốt trong hành trình phục hồi chức năng.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                @if (!isExercising)
+                {
+                    <button class="btn btn-modern btn-modern-primary btn-lg shadow-sm" @onclick="StartSession">
+                        <i class="bi bi-play-fill fs-5 me-1"></i> Bắt đầu Tập luyện
+                    </button>
+                }
+                else
+                {
+                    <div class="d-flex align-items-center justify-content-lg-end gap-3">
+                        <div class="text-success fw-bold">
+                            <i class="bi bi-stopwatch me-1"></i>
+                            <span class="session-timer">@FormatElapsedTime()</span>
+                        </div>
+                        <button class="btn btn-danger btn-lg rounded-pill shadow-sm fw-semibold" @onclick="StopSession">
+                            <i class="bi bi-stop-fill fs-5 me-1"></i> Dừng tập
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (isExercising)
+        {
+            <div class="modern-card p-3 mb-4 d-flex align-items-center gap-3"
+                 style="background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03)); border: 1px solid rgba(16,185,129,0.2);">
+                <div class="spinner-grow text-success flex-shrink-0" role="status" style="width: 1.2rem; height: 1.2rem;"></div>
+                <div>
+                    <h6 class="fw-bold text-success mb-0">Thiết bị Đang kết nối &amp; Phát sóng</h6>
+                    <p class="text-muted mb-0 small">Đang truyền tín hiệu EMG &amp; IMU theo thời gian thực đến bác sĩ của bạn.</p>
+                </div>
+                <div class="ms-auto text-end">
+                    <div class="text-success fw-bold">@currentEMG.ToString("0.0") µV</div>
+                    <div class="text-muted small">EMG hiện tại</div>
+                </div>
+            </div>
+        }
+
+        <!-- Progress Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="modern-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted fw-semibold text-uppercase mb-0" style="font-size: 0.78rem; letter-spacing: 0.05em;">Thời gian tập hôm nay</h6>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
+                            <i class="bi bi-clock-history fs-5"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <h2 class="fw-bold text-dark mb-0" style="font-size: 2.8rem;">@todayDuration</h2>
+                        <span class="text-muted fw-medium">phút</span>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px; border-radius: 2px; background-color: rgba(79,70,229,0.1);">
+                        <div class="progress-bar bg-primary" style="width: @(Math.Min(todayDuration * 100 / Math.Max(treatmentPlan?.TargetDuration ?? 30, 1), 100))%;"></div>
+                    </div>
+                    <div class="text-muted small mt-1">Mục tiêu: @(treatmentPlan?.TargetDuration ?? 30) phút</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="modern-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6 class="text-muted fw-semibold text-uppercase mb-0" style="font-size: 0.78rem; letter-spacing: 0.05em;">Số lần lặp hợp lệ</h6>
+                        <div class="bg-success bg-opacity-10 p-2 rounded-3 text-success">
+                            <i class="bi bi-arrow-repeat fs-5"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <h2 class="fw-bold text-success mb-0" style="font-size: 2.8rem;">@todayReps</h2>
+                        <span class="text-muted fw-medium">lần</span>
+                    </div>
+                    <div class="progress mt-3" style="height: 4px; border-radius: 2px; background-color: rgba(16,185,129,0.1);">
+                        <div class="progress-bar bg-success" style="width: @(Math.Min(todayReps * 100 / Math.Max(treatmentPlan?.TargetRepetitions ?? 30, 1), 100))%;"></div>
+                    </div>
+                    <div class="text-muted small mt-1">Mục tiêu: @(treatmentPlan?.TargetRepetitions ?? 30) lần</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="modern-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6 class="text-muted fw-semibold text-uppercase mb-0" style="font-size: 0.78rem; letter-spacing: 0.05em;">Điểm Phục hồi</h6>
+                        <div class="bg-info bg-opacity-10 p-2 rounded-3 text-info">
+                            <i class="bi bi-activity fs-5"></i>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-baseline gap-2 mb-2">
+                        <h2 class="fw-bold text-info mb-0" style="font-size: 2.8rem;">@recoveryScore</h2>
+                        <span class="text-muted fw-medium">%</span>
+                    </div>
+                    <div class="progress" style="height: 6px; border-radius: 3px; background-color: rgba(14,165,233,0.1);">
+                        <div class="progress-bar bg-info" role="progressbar"
+                             style="width: @recoveryScore%; border-radius: 3px;"
+                             aria-valuenow="@recoveryScore" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="text-muted small mt-1">
+                        @(recoveryScore >= 80 ? "🏆 Xuất sắc!" : recoveryScore >= 60 ? "👍 Tốt" : "💪 Cố gắng lên!")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart & Plan -->
+        <div class="row g-4">
+            <!-- Live Chart -->
+            <div class="col-lg-8">
+                <div class="modern-card glow-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-graph-up-arrow text-primary me-2"></i> Hoạt động cơ theo thời gian thực (EMG)
+                        </h5>
+                        @if (isExercising)
+                        {
+                            <span class="badge bg-success rounded-pill px-3 py-2">
+                                <span class="live-dot me-1"></span> LIVE
+                            </span>
+                        }
+                    </div>
+
+                    @if (!liveData.Any() && !isExercising)
+                    {
+                        <div class="d-flex align-items-center justify-content-center bg-light rounded-4" style="height:320px;">
+                            <div class="text-center text-muted p-4">
+                                <i class="bi bi-activity text-muted" style="font-size:4rem;opacity:0.2;"></i>
+                                <h5 class="mt-3 fw-bold">Chưa có dữ liệu</h5>
+                                <p class="small">Nhấn <strong>"Bắt đầu Tập luyện"</strong> để xem biểu đồ EMG trực tiếp</p>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="rounded-4 overflow-hidden" style="height: 320px;">
+                            <RadzenChart Style="width: 100%; height: 100%;">
+                                <RadzenLineSeries Smooth="true" Data="@liveData" CategoryProperty="Time" ValueProperty="EMGValue"
+                                                 Title="EMG (µV)" Stroke="var(--primary-color)" StrokeWidth="2.5">
+                                    <RadzenSeriesDataLabels Visible="false" />
+                                    <RadzenMarkers MarkerType="MarkerType.None" />
+                                </RadzenLineSeries>
+                                <RadzenCategoryAxis FormatString="{0:HH:mm:ss}" />
+                                <RadzenValueAxis>
+                                    <RadzenGridLines Visible="true" Stroke="rgba(0,0,0,0.04)" />
+                                </RadzenValueAxis>
+                            </RadzenChart>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Treatment Plan -->
+            <div class="col-lg-4">
+                <div class="modern-card h-100 d-flex flex-column">
+                    <div class="p-4 border-bottom">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-clipboard2-pulse text-primary me-2"></i> Mục tiêu hôm nay
+                        </h5>
+                    </div>
+                    <div class="p-4 flex-grow-1">
+                        @if (treatmentPlan != null)
+                        {
+                            <div class="d-flex flex-column gap-3 mb-4">
+                                <div class="p-3 bg-light rounded-4 d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center" style="width: 38px; height: 38px;">
+                                            <i class="bi bi-arrow-repeat fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0">Số lần lặp</h6>
+                                            <span class="text-muted small">Mục tiêu mỗi buổi</span>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold">@treatmentPlan.TargetRepetitions lần</span>
+                                </div>
+
+                                <div class="p-3 bg-light rounded-4 d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center" style="width: 38px; height: 38px;">
+                                            <i class="bi bi-clock fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0">Thời gian</h6>
+                                            <span class="text-muted small">Mục tiêu mỗi buổi</span>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success rounded-pill px-3 py-2 fw-bold">@treatmentPlan.TargetDuration phút</span>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(treatmentPlan.Description))
+                            {
+                                <div class="p-3 rounded-4" style="background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04)); border: 1px solid rgba(245,158,11,0.2);">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <i class="bi bi-chat-quote-fill fs-4 flex-shrink-0" style="color: var(--warning-color);"></i>
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-1 small text-uppercase">Lời nhắn từ Bác sĩ</h6>
+                                            <p class="mb-0 small text-muted fst-italic">"@treatmentPlan.Description"</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-clipboard2 fs-1 opacity-30 mb-3 d-block"></i>
+                                <p class="small">Chưa có phác đồ điều trị. Bác sĩ của bạn sẽ cập nhật sớm.</p>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Session history mini -->
+                    @if (todaySessions.Any())
+                    {
+                        <div class="p-4 border-top">
+                            <div class="text-muted small fw-semibold text-uppercase mb-2">Buổi tập hôm nay</div>
+                            @foreach (var s in todaySessions.Take(3))
+                            {
+                                <div class="d-flex justify-content-between align-items-center py-1">
+                                    <span class="small text-muted">@s.StartTime.ToString("HH:mm")</span>
+                                    <span class="small">@s.DurationMinutes phút · @s.RepetitionsCount lần</span>
+                                    @if (s.RepetitionsCount >= (treatmentPlan?.TargetRepetitions ?? 10))
+                                    {
+                                        <span class="badge badge-soft-success rounded-pill px-2">Tốt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-soft-warning rounded-pill px-2">Cố gắng</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .live-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        animation: pulse 1s infinite;
+    }
+    @@keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+    .session-timer {
+        font-family: 'Outfit', monospace;
+        font-size: 1.1rem;
+        letter-spacing: 0.05em;
+    }
+</style>
+
+@code {
+    private List<ExerciseSession> sessions = new();
+    private List<ExerciseSession> todaySessions = new();
+    private TreatmentPlan? treatmentPlan;
+    private bool isExercising = false;
+    private bool isLoading = true;
+    private int patientId = 0;
+    private string patientName = "Bạn";
+    private double currentEMG = 0;
+
+    // Computed stats
+    private int todayDuration => todaySessions.Sum(s => s.DurationMinutes);
+    private int todayReps => todaySessions.Sum(s => s.RepetitionsCount);
+
+    // Recovery score calculated from actual data
+    private int recoveryScore
+    {
+        get
+        {
+            if (!sessions.Any()) return 0;
+            var targetReps = treatmentPlan?.TargetRepetitions ?? 30;
+            var recentSessions = sessions.Take(7).ToList();
+            if (!recentSessions.Any()) return 0;
+            var avgReps = recentSessions.Average(s => s.RepetitionsCount);
+            var score = (int)Math.Min((avgReps / Math.Max(targetReps, 1)) * 100, 100);
+            return score;
+        }
+    }
+
+    // Timer
+    private DateTime sessionStartTime;
+
+    // SignalR & Chart
+    private HubConnection? hubConnection;
+    private List<ChartDataPoint> liveData = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            patientId = userId;
+        }
+
+        patientName = user.Identity?.Name ?? "Bạn";
+
+        try
+        {
+            var result = await Mediator.Send(new GetPatientProgressQuery { PatientId = patientId });
+            sessions = result.Sessions;
+            treatmentPlan = result.TreatmentPlan;
+            todaySessions = sessions.Where(s => s.StartTime.Date == DateTime.UtcNow.Date).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading patient data: {ex.Message}");
+            sessions = new();
+            todaySessions = new();
+        }
+
+        // Setup SignalR
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/dashboardHub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<double, double>("ReceiveNewMetrics", (avgEMG, maxROM) =>
+        {
+            currentEMG = avgEMG;
+            liveData.Add(new ChartDataPoint { Time = DateTime.Now, EMGValue = avgEMG });
+            if (liveData.Count > 30) liveData.RemoveAt(0);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+        await hubConnection.SendAsync("JoinPatientGroup", patientId);
+
+        isLoading = false;
+    }
+
+    private void StartSession()
+    {
+        isExercising = true;
+        sessionStartTime = DateTime.Now;
+        liveData.Clear();
+        _ = SimulateDataLoop();
+    }
+
+    private async Task StopSession()
+    {
+        isExercising = false;
+
+        // Save session if we had some duration
+        var durationMinutes = (int)(DateTime.Now - sessionStartTime).TotalMinutes;
+        if (durationMinutes > 0 && patientId > 0)
+        {
+            try
+            {
+                // Create a new session record via MediatR
+                var sessionReps = liveData.Count; // approximate
+                var newSession = new ExerciseSession
+                {
+                    PatientId = patientId,
+                    StartTime = sessionStartTime.ToUniversalTime(),
+                    EndTime = DateTime.UtcNow,
+                    DurationMinutes = durationMinutes,
+                    RepetitionsCount = sessionReps,
+                    MaxRom = liveData.Any() ? (int)liveData.Max(d => d.EMGValue / 2) : 0,
+                    AvgEmg = liveData.Any() ? liveData.Average(d => d.EMGValue) : 0,
+                    DeviceType = "Simulator"
+                };
+
+                todaySessions.Insert(0, newSession);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving session: {ex.Message}");
+            }
+        }
+    }
+
+    private string FormatElapsedTime()
+    {
+        if (!isExercising) return "00:00";
+        var elapsed = DateTime.Now - sessionStartTime;
+        return $"{(int)elapsed.TotalMinutes:D2}:{elapsed.Seconds:D2}";
+    }
+
+    private async Task SimulateDataLoop()
+    {
+        while (isExercising && hubConnection?.State == HubConnectionState.Connected)
+        {
+            await hubConnection.SendAsync("SimulateData", patientId);
+            await Task.Delay(1000);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    public class ChartDataPoint
+    {
+        public DateTime Time { get; set; }
+        public double EMGValue { get; set; }
+    }
+}

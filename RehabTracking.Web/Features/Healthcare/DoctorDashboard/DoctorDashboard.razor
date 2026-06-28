@@ -1,0 +1,417 @@
+@page "/doctor-dashboard"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.SignalR.Client
+@using MediatR
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Features.Healthcare.DoctorDashboard
+@using Radzen.Blazor
+@attribute [Authorize(Roles = "Doctor")]
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard Bác sĩ - TeleRehab</PageTitle>
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold text-dark" style="font-size: 2rem;">Trung tâm Theo dõi Bệnh nhân</h2>
+            <p class="text-muted">Theo dõi tiến trình phục hồi trực tiếp và điều chỉnh phác đồ từ xa.</p>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Sidebar Patient Roster (Now as top horizontal cards on mobile/lg-left) -->
+        <div class="col-xl-3 col-lg-4">
+            <div class="d-flex flex-column gap-3">
+                <div class="modern-card p-3 d-flex align-items-center justify-content-between">
+                    <span class="fw-bold text-muted text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">Bệnh nhân của bạn</span>
+                    <span class="badge bg-primary rounded-pill">@(patients?.Count ?? 0)</span>
+                </div>
+
+                @if (patients == null)
+                {
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                }
+                else if (!patients.Any())
+                {
+                    <div class="alert alert-light border-0 shadow-sm text-center">
+                        Chưa có bệnh nhân nào được phân công.
+                    </div>
+                }
+                else
+                {
+                    <div class="patient-list d-flex flex-lg-column gap-3 overflow-auto pb-2 pb-lg-0" style="max-height: calc(100vh - 200px);">
+                        @foreach (var patient in patients)
+                        {
+                            bool isSelected = selectedPatient?.PatientId == patient.PatientId;
+                            <div class="modern-card p-3 cursor-pointer @(isSelected ? "border-primary border-2" : "border-0")" 
+                                 style="cursor: pointer; min-width: 250px; transition: all 0.2s; @(isSelected ? "box-shadow: 0 0 0 0.25rem rgba(79,70,229,0.25);" : "")"
+                                 @onclick="() => SelectPatient(patient)">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center text-primary fw-bold" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                                        @(patient.User?.FullName?.Substring(0, 1).ToUpper() ?? "P")
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-dark">@patient.User?.FullName</h6>
+                                        <span class="text-muted small">@patient.Gender • @(patient.DateOfBirth.HasValue ? (DateTime.Now.Year - patient.DateOfBirth.Value.Year) : 0) tuổi</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="col-xl-9 col-lg-8">
+            @if (selectedPatient != null)
+            {
+                <div class="row g-4 mb-4">
+                    <!-- Profile Summary Card -->
+                    <div class="col-md-7">
+                        <div class="modern-card p-4 h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h4 class="fw-bold text-dark mb-1">@selectedPatient.User?.FullName</h4>
+                                    <span class="badge badge-soft-warning px-3 py-2 rounded-pill">
+                                        <i class="bi bi-file-medical"></i> @selectedPatient.MedicalHistory
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(successMessage))
+                                    {
+                                        <div class="mt-2 text-success small fw-bold">
+                                            <i class="bi bi-check-circle-fill me-1"></i> @successMessage
+                                        </div>
+                                    }
+                                </div>
+                                <button class="btn btn-modern-primary rounded-pill btn-sm px-4 py-2" @onclick="ShowTreatmentModal">
+                                    <i class="bi bi-sliders me-1"></i> Điều chỉnh Phác đồ
+                                </button>
+                            </div>
+                            
+                            <hr class="text-muted opacity-25">
+                            
+                            <div class="row mt-4">
+                                <div class="col-6">
+                                    <p class="text-muted small text-uppercase mb-1 fw-semibold">Liên hệ</p>
+                                    <p class="fw-medium">@selectedPatient.User?.PhoneNumber</p>
+                                </div>
+                                <div class="col-6">
+                                    <p class="text-muted small text-uppercase mb-1 fw-semibold">Tuổi / Giới tính</p>
+                                    <p class="fw-medium">@(selectedPatient.DateOfBirth.HasValue ? (DateTime.Now.Year - selectedPatient.DateOfBirth.Value.Year) : 0) tuổi / @selectedPatient.Gender</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Live Status Card -->
+                    <div class="col-md-5">
+                        <div class="modern-card glow-card p-4 h-100 d-flex flex-column justify-content-center align-items-center text-center position-relative overflow-hidden">
+                            @if (liveData.Any())
+                            {
+                                <div class="position-absolute top-0 end-0 m-3 d-flex align-items-center gap-2">
+                                    <span class="live-indicator"></span>
+                                    <span class="text-success fw-bold small text-uppercase" style="letter-spacing: 1px;">Live</span>
+                                </div>
+                                <h2 class="fw-bold text-dark mb-0" style="font-size: 4rem; color: var(--primary-color) !important;">@(liveData.Last().EMGValue.ToString("0.0"))</h2>
+                                <p class="text-muted fw-semibold mt-2">Tín hiệu EMG trực tiếp (µV)</p>
+                            }
+                            else
+                            {
+                                <div class="bg-light rounded-circle d-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px;">
+                                    <i class="bi bi-wifi-off text-muted fs-1"></i>
+                                </div>
+                                <h5 class="fw-bold">Thiết bị ngoại tuyến</h5>
+                                <p class="text-muted small">Đang chờ bệnh nhân kết nối thiết bị và tập luyện...</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Chart -->
+                <div class="modern-card p-4 mb-4">
+                    <h5 class="fw-bold text-dark mb-4">
+                        <i class="bi bi-activity text-primary me-2"></i> Dữ liệu EMG Thời gian thực
+                    </h5>
+                    @if (liveData.Any())
+                    {
+                        <div style="height: 300px;">
+                            <RadzenChart>
+                                <RadzenLineSeries Smooth="true" Data="@liveData" CategoryProperty="Time" Title="EMG (µV)" ValueProperty="EMGValue" Stroke="var(--primary-color)">
+                                    <RadzenMarkers MarkerType="MarkerType.Circle" Fill="var(--primary-color)" />
+                                </RadzenLineSeries>
+                                <RadzenCategoryAxis FormatString="{0:HH:mm:ss}" />
+                                <RadzenValueAxis>
+                                    <RadzenGridLines Visible="true" Stroke="rgba(0,0,0,0.05)" />
+                                </RadzenValueAxis>
+                            </RadzenChart>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex align-items-center justify-content-center bg-light rounded-4" style="height: 300px;">
+                            <div class="text-center text-muted">
+                                <i class="bi bi-bar-chart text-muted fs-1 opacity-50 mb-2"></i>
+                                <p>Không có dữ liệu telemetry.</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Exercise History -->
+                <div class="modern-card overflow-hidden">
+                    <div class="card-header bg-white border-bottom-0 p-4">
+                        <h5 class="fw-bold text-dark mb-0">Lịch sử Tập luyện</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light text-muted">
+                                <tr>
+                                    <th class="ps-4 text-uppercase font-weight-semibold small">Ngày</th>
+                                    <th class="text-uppercase font-weight-semibold small">Thời lượng</th>
+                                    <th class="text-uppercase font-weight-semibold small">Số Reps</th>
+                                    <th class="text-uppercase font-weight-semibold small">Max ROM</th>
+                                    <th class="pe-4 text-uppercase font-weight-semibold small">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (selectedPatient.ExerciseSessions != null)
+                                {
+                                    foreach (var session in selectedPatient.ExerciseSessions.OrderByDescending(s => s.StartTime).Take(5))
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-medium text-dark">@session.StartTime.ToString("MMM dd, yyyy")</td>
+                                            <td class="text-muted">@session.DurationMinutes min</td>
+                                            <td class="fw-bold" style="color: var(--secondary-color);">@session.RepetitionsCount</td>
+                                            <td class="text-muted">@session.MaxRom°</td>
+                                            <td class="pe-4">
+                                                @if (session.RepetitionsCount >= 10)
+                                                {
+                                                    <span class="badge badge-soft-success rounded-pill px-3 py-2">Tốt</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-soft-warning rounded-pill px-3 py-2">Cần cải thiện</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="modern-card h-100 d-flex flex-column align-items-center justify-content-center p-5 text-center" style="min-height: 60vh;">
+                    <img src="/favicon.png" alt="Select" style="width: 120px; opacity: 0.1;" class="mb-4" />
+                    <h3 class="fw-bold text-muted">Chưa chọn Bệnh nhân</h3>
+                    <p class="text-muted mx-auto" style="max-width: 400px;">
+                        Chọn một bệnh nhân từ danh sách bên trái để xem hồ sơ bệnh án, dữ liệu trực tiếp và lịch sử điều trị.
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Treatment Plan Modal -->
+@if (showModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+                <div class="modal-header border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-sliders text-primary fs-4"></i>
+                        </div>
+                        <h5 class="modal-title fw-bold mb-0">Điều chỉnh Phác đồ Điều trị</h5>
+                    </div>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <EditForm Model="adjustModel" OnValidSubmit="SaveTreatmentPlan">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark">Mục tiêu Số lần lặp (mỗi buổi)</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <RadzenSlider @bind-Value="adjustModel.TargetRepetitions" Min="5" Max="50" Step="1" class="flex-grow-1" />
+                                <span class="fw-bold fs-5 text-primary" style="width: 40px; text-align: right;">@adjustModel.TargetRepetitions</span>
+                            </div>
+                            <ValidationMessage For="@(() => adjustModel.TargetRepetitions)" class="text-danger small mt-1 d-block" />
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark">Mục tiêu Thời lượng (phút)</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <RadzenSlider @bind-Value="adjustModel.TargetDuration" Min="5" Max="60" Step="5" class="flex-grow-1" />
+                                <span class="fw-bold fs-5 text-primary" style="width: 40px; text-align: right;">@adjustModel.TargetDuration</span>
+                            </div>
+                            <ValidationMessage For="@(() => adjustModel.TargetDuration)" class="text-danger small mt-1 d-block" />
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark">Ghi chú / Hướng dẫn của Bác sĩ</label>
+                            <InputTextArea class="form-control bg-light border-0 p-3" style="border-radius: 1rem;" @bind-Value="adjustModel.Description" rows="3" placeholder="Thêm hướng dẫn cụ thể cho bệnh nhân..." />
+                            <ValidationMessage For="@(() => adjustModel.Description)" class="text-danger small mt-1 d-block" />
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-light rounded-pill px-4" @onclick="CloseModal">Hủy</button>
+                            <button type="submit" class="btn btn-modern-primary rounded-pill px-4 shadow-sm">Lưu phác đồ</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<PatientProfile>? patients;
+    private PatientProfile? selectedPatient;
+    private bool showModal = false;
+    private AdjustTreatmentCommand adjustModel = new();
+
+    // SignalR & Chart
+    private HubConnection? hubConnection;
+    private List<ChartDataPoint> liveData = new();
+    private int currentListeningPatientId = 0;
+
+    private string successMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            patients = await Mediator.Send(new GetPatientsQuery { DoctorId = 0 }); // actual ID resolved in handler from Claims
+            
+            // Generate mock data if empty for demo purposes
+            if (!patients.Any())
+            {
+                patients.Add(new PatientProfile 
+                { 
+                    PatientId = 1, 
+                    DateOfBirth = new DateOnly(1979, 1, 1), 
+                    Gender = "Male", 
+                    MedicalHistory = "Post-stroke right arm weakness",
+                    User = new User { FullName = "John Doe", PhoneNumber = "0123456789" },
+                    ExerciseSessions = new List<ExerciseSession> 
+                    {
+                        new ExerciseSession { StartTime = DateTime.UtcNow, DurationMinutes = 15, RepetitionsCount = 12, MaxRom = 45 },
+                        new ExerciseSession { StartTime = DateTime.UtcNow.AddDays(-1), DurationMinutes = 20, RepetitionsCount = 8, MaxRom = 30 }
+                    }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching patients: {ex.Message}");
+            patients = new List<PatientProfile>();
+        }
+
+        // Initialize SignalR Connection
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/dashboardHub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<double, double>("ReceiveNewMetrics", (avgEMG, maxROM) =>
+        {
+            liveData.Add(new ChartDataPoint { Time = DateTime.Now, EMGValue = avgEMG });
+
+            if (liveData.Count > 20) liveData.RemoveAt(0);
+
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task SelectPatient(PatientProfile patient)
+    {
+        selectedPatient = patient;
+        
+        // Xóa data cũ
+        liveData.Clear();
+        
+        // Chuyển SignalR room nếu đang connect
+        if (hubConnection is not null && hubConnection.State == HubConnectionState.Connected)
+        {
+            await hubConnection.SendAsync("JoinPatientGroup", patient.PatientId);
+            currentListeningPatientId = patient.PatientId;
+        }
+    }
+
+    private void ShowTreatmentModal()
+    {
+        if (selectedPatient != null)
+        {
+            var existingPlan = selectedPatient.TreatmentPlans?.FirstOrDefault();
+            adjustModel = new AdjustTreatmentCommand
+            {
+                PlanId = existingPlan?.PlanId ?? 0, 
+                PatientId = selectedPatient.PatientId,
+                TargetRepetitions = existingPlan?.TargetRepetitions ?? 15,
+                TargetDuration = existingPlan?.TargetDuration ?? 20,
+                Description = existingPlan?.Description ?? "Continue daily exercises."
+            };
+            showModal = true;
+            successMessage = "";
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task SaveTreatmentPlan()
+    {
+        try
+        {
+            var result = await Mediator.Send(adjustModel);
+            if (result)
+            {
+                successMessage = "Treatment plan updated successfully!";
+                // Refresh data if needed, or update locally
+                var existingPlan = selectedPatient?.TreatmentPlans?.FirstOrDefault();
+                if (existingPlan != null)
+                {
+                    existingPlan.TargetRepetitions = adjustModel.TargetRepetitions;
+                    existingPlan.TargetDuration = adjustModel.TargetDuration;
+                    existingPlan.Description = adjustModel.Description;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving plan: {ex.Message}");
+        }
+        finally
+        {
+            showModal = false;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    public class ChartDataPoint
+    {
+        public DateTime Time { get; set; }
+        public double EMGValue { get; set; }
+    }
+}

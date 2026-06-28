@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="RequiredField" xml:space="preserve">
+    <value>{0} là bắt buộc.</value>
+  </data>
+  <data name="InvalidFormat" xml:space="preserve">
+    <value>Định dạng {0} không hợp lệ.</value>
+  </data>
+  <data name="MaxLength" xml:space="preserve">
+    <value>{0} không được vượt quá {1} ký tự.</value>
+  </data>
+  <data name="MinLength" xml:space="preserve">
+    <value>{0} phải có ít nhất {1} ký tự.</value>
+  </data>
+  <data name="InternalServerError" xml:space="preserve">
+    <value>Lỗi hệ thống nội bộ.</value>
+  </data>
+  <data name="DataProcessingFailed" xml:space="preserve">
+    <value>Xử lý dữ liệu thất bại.</value>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>Mật khẩu không khớp.</value>
+  </data>
+  <data name="ConfirmPasswordRequired" xml:space="preserve">
+    <value>Vui lòng xác nhận mật khẩu.</value>
+  </data>
+  <data name="InvalidTargetRepetitions" xml:space="preserve">
+    <value>Số lần lặp mục tiêu phải từ {1} đến {2}.</value>
+  </data>
+  <data name="InvalidTargetDuration" xml:space="preserve">
+    <value>Thời lượng mục tiêu phải từ {1} đến {2} phút.</value>
+  </data>
+  <data name="InvalidAvgEmg" xml:space="preserve">
+    <value>Chỉ số EMG phải là một số đo hợp lệ.</value>
+  </data>
+  <data name="InvalidMaxRom" xml:space="preserve">
+    <value>Góc quay tối đa (MaxRom) phải từ {1} đến {2} độ.</value>
+  </data>
+  <data name="PositiveRepetitions" xml:space="preserve">
+    <value>Số lần lặp phải là số dương.</value>
+  </data>
+  <data name="InvalidDurationMinutes" xml:space="preserve">
+    <value>Thời lượng tập phải hợp lệ (từ {1} đến {2} phút).</value>
+  </data>
+  <data name="DeviceNotFound" xml:space="preserve">
+    <value>Không tìm thấy thiết bị này trên hệ thống.</value>
+  </data>
+  <data name="DeviceAlreadyActivated" xml:space="preserve">
+    <value>Thiết bị này đã được kích hoạt trước đó hoặc không hợp lệ.</value>
+  </data>
+  <data name="DoctorRoleNotFound" xml:space="preserve">
+    <value>Lỗi hệ thống: Không tìm thấy Role Bác sĩ.</value>
+  </data>
+  <data name="NoDoctorAvailable" xml:space="preserve">
+    <value>Hệ thống hiện tại chưa có Bác sĩ nào khả dụng. Vui lòng thử lại sau.</value>
+  </data>
+  <data name="UserAuthenticationError" xml:space="preserve">
+    <value>Lỗi xác thực người dùng. Vui lòng đăng nhập lại.</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>Đã xảy ra lỗi không xác định. Vui lòng thử lại.</value>
+  </data>
+</root>

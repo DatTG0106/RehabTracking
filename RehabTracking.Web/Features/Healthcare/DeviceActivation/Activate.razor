@@ -1,0 +1,120 @@
+@page "/activate-device"
+@using MediatR
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using RehabTracking.Web.Features.Healthcare.DeviceActivation
+@attribute [Authorize]
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Kích hoạt Thiết bị - Rehab Tracking</PageTitle>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-watch text-primary" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="fw-bold mb-3">Kích hoạt Thiết bị</h2>
+                    <p class="text-muted mb-4">Nhập mã Seri ở mặt sau vòng đeo tay Rehab Band của bạn để kết nối với tài khoản và được tự động chỉ định Bác sĩ theo dõi.</p>
+
+                    @if (!string.IsNullOrEmpty(feedbackMessage))
+                    {
+                        <div class="alert @(isSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show text-start" role="alert">
+                            <i class="bi @(isSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill") me-2"></i>
+                            @feedbackMessage
+                            <button type="button" class="btn-close" @onclick="ClearMessage"></button>
+                        </div>
+                    }
+
+                    <EditForm Model="command" OnValidSubmit="SubmitActivation">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="form-floating mb-4 text-start">
+                            <InputText id="serialNumber" class="form-control form-control-lg bg-light" @bind-Value="command.DeviceSerialNumber" placeholder="VD: ESP32-MAC-1234" />
+                            <label for="serialNumber">Mã Seri Thiết bị (Serial Number)</label>
+                            <ValidationMessage For="() => command.DeviceSerialNumber" class="text-danger small mt-1" />
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-modern-primary btn-lg rounded-pill fw-bold shadow-sm" disabled="@isProcessing">
+                                @if (isProcessing)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Đang kích hoạt...</span>
+                                }
+                                else
+                                {
+                                    <span>Kích hoạt Thiết bị</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                    
+                    @if (isSuccess)
+                    {
+                        <div class="mt-4">
+                            <button class="btn btn-outline-success rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/patient-dashboard")'>
+                                Đi đến Dashboard của tôi <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ActivateDevice.Command command = new();
+    private string feedbackMessage = "";
+    private bool isSuccess = false;
+    private bool isProcessing = false;
+
+    private async Task SubmitActivation()
+    {
+        isProcessing = true;
+        feedbackMessage = "";
+        
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                command.CurrentUserId = userId;
+                
+                var result = await Mediator.Send(command);
+                feedbackMessage = result.Message;
+                isSuccess = result.IsSuccess;
+            }
+            else
+            {
+                feedbackMessage = RehabTracking.Web.Resources.ErrorMessages.UserAuthenticationError;
+                isSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            feedbackMessage = RehabTracking.Web.Resources.ErrorMessages.UnexpectedError;
+            isSuccess = false;
+            Console.WriteLine($"Activation error: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ClearMessage()
+    {
+        feedbackMessage = "";
+    }
+}

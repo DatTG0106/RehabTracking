@@ -1,0 +1,207 @@
+@page "/cart"
+@using RehabTracking.Web.Features.ECommerce.Cart
+@using Microsoft.AspNetCore.Components.Authorization
+@inject CartState CartState
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+@implements IDisposable
+
+<PageTitle>Giỏ hàng - RehabTracking</PageTitle>
+
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="/" class="btn btn-light btn-sm rounded-pill me-3">
+            <i class="bi bi-arrow-left me-1"></i>Tiếp tục mua
+        </a>
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-cart3 text-primary me-2"></i>Giỏ hàng
+        </h2>
+    </div>
+
+    @if (CartState.Items.Count == 0)
+    {
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="bi bi-cart-x" style="font-size:6rem; color: #e2e8f0;"></i>
+            </div>
+            <h4 class="fw-bold text-muted mb-2">Giỏ hàng trống</h4>
+            <p class="text-muted mb-4">Bạn chưa thêm sản phẩm nào vào giỏ hàng.</p>
+            <a href="/" class="btn btn-modern-primary rounded-pill px-5 shadow-sm">
+                <i class="bi bi-shop me-2"></i>Xem sản phẩm
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="modern-card p-0 overflow-hidden">
+                    <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">Sản phẩm (@CartState.Items.Sum(i => i.Quantity) món)</h5>
+                        <button class="btn btn-light btn-sm rounded-pill text-danger" @onclick="() => CartState.ClearCart()">
+                            <i class="bi bi-trash me-1"></i>Xóa tất cả
+                        </button>
+                    </div>
+
+                    @foreach (var item in CartState.Items)
+                    {
+                        <div class="p-4 border-bottom cart-item-row">
+                            <div class="row align-items-center g-3">
+                                <div class="col-auto">
+                                    <img src="@(string.IsNullOrEmpty(item.Product.ImageUrl) ? "https://placehold.co/80x80/e0e7ff/6366f1?text=SP" : item.Product.ImageUrl)"
+                                         class="rounded-3 border" style="width:80px;height:80px;object-fit:cover;" alt="@item.Product.ProductName" />
+                                </div>
+                                <div class="col">
+                                    <h6 class="fw-bold mb-0">@item.Product.ProductName</h6>
+                                    <div class="text-muted small">@item.Product.ProductType</div>
+                                    <div class="text-primary fw-bold mt-1">@item.Product.Price.ToString("N0")₫ / cái</div>
+                                </div>
+                                <div class="col-auto">
+                                    <!-- Quantity control -->
+                                    <div class="d-flex align-items-center gap-2 qty-control">
+                                        <button class="btn btn-light btn-sm rounded-circle qty-btn"
+                                                @onclick="() => DecreaseQty(item)"
+                                                disabled="@(item.Quantity <= 1)">
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                        <span class="fw-bold px-2" style="min-width:24px;text-align:center;">@item.Quantity</span>
+                                        <button class="btn btn-light btn-sm rounded-circle qty-btn"
+                                                @onclick="() => IncreaseQty(item)"
+                                                disabled="@(item.Quantity >= item.Product.StockQuantity)">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-auto text-end">
+                                    <div class="fw-bold text-dark mb-2">@((item.Product.Price * item.Quantity).ToString("N0"))₫</div>
+                                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                            @onclick="() => CartState.RemoveFromCart(item.Product.ProductId)">
+                                        <i class="bi bi-trash me-1"></i>Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="modern-card p-4 sticky-top" style="top: 90px;">
+                    <h5 class="fw-bold mb-4">
+                        <i class="bi bi-receipt me-2 text-primary"></i>Tóm tắt
+                    </h5>
+
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Tạm tính</span>
+                        <span>@CartState.GetTotal().ToString("N0")₫</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 small">
+                        <span class="text-muted">Phí vận chuyển</span>
+                        <span class="text-success fw-semibold">
+                            <i class="bi bi-truck me-1"></i>Miễn phí
+                        </span>
+                    </div>
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <span class="fw-bold">Tổng cộng</span>
+                        <span class="fw-bold fs-5 text-primary">@CartState.GetTotal().ToString("N0")₫</span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="/checkout" class="btn btn-modern-primary btn-lg rounded-pill shadow fw-semibold">
+                            <i class="bi bi-credit-card me-2"></i>Tiến hành thanh toán
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary rounded-pill">
+                            <i class="bi bi-arrow-left me-1"></i>Tiếp tục mua sắm
+                        </a>
+                    </div>
+
+                    <!-- Trust badges -->
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="d-flex gap-3 justify-content-center text-muted" style="font-size:0.78rem;">
+                            <div class="text-center">
+                                <i class="bi bi-shield-check text-success d-block fs-5 mb-1"></i>
+                                Bảo mật
+                            </div>
+                            <div class="text-center">
+                                <i class="bi bi-truck text-primary d-block fs-5 mb-1"></i>
+                                Miễn ship
+                            </div>
+                            <div class="text-center">
+                                <i class="bi bi-arrow-counterclockwise text-warning d-block fs-5 mb-1"></i>
+                                Hoàn trả
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .cart-item-row {
+        transition: background-color 0.15s ease;
+    }
+    .cart-item-row:hover {
+        background-color: #fafafa;
+    }
+    .cart-item-row:last-child {
+        border-bottom: none !important;
+    }
+    .qty-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid #dee2e6 !important;
+    }
+    .qty-btn:hover:not(:disabled) {
+        background-color: #e0e7ff;
+        border-color: #4f46e5 !important;
+        color: #4f46e5;
+    }
+    .qty-control {
+        border: 1px solid #e2e8f0;
+        border-radius: 9999px;
+        padding: 0.2rem 0.4rem;
+        background: white;
+    }
+</style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity == null || !authState.User.Identity.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login?returnUrl=/cart");
+            return;
+        }
+        
+        CartState.OnChange += StateHasChanged;
+    }
+
+    private void IncreaseQty(CartItem item)
+    {
+        CartState.AddToCart(item.Product, 1);
+    }
+
+    private void DecreaseQty(CartItem item)
+    {
+        if (item.Quantity > 1)
+        {
+            CartState.DecreaseQuantity(item.Product.ProductId);
+        }
+    }
+
+    public void Dispose()
+    {
+        CartState.OnChange -= StateHasChanged;
+    }
+}

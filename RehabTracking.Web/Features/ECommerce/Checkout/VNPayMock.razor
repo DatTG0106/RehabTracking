@@ -1,0 +1,153 @@
+@page "/vnpay-mock"
+@using MediatR
+@using RehabTracking.Web.Features.ECommerce.Checkout
+@using RehabTracking.Web.Entities
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager Navigation
+@inject IMediator Mediator
+@inject RehabTrackingContext DbContext
+@rendermode InteractiveServer
+
+<PageTitle>VNPay - Cổng thanh toán Mock</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-sm-10">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- VNPay Header -->
+                <div class="card-header border-0 py-4 text-center" style="background: linear-gradient(135deg, #003087, #0070b8);">
+                    <img src="https://vnpay.vn/wp-content/uploads/2020/07/Logo-VNPAYQR-update.png"
+                         height="36" alt="VNPay" class="bg-white rounded-2 p-1 me-2" />
+                    <h5 class="text-white fw-bold d-inline align-middle">Cổng thanh toán VNPay</h5>
+                    <div class="text-white-50 small mt-1">
+                        <i class="bi bi-shield-lock me-1"></i>Kết nối an toàn & bảo mật (Mock Demo)
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status"></div>
+                            <p class="text-muted mt-3">Đang tải thông tin đơn hàng...</p>
+                        </div>
+                    }
+                    else if (order == null)
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-exclamation-triangle text-danger" style="font-size:4rem;"></i>
+                            <h5 class="mt-3 fw-bold text-danger">Không tìm thấy đơn hàng</h5>
+                            <p class="text-muted">Mã đơn hàng không hợp lệ hoặc đã bị xóa.</p>
+                            <a href="/" class="btn btn-primary rounded-pill px-4">Về trang chủ</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Order Info -->
+                        <div class="text-center mb-4">
+                            <div class="bg-light rounded-3 p-3 d-inline-block mb-3">
+                                <p class="text-muted small mb-1">Mã đơn hàng</p>
+                                <h5 class="fw-bold text-dark mb-0">#@OrderId</h5>
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Số tiền thanh toán</p>
+                                <h2 class="fw-bold" style="color: #003087;">@order.TotalAmount.ToString("N0") VNĐ</h2>
+                            </div>
+                        </div>
+
+                        <hr class="my-3" />
+
+                        <p class="text-muted text-center small mb-4">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Đây là môi trường <strong>demo</strong>. Chọn kết quả thanh toán giả lập bên dưới.
+                        </p>
+
+                        <div class="d-grid gap-3">
+                            <button class="btn btn-success btn-lg rounded-pill fw-semibold shadow-sm"
+                                    @onclick='() => ProcessPayment("00")' disabled="@isProcessing">
+                                @if (isProcessing)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                }
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                Thanh toán Thành Công
+                            </button>
+
+                            <button class="btn btn-outline-danger btn-lg rounded-pill fw-semibold"
+                                    @onclick='() => ProcessPayment("24")' disabled="@isProcessing">
+                                @if (isProcessing)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                }
+                                <i class="bi bi-x-circle me-2"></i>
+                                Hủy giao dịch
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                <div class="card-footer bg-light border-0 text-center py-3">
+                    <small class="text-muted">
+                        <i class="bi bi-lock-fill text-success me-1"></i>
+                        Dữ liệu được bảo mật bởi SSL/TLS 256-bit
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "orderId")]
+    public int OrderId { get; set; }
+
+    private Order? order;
+    private bool isLoading = true;
+    private bool isProcessing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (OrderId > 0)
+        {
+            order = await DbContext.Orders.FirstOrDefaultAsync(o => o.OrderId == OrderId);
+        }
+        isLoading = false;
+    }
+
+    private async Task ProcessPayment(string responseCode)
+    {
+        isProcessing = true;
+
+        try
+        {
+            var transactionNo = "VNP" + DateTime.Now.Ticks.ToString()[..10];
+
+            var command = new ProcessVNPayCallbackCommand
+            {
+                OrderId = OrderId,
+                ResponseCode = responseCode,
+                TransactionNo = transactionNo
+            };
+
+            var result = await Mediator.Send(command);
+
+            if (result)
+            {
+                Navigation.NavigateTo("/checkout/success");
+            }
+            else
+            {
+                Navigation.NavigateTo("/checkout/failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"VNPay mock error: {ex.Message}");
+            Navigation.NavigateTo("/checkout/failed");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+}

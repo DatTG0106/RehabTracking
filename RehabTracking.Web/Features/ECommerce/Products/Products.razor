@@ -1,0 +1,714 @@
+@page "/"
+@using MediatR
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Features.ECommerce.Products
+@using RehabTracking.Web.Features.ECommerce.Cart
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IMediator Mediator
+@inject CartState CartState
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Sản phẩm - RehabTracking</PageTitle>
+
+<div class="container-fluid p-0">
+    <!-- Hero Section / Landing Page -->
+    <div class="hero-section text-white text-center py-5">
+        <div class="container py-5 mt-4">
+            <div class="hero-badge mb-4 animate-fade-in-up">
+                <i class="bi bi-award-fill me-2 text-warning"></i> Nền tảng Y khoa IoT Số 1 Việt Nam
+            </div>
+            <h1 class="display-3 fw-black mb-4 animate-fade-in-up" style="animation-delay: 0.1s; letter-spacing: -1px;">Rehab<span class="text-info">Tracking</span> System</h1>
+            <p class="lead mb-5 opacity-90 mx-auto animate-fade-in-up" style="max-width: 700px; font-weight: 300; animation-delay: 0.2s;">
+                Phục hồi chức năng đột quỵ tại nhà với công nghệ <strong class="fw-bold">IoT & AI</strong> tiên tiến. Kết nối trực tiếp với bác sĩ chuyên khoa, theo dõi tiến trình qua từng cử động nhỏ nhất.
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="#products" class="btn btn-light btn-lg rounded-pill fw-bold text-primary px-5 shadow">
+                    <i class="bi bi-grid me-2"></i>Xem Thiết Bị
+                </a>
+                <a href="#product-details" class="btn btn-outline-light btn-lg rounded-pill px-5">
+                    <i class="bi bi-info-circle me-2"></i>Tìm hiểu thêm
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="bg-white shadow-sm border-bottom position-relative z-1" style="margin-top: -30px; border-radius: 20px 20px 0 0;">
+        <div class="container py-4">
+            <div class="row text-center g-4">
+                <div class="col-6 col-md-3">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center mb-2" style="width:50px;height:50px;">
+                            <i class="bi bi-people-fill fs-4"></i>
+                        </div>
+                        <div class="fw-bold fs-3 text-dark">5,000+</div>
+                        <div class="text-muted small fw-semibold text-uppercase mt-1">Bệnh nhân phục hồi</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center mb-2" style="width:50px;height:50px;">
+                            <i class="bi bi-heart-pulse-fill fs-4"></i>
+                        </div>
+                        <div class="fw-bold fs-3 text-dark">98%</div>
+                        <div class="text-muted small fw-semibold text-uppercase mt-1">Tỷ lệ hài lòng</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex justify-content-center align-items-center mb-2" style="width:50px;height:50px;">
+                            <i class="bi bi-person-badge-fill fs-4"></i>
+                        </div>
+                        <div class="fw-bold fs-3 text-dark">50+</div>
+                        <div class="text-muted small fw-semibold text-uppercase mt-1">Bác sĩ chuyên khoa</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="d-flex flex-column align-items-center">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex justify-content-center align-items-center mb-2" style="width:50px;height:50px;">
+                            <i class="bi bi-clock-history fs-4"></i>
+                        </div>
+                        <div class="fw-bold fs-3 text-dark">24/7</div>
+                        <div class="text-muted small fw-semibold text-uppercase mt-1">Giám sát liên tục</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div id="features" class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Tại sao chọn RehabTracking?</h2>
+            <p class="text-muted">Hệ sinh thái y tế thông minh kết nối Bệnh nhân - Thiết bị - Bác sĩ, mang lại hiệu quả phục hồi toàn diện.</p>
+        </div>
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="feature-card p-4 rounded-4 h-100 shadow-sm border border-light">
+                    <div class="feature-icon bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width:70px;height:70px;">
+                        <i class="bi bi-cpu fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold">Thiết bị IoT Chuyên dụng</h5>
+                    <p class="text-muted mb-0">Cảm biến ESP32 kết hợp MPU6050 & EMG đo góc quay khớp (ROM) và lực cơ chuẩn xác từng millimet. Tự động đồng bộ lên nền tảng đám mây.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 rounded-4 h-100 shadow-sm border border-light">
+                    <div class="feature-icon bg-success bg-opacity-10 text-success rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width:70px;height:70px;">
+                        <i class="bi bi-graph-up fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold">Biểu đồ Thời gian thực (Live)</h5>
+                    <p class="text-muted mb-0">Ứng dụng SignalR truyền tải dữ liệu trực tiếp với độ trễ mili-giây, giúp bác sĩ và bệnh nhân nhìn thấy ngay phản hồi khi vận động.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 rounded-4 h-100 shadow-sm border border-light">
+                    <div class="feature-icon bg-info bg-opacity-10 text-info rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width:70px;height:70px;">
+                        <i class="bi bi-hospital fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold">Giám sát Y khoa 24/7</h5>
+                    <p class="text-muted mb-0">Thuật toán Round-Robin thông minh tự động chỉ định bác sĩ. Phác đồ điều trị được cá nhân hóa liên tục dựa trên tiến triển thực tế của bệnh nhân.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 rounded-4 h-100 shadow-sm border border-light">
+                    <div class="feature-icon bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width:70px;height:70px;">
+                        <i class="bi bi-shield-lock fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold">Bảo mật Y tế An toàn</h5>
+                    <p class="text-muted mb-0">Hệ thống phân quyền chi tiết (Admin, Doctor, Patient). Toàn bộ dữ liệu bệnh án được mã hóa và bảo vệ quyền riêng tư tuyệt đối.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 rounded-4 h-100 shadow-sm border border-light">
+                    <div class="feature-icon bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width:70px;height:70px;">
+                        <i class="bi bi-wallet2 fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold">Thương mại Điện tử Tích hợp</h5>
+                    <p class="text-muted mb-0">Mua sắm thiết bị y tế chính hãng trực tiếp qua hệ thống với quy trình giỏ hàng, checkout nhanh chóng tiện lợi.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card p-4 rounded-4 h-100 shadow-sm border border-light">
+                    <div class="feature-icon bg-secondary bg-opacity-10 text-secondary rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width:70px;height:70px;">
+                        <i class="bi bi-phone fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold">Tương thích Đa nền tảng</h5>
+                    <p class="text-muted mb-0">Sử dụng mượt mà trên Mobile, Tablet và Desktop (Web App) giúp người dùng dễ dàng theo dõi sức khỏe ở bất kỳ đâu.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Details Section -->
+    <div id="product-details" class="bg-white py-5 border-bottom">
+        <div class="container py-4">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <div class="position-relative">
+                        <img src="https://placehold.co/600x450/e0e7ff/4f46e5?text=Smart+Glove+IoT" alt="Thiết bị IoT RehabTracking" class="img-fluid rounded-4 shadow-lg w-100 object-fit-cover" />
+                        <div class="position-absolute bottom-0 end-0 m-4 bg-white p-3 rounded-4 shadow-lg text-center">
+                            <i class="bi bi-shield-check text-success fs-1"></i>
+                            <div class="fw-bold mt-1">Đạt chuẩn Y tế</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-3">
+                        <i class="bi bi-info-circle-fill me-1"></i> Tìm hiểu thêm về sản phẩm
+                    </span>
+                    <h2 class="fw-bold mb-4">Giải pháp Phục hồi chức năng Toàn diện</h2>
+                    <p class="text-muted mb-4 fs-5">Hệ thống <strong>RehabTracking</strong> là sự kết hợp hoàn hảo giữa phần cứng IoT thông minh và nền tảng phần mềm mạnh mẽ, mang đến trải nghiệm phục hồi chức năng chuyên nghiệp ngay tại nhà.</p>
+                    
+                    <div class="d-flex mb-4 p-3 bg-light rounded-4 shadow-sm border border-white">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-inline-flex justify-content-center align-items-center shadow" style="width:60px;height:60px;">
+                                <i class="bi bi-cpu fs-3"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h5 class="fw-bold mb-1">Găng tay thông minh (Smart Glove)</h5>
+                            <p class="text-muted mb-0 small">Tích hợp cảm biến góc (MPU6050) và cảm biến cơ điện (EMG) có độ chính xác cao. Theo dõi từng cử động nhỏ nhất của bàn tay và các khớp theo thời gian thực.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-4 p-3 bg-light rounded-4 shadow-sm border border-white">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-gradient text-white rounded-circle d-inline-flex justify-content-center align-items-center shadow" style="width:60px;height:60px;">
+                                <i class="bi bi-robot fs-3"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h5 class="fw-bold mb-1">Trí tuệ nhân tạo (AI) Phân tích</h5>
+                            <p class="text-muted mb-0 small">Hệ thống AI tự động đánh giá mức độ phục hồi dựa trên dữ liệu thu thập, so sánh với chuẩn y khoa để đưa ra cảnh báo và lời khuyên kịp thời cho bệnh nhân.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex p-3 bg-light rounded-4 shadow-sm border border-white">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-gradient text-white rounded-circle d-inline-flex justify-content-center align-items-center shadow" style="width:60px;height:60px;">
+                                <i class="bi bi-controller fs-3"></i>
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <h5 class="fw-bold mb-1">Gamification & Tương tác ảo</h5>
+                            <p class="text-muted mb-0 small">Tích hợp các bài tập dưới dạng trò chơi tương tác, tạo cảm giác thú vị, giúp bệnh nhân không bị nhàm chán và tăng cường động lực tập luyện mỗi ngày.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How it works section (Quy trình) -->
+    <div class="py-5" style="background-color: #f8fafc;">
+        <div class="container py-4">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
+                    <i class="bi bi-signpost-split me-1"></i> Quy trình
+                </span>
+                <h2 class="fw-bold">Hành trình Phục hồi cùng RehabTracking</h2>
+                <p class="text-muted">4 bước đơn giản để bắt đầu tập luyện và kết nối với bác sĩ chuyên khoa.</p>
+            </div>
+            
+            <div class="row g-4 position-relative process-steps">
+                <!-- Line connecting steps -->
+                <div class="d-none d-lg-block position-absolute" style="top: 25%; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, #4f46e5 0%, #0ea5e9 100%); z-index: 0;"></div>
+                
+                <div class="col-md-6 col-lg-3 text-center position-relative z-1">
+                    <div class="bg-white rounded-circle shadow-lg d-inline-flex justify-content-center align-items-center mb-4 border border-4 border-light" style="width: 100px; height: 100px;">
+                        <i class="bi bi-cart-check text-primary fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold">1. Đặt mua Thiết bị</h5>
+                    <p class="text-muted small">Mua bộ Găng tay thông minh (Smart Glove) trực tiếp trên nền tảng của chúng tôi.</p>
+                </div>
+                
+                <div class="col-md-6 col-lg-3 text-center position-relative z-1">
+                    <div class="bg-white rounded-circle shadow-lg d-inline-flex justify-content-center align-items-center mb-4 border border-4 border-light" style="width: 100px; height: 100px;">
+                        <i class="bi bi-bluetooth text-info fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold">2. Kết nối App</h5>
+                    <p class="text-muted small">Nhận thiết bị, kích hoạt mã Serial và kết nối với tài khoản bệnh nhân qua Bluetooth/WiFi.</p>
+                </div>
+                
+                <div class="col-md-6 col-lg-3 text-center position-relative z-1">
+                    <div class="bg-white rounded-circle shadow-lg d-inline-flex justify-content-center align-items-center mb-4 border border-4 border-light" style="width: 100px; height: 100px;">
+                        <i class="bi bi-person-arms-up text-success fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold">3. Tập luyện & Game</h5>
+                    <p class="text-muted small">Bắt đầu tập luyện theo phác đồ thông qua các bài tập Gamification thú vị.</p>
+                </div>
+                
+                <div class="col-md-6 col-lg-3 text-center position-relative z-1">
+                    <div class="bg-white rounded-circle shadow-lg d-inline-flex justify-content-center align-items-center mb-4 border border-4 border-light" style="width: 100px; height: 100px;">
+                        <i class="bi bi-heart-pulse text-danger fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold">4. Bác sĩ theo dõi</h5>
+                    <p class="text-muted small">Dữ liệu EMG/ROM truyền thẳng đến Bác sĩ để theo dõi Live và cập nhật phác đồ.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Catalog -->
+    <div id="products" class="bg-light py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
+                    <i class="bi bi-box-seam me-1"></i> Thiết bị IoT Y tế
+                </span>
+                <h2 class="fw-bold">Sản phẩm &amp; Thiết bị</h2>
+                <p class="text-muted">Đặt mua bộ thiết bị IoT để bắt đầu hành trình phục hồi của bạn.</p>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    @for (int i = 0; i < 3; i++)
+                    {
+                        <div class="col">
+                            <div class="card h-100 shadow-sm border-0 rounded-4">
+                                <div class="card-img-top skeleton-box" style="height:200px;"></div>
+                                <div class="card-body">
+                                    <div class="skeleton-box mb-2" style="height:20px;width:60%;"></div>
+                                    <div class="skeleton-box mb-3" style="height:16px;width:40%;"></div>
+                                    <div class="skeleton-box" style="height:60px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (products == null || !products.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-box-seam text-muted" style="font-size:5rem;opacity:0.3;"></i>
+                    <h4 class="mt-3 text-muted">Chưa có sản phẩm nào</h4>
+                    <p class="text-muted">Vui lòng kiểm tra lại sau.</p>
+                </div>
+            }
+            else
+            {
+                @if (!string.IsNullOrEmpty(addedMessage))
+                {
+                    <div class="alert alert-success alert-dismissible fade show mb-4 d-flex align-items-center shadow-sm" role="alert">
+                        <i class="bi bi-cart-check-fill me-2 fs-5"></i>
+                        <div>@addedMessage</div>
+                        <button type="button" class="btn-close" @onclick="() => addedMessage = string.Empty"></button>
+                    </div>
+                }
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    @foreach (var product in products)
+                    {
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm product-card rounded-4 overflow-hidden">
+                                <div class="product-img-wrapper position-relative" style="cursor:pointer;" @onclick="() => ShowDetailsModal(product)">
+                                    <img src="@(string.IsNullOrEmpty(product.ImageUrl) ? "https://placehold.co/400x220/e0e7ff/6366f1?text=No+Image" : product.ImageUrl)"
+                                         class="card-img-top" alt="@product.ProductName" style="height: 220px; object-fit: cover;" />
+                                    @if (product.StockQuantity > 0)
+                                    {
+                                        <span class="position-absolute top-0 end-0 m-2 badge bg-success rounded-pill px-2 py-1" style="font-size:0.75rem;">
+                                            <i class="bi bi-check-circle me-1"></i>Còn hàng
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="position-absolute top-0 end-0 m-2 badge bg-danger rounded-pill px-2 py-1" style="font-size:0.75rem;">
+                                            <i class="bi bi-x-circle me-1"></i>Hết hàng
+                                        </span>
+                                        <div class="out-of-stock-overlay"></div>
+                                    }
+                                </div>
+                                <div class="card-body d-flex flex-column p-4">
+                                    <div class="mb-1">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" style="font-size:0.75rem;">@product.ProductType</span>
+                                    </div>
+                                    <h5 class="card-title fw-bold mt-2 mb-1" style="cursor:pointer;" @onclick="() => ShowDetailsModal(product)">
+                                        @product.ProductName
+                                    </h5>
+                                    <p class="card-text text-muted small flex-grow-1" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;">
+                                        @product.Description
+                                    </p>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
+                                        <div>
+                                            <span class="fs-5 fw-bold text-primary">@product.Price.ToString("N0")₫</span>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-outline-secondary rounded-circle d-flex justify-content-center align-items-center" 
+                                                    style="width:38px;height:38px;" 
+                                                    @onclick="() => ShowDetailsModal(product)" 
+                                                    title="Xem chi tiết">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-modern-primary rounded-pill px-3 shadow-sm d-flex align-items-center"
+                                                    disabled="@(product.StockQuantity <= 0)"
+                                                    @onclick="async () => await AddToCart(product)">
+                                                <i class="bi bi-cart-plus me-1"></i>
+                                                Thêm
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+    
+    <!-- Testimonials / Cảm nhận -->
+    <div class="py-5" style="background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);">
+        <div class="container py-4">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Khách hàng & Bác sĩ nói gì?</h2>
+                <p class="text-muted">Phản hồi thực tế từ những người đã trải nghiệm RehabTracking.</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                        <div class="d-flex text-warning mb-3">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="text-muted fst-italic mb-4">"Từ ngày có găng tay RehabTracking, tôi không cần phải đến bệnh viện 3 lần/tuần nữa. Bác sĩ theo dõi rất sát sao và tôi tập như đang chơi game, rất thú vị."</p>
+                        <div class="d-flex align-items-center mt-auto">
+                            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 45px; height: 45px;">M</div>
+                            <div class="ms-3">
+                                <div class="fw-bold">Chú Minh (62 tuổi)</div>
+                                <div class="text-muted small">Bệnh nhân đột quỵ nhẹ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4 position-relative overflow-hidden">
+                        <div class="position-absolute top-0 end-0 bg-success bg-opacity-10 text-success p-2 rounded-bl-4">
+                            <i class="bi bi-patch-check-fill"></i> Chuyên gia
+                        </div>
+                        <div class="d-flex text-warning mb-3">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="text-muted fst-italic mb-4">"Số liệu EMG và ROM được truyền Live với độ trễ gần như bằng 0. Tính năng này thực sự thay đổi cách chúng tôi quản lý và theo dõi tiến trình của hàng trăm bệnh nhân."</p>
+                        <div class="d-flex align-items-center mt-auto">
+                            <img src="https://placehold.co/45x45/0ea5e9/ffffff?text=BS" class="rounded-circle" alt="Bác sĩ" />
+                            <div class="ms-3">
+                                <div class="fw-bold">Bác sĩ Hoàng Trần</div>
+                                <div class="text-muted small">Khoa Phục hồi chức năng</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                        <div class="d-flex text-warning mb-3">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="text-muted fst-italic mb-4">"Ứng dụng rất mượt, tính năng giỏ hàng và giao hàng nhanh. Bố tôi đã tiến bộ rõ rệt chỉ sau 2 tháng nhờ tập luyện đúng phác đồ hệ thống AI đề xuất."</p>
+                        <div class="d-flex align-items-center mt-auto">
+                            <div class="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 45px; height: 45px;">L</div>
+                            <div class="ms-3">
+                                <div class="fw-bold">Chị Liên (Người nhà)</div>
+                                <div class="text-muted small">Đã mua Smart Glove v1.2</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- About Us Section -->
+    <div id="about-us" class="bg-white py-5 border-top">
+        <div class="container">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
+                    <i class="bi bi-people-fill me-1"></i> Đội ngũ
+                </span>
+                <h2 class="fw-bold">Về Chúng Tôi</h2>
+                <p class="text-muted">Những con người nhiệt huyết đứng sau RehabTracking.</p>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-4 col-lg-3">
+                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
+                        <div class="mb-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
+                                <i class="bi bi-person-circle fs-1"></i>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold mb-1">Lê Huỳnh Đại Nghĩa</h5>
+                        <p class="text-primary small fw-semibold mb-2">Leader</p>
+                        <p class="text-muted small mb-0">Ngành Kinh tế</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3">
+                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
+                        <div class="mb-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
+                                <i class="bi bi-person-circle fs-1"></i>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold mb-1">Nguyễn Lâm Hoàng Ngọc</h5>
+                        <p class="text-muted small mb-0 mt-2">Ngành Kinh tế</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3">
+                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
+                        <div class="mb-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
+                                <i class="bi bi-person-circle fs-1"></i>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold mb-1">Chung Khánh Hà</h5>
+                        <p class="text-muted small mb-0 mt-2">Ngành Kinh tế</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3">
+                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
+                        <div class="mb-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
+                                <i class="bi bi-person-circle fs-1"></i>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold mb-1">Trần Gia Đạt</h5>
+                        <p class="text-muted small mb-0 mt-2">Ngành Kĩ thuật phần mềm</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3">
+                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
+                        <div class="mb-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
+                                <i class="bi bi-person-circle fs-1"></i>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold mb-1">Ngô Quốc Hưng</h5>
+                        <p class="text-muted small mb-0 mt-2">Ngành Kĩ thuật phần mềm</p>
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3">
+                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
+                        <div class="mb-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
+                                <i class="bi bi-person-circle fs-1"></i>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold mb-1">Lê Trần Kim Tuyến</h5>
+                        <p class="text-muted small mb-0 mt-2">Ngành thiết kế đồ họa</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (showDetailsModal && selectedProduct != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;" @onclick="CloseDetailsModal">
+        <div class="modal-dialog modal-lg modal-dialog-centered" @onclick:stopPropagation="true">
+            <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                <div class="modal-header border-0 pb-0 position-absolute top-0 end-0 z-1">
+                    <button type="button" class="btn-close bg-white rounded-circle p-2 m-2 shadow-sm" @onclick="CloseDetailsModal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-5 bg-light d-flex align-items-center justify-content-center p-4">
+                            <div class="position-relative w-100">
+                                <img src="@(string.IsNullOrEmpty(selectedProduct.ImageUrl) ? "https://placehold.co/400x400/e0e7ff/6366f1?text=No+Image" : selectedProduct.ImageUrl)" 
+                                     alt="@selectedProduct.ProductName" 
+                                     class="img-fluid rounded-3 shadow-sm w-100 object-fit-cover" style="max-height:350px;"/>
+                                @if (selectedProduct.StockQuantity <= 0)
+                                {
+                                    <div class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center rounded-3">
+                                        <span class="badge bg-danger fs-5 px-3 py-2 rounded-pill shadow">Hết hàng</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-7 d-flex flex-column p-4 p-md-5">
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill align-self-start mb-3 px-3 py-2">
+                                <i class="bi bi-tag-fill me-1"></i> @selectedProduct.ProductType
+                            </span>
+                            
+                            <h3 class="fw-bold mb-2">@selectedProduct.ProductName</h3>
+                            <h3 class="text-primary fw-bold mb-4">@selectedProduct.Price.ToString("N0")₫</h3>
+                            
+                            <div class="mb-4 flex-grow-1">
+                                <h6 class="fw-bold text-dark mb-2">Thông tin sản phẩm</h6>
+                                <p class="text-muted" style="white-space: pre-line; line-height: 1.6;">@(string.IsNullOrEmpty(selectedProduct.Description) ? "Đang cập nhật mô tả chi tiết..." : selectedProduct.Description)</p>
+                            </div>
+                            
+                            <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-3">
+                                <i class="bi bi-box-seam fs-4 text-muted me-3"></i>
+                                <div>
+                                    <div class="text-muted small mb-1">Tình trạng kho hàng</div>
+                                    @if (selectedProduct.StockQuantity > 0)
+                                    {
+                                        <div class="text-success fw-bold">Còn @selectedProduct.StockQuantity sản phẩm sẵn sàng giao</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-danger fw-bold">Tạm thời hết hàng</div>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-modern-primary btn-lg rounded-pill w-100 shadow-sm fw-bold py-3"
+                                    disabled="@(selectedProduct.StockQuantity <= 0)"
+                                    @onclick="async () => { await AddToCart(selectedProduct); CloseDetailsModal(); }">
+                                <i class="bi bi-cart-plus fs-5 me-2"></i>
+                                @(selectedProduct.StockQuantity > 0 ? "Thêm vào giỏ hàng ngay" : "Không thể đặt hàng")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 50%, #ec4899 100%);
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        border-radius: 9999px;
+        padding: 0.4rem 1.2rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .feature-card {
+        background: white;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1) !important;
+    }
+
+    .product-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(79,70,229,0.15) !important;
+    }
+
+    .out-of-stock-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0.5);
+    }
+
+    .skeleton-box {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 0.5rem;
+    }
+
+    @@keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    /* Animation classes */
+    .animate-fade-in-up {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @@keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .fw-black {
+        font-weight: 900;
+    }
+</style>
+
+@code {
+    private List<Product>? products;
+    private bool isLoading = true;
+    private string addedMessage = string.Empty;
+    
+    private bool showDetailsModal = false;
+    private Product? selectedProduct;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            products = await Mediator.Send(new GetProductsQuery());
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching products: {ex.Message}");
+            products = new List<Product>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task AddToCart(Product product)
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity == null || !authState.User.Identity.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login?returnUrl=/cart");
+            return;
+        }
+
+        if (product.StockQuantity <= 0) return;
+        CartState.AddToCart(product, 1);
+        addedMessage = $"✓ Đã thêm \"{product.ProductName}\" vào giỏ hàng!";
+        Navigation.NavigateTo("/cart");
+    }
+
+    private void ShowDetailsModal(Product product)
+    {
+        selectedProduct = product;
+        showDetailsModal = true;
+    }
+
+    private void CloseDetailsModal()
+    {
+        showDetailsModal = false;
+        selectedProduct = null;
+    }
+
+}

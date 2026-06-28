@@ -1,0 +1,14 @@
+D:\EXE\RehabTracking\FixMigration\obj\Debug\net10.0\FixMigration.GeneratedMSBuildEditorConfig.editorconfig
+D:\EXE\RehabTracking\FixMigration\obj\Debug\net10.0\FixMigration.AssemblyInfoInputs.cache
+D:\EXE\RehabTracking\FixMigration\obj\Debug\net10.0\FixMigration.AssemblyInfo.cs
+D:\EXE\RehabTracking\FixMigration\obj\Debug\net10.0\FixMigration.csproj.CoreCompileInputs.cache
+D:\EXE\RehabTracking\FixMigration\bin\Debug\net10.0\FixMigration.exe
+D:\EXE\RehabTracking\FixMigration\bin\Debug\net10.0\FixMigration.deps.json
+D:\EXE\RehabTracking\FixMigration\bin\Debug\net10.0\FixMigration.runtimeconfig.json
+D:\EXE\RehabTracking\FixMigration\bin\Debug\net10.0\FixMigration.dll
+D:\EXE\RehabTracking\FixMigration\bin\Debug\net10.0\FixMigration.pdb
+D:\EXE\RehabTracking\FixMigration\obj\Debug\net10.0\FixMigration.dll
+D:\EXE\RehabTracking\FixMigration\obj\Debug\net10.0\refint\FixMigration.dll
+D:\EXE\RehabTracking\FixMigration\obj\Debug\net10.0\FixMigration.pdb
+D:\EXE\RehabTracking\FixMigration\obj\Debug\net10.0\FixMigration.genruntimeconfig.cache
+D:\EXE\RehabTracking\FixMigration\obj\Debug\net10.0\ref\FixMigration.dll

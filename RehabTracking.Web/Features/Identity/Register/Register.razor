@@ -1,0 +1,224 @@
+@page "/register"
+@using MediatR
+@using RehabTracking.Web.Features.Identity.Register
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Đăng ký - RehabTracking</PageTitle>
+
+<div class="register-page d-flex align-items-center justify-content-center py-5" style="min-height: calc(100vh - 70px); background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mb-3" style="width:72px;height:72px;">
+                        <i class="bi bi-person-plus text-success" style="font-size:2rem;"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark">Tạo tài khoản</h2>
+                    <p class="text-muted">Bắt đầu hành trình phục hồi chức năng của bạn hôm nay.</p>
+                </div>
+
+                <div class="card border-0 shadow-lg rounded-4">
+                    <div class="card-body p-4 p-md-5">
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger border-0 rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                                <span>@errorMessage</span>
+                            </div>
+                        }
+
+                        <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label for="fullname" class="form-label fw-semibold text-dark">Họ và tên</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                        <i class="bi bi-person text-muted"></i>
+                                    </span>
+                                    <InputText id="fullname" class="form-control bg-light border-start-0 rounded-end-3"
+                                               @bind-Value="registerModel.FullName" placeholder="Nguyễn Văn A" />
+                                </div>
+                                <ValidationMessage For="() => registerModel.FullName" class="text-danger small mt-1" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-semibold text-dark">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                        <i class="bi bi-envelope text-muted"></i>
+                                    </span>
+                                    <InputText id="email" class="form-control bg-light border-start-0 rounded-end-3"
+                                               @bind-Value="registerModel.Email" placeholder="email@example.com" />
+                                </div>
+                                <ValidationMessage For="() => registerModel.Email" class="text-danger small mt-1" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label fw-semibold text-dark">Mật khẩu</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                        <i class="bi bi-lock text-muted"></i>
+                                    </span>
+                                    <InputText type="password" id="password" class="form-control bg-light border-start-0 rounded-end-3"
+                                               @bind-Value="registerModel.Password" placeholder="Tối thiểu 6 ký tự" />
+                                </div>
+                                <ValidationMessage For="() => registerModel.Password" class="text-danger small mt-1" />
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="confirmPassword" class="form-label fw-semibold text-dark">Xác nhận mật khẩu</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                        <i class="bi bi-lock-fill text-muted"></i>
+                                    </span>
+                                    <InputText type="password" id="confirmPassword" class="form-control bg-light border-start-0 rounded-end-3"
+                                               @bind-Value="registerModel.ConfirmPassword" placeholder="Nhập lại mật khẩu" />
+                                </div>
+                                <ValidationMessage For="() => registerModel.ConfirmPassword" class="text-danger small mt-1" />
+                            </div>
+
+                            <!-- Password strength hint -->
+                            @if (!string.IsNullOrEmpty(registerModel.Password))
+                            {
+                                var strength = GetPasswordStrength(registerModel.Password);
+                                <div class="mb-3">
+                                    <div class="d-flex gap-1 mb-1">
+                                        @for (int i = 0; i < 4; i++)
+                                        {
+                                            int idx = i;
+                                            <div class="flex-grow-1 rounded-pill" style="height:4px; background-color: @(idx < strength.Level ? strength.Color : "#e2e8f0");"></div>
+                                        }
+                                    </div>
+                                    <small style="color: @strength.Color;">@strength.Label</small>
+                                </div>
+                            }
+
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-success btn-lg rounded-pill fw-semibold shadow-sm" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        <span>Đang đăng ký...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-person-check me-2"></i>
+                                        <span>Tạo tài khoản</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+
+                        <div class="text-center">
+                            <span class="text-muted">Đã có tài khoản?</span>
+                            <a href="/login" class="text-primary fw-semibold ms-1">Đăng nhập</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms note -->
+                <p class="text-center text-muted small mt-3">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Bằng cách đăng ký, bạn đồng ý với điều khoản sử dụng của chúng tôi.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .input-group-text {
+        border-color: #dee2e6;
+    }
+    .input-group .form-control {
+        border-color: #dee2e6;
+    }
+    .input-group .form-control:focus {
+        border-color: #10b981;
+        box-shadow: none;
+    }
+    .input-group:focus-within .input-group-text {
+        border-color: #10b981;
+    }
+</style>
+
+@code {
+    private RegisterModel registerModel = new();
+    private string errorMessage = string.Empty;
+    private bool isSubmitting = false;
+
+    private async Task HandleRegister()
+    {
+        errorMessage = string.Empty;
+        isSubmitting = true;
+
+        try
+        {
+            var result = await Mediator.Send(new RegisterCommand
+            {
+                FullName = registerModel.FullName,
+                Email = registerModel.Email,
+                Password = registerModel.Password
+            });
+
+            if (result.IsSuccess)
+            {
+                Navigation.NavigateTo("/login?registered=true");
+            }
+            else
+            {
+                errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Đã xảy ra lỗi trong quá trình đăng ký. Vui lòng thử lại.";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private (int Level, string Color, string Label) GetPasswordStrength(string password)
+    {
+        int score = 0;
+        if (password.Length >= 6) score++;
+        if (password.Length >= 10) score++;
+        if (password.Any(char.IsUpper) && password.Any(char.IsLower)) score++;
+        if (password.Any(char.IsDigit) || password.Any(c => !char.IsLetterOrDigit(c))) score++;
+
+        return score switch
+        {
+            1 => (1, "#ef4444", "Yếu"),
+            2 => (2, "#f59e0b", "Trung bình"),
+            3 => (3, "#10b981", "Khá mạnh"),
+            4 => (4, "#059669", "Rất mạnh"),
+            _ => (0, "#e2e8f0", "")
+        };
+    }
+
+    public class RegisterModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập họ và tên.")]
+        [System.ComponentModel.DataAnnotations.StringLength(100, ErrorMessage = "Họ tên không được vượt quá 100 ký tự.")]
+        public string FullName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập email.")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
+        [System.ComponentModel.DataAnnotations.StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]
+        public string Password { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng xác nhận mật khẩu.")]
+        [System.ComponentModel.DataAnnotations.Compare(nameof(Password), ErrorMessage = "Mật khẩu xác nhận không khớp.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}
