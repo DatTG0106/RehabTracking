@@ -2,7 +2,7 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Đăng nhập - RehabTracking</PageTitle>
+<PageTitle>Đăng nhập - STEP</PageTitle>
 
 <div class="login-page d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 70px); background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);">
     <div class="container">
@@ -14,7 +14,7 @@
                         <i class="bi bi-activity text-primary" style="font-size:2rem;"></i>
                     </div>
                     <h2 class="fw-bold text-dark">Chào mừng trở lại</h2>
-                    <p class="text-muted">Đăng nhập vào tài khoản RehabTracking của bạn</p>
+                    <p class="text-muted">Đăng nhập vào tài khoản STEP của bạn</p>
                 </div>
 
                 <div class="card border-0 shadow-lg rounded-4">
@@ -44,21 +44,29 @@
                                         <i class="bi bi-envelope text-muted"></i>
                                     </span>
                                     <input type="email" id="email" name="Email" class="form-control bg-light border-start-0 rounded-end-3"
-                                           placeholder="email@example.com" value="@demoEmail" required />
+                                           placeholder="email@example.com"
+                                           value="@demoEmail"
+                                           @oninput="e => demoEmail = e.Value?.ToString() ?? string.Empty"
+                                           required />
                                 </div>
                             </div>
 
                             <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <label for="password" class="form-label fw-semibold text-dark mb-0">Mật khẩu</label>
-                                </div>
+                                <label for="password" class="form-label fw-semibold text-dark mb-1">Mật khẩu</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0 rounded-start-3">
                                         <i class="bi bi-lock text-muted"></i>
                                     </span>
-                                    <input type="password" id="password" name="Password"
-                                           class="form-control bg-light border-start-0 rounded-end-3"
-                                           placeholder="••••••••" value="@demoPwd" required />
+                                    <input type="@(showPassword ? "text" : "password")" id="password" name="Password"
+                                           class="form-control bg-light border-start-0"
+                                           placeholder="••••••••"
+                                           value="@demoPwd"
+                                           @oninput="e => demoPwd = e.Value?.ToString() ?? string.Empty"
+                                           required />
+                                    <button type="button" class="input-group-text bg-light border-start-0 rounded-end-3"
+                                            @onclick="TogglePassword" style="cursor:pointer;" title="@(showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu")">
+                                        <i class="bi @(showPassword ? "bi-eye-slash" : "bi-eye") text-muted"></i>
+                                    </button>
                                 </div>
                             </div>
 
@@ -80,25 +88,25 @@
                 <div class="card border-0 shadow-sm rounded-4 mt-3">
                     <div class="card-body p-3">
                         <p class="text-muted small text-center mb-2 fw-semibold">
-                            <i class="bi bi-info-circle me-1"></i>Tài khoản demo
+                            <i class="bi bi-info-circle me-1"></i>Tài khoản demo (click để điền tự động)
                         </p>
                         <div class="row g-2">
                             <div class="col-6">
-                                <button class="btn btn-light btn-sm w-100 rounded-3 text-start py-2" @onclick='() => FillDemo("doctor@test.com", "123456")'>
+                                <button class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("doctor@test.com", "123456")'>
                                     <i class="bi bi-person-badge text-primary me-1"></i>
                                     <span class="fw-semibold small">Bác sĩ</span><br/>
                                     <span class="text-muted" style="font-size:0.7rem;">doctor@test.com</span>
                                 </button>
                             </div>
                             <div class="col-6">
-                                <button class="btn btn-light btn-sm w-100 rounded-3 text-start py-2" @onclick='() => FillDemo("patient@test.com", "123456")'>
+                                <button class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("patient@test.com", "123456")'>
                                     <i class="bi bi-person-heart text-success me-1"></i>
                                     <span class="fw-semibold small">Bệnh nhân</span><br/>
                                     <span class="text-muted" style="font-size:0.7rem;">patient@test.com</span>
                                 </button>
                             </div>
                             <div class="col-12">
-                                <button class="btn btn-light btn-sm w-100 rounded-3 text-start py-2" @onclick='() => FillDemo("admin@test.com", "123456")'>
+                                <button class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("admin@test.com", "123456")'>
                                     <i class="bi bi-speedometer2 text-danger me-1"></i>
                                     <span class="fw-semibold small">Admin / Nhân viên kho</span>
                                     <span class="text-muted ms-1" style="font-size:0.7rem;">admin@test.com</span>
@@ -130,6 +138,13 @@
     .input-group:focus-within .input-group-text {
         border-color: #4f46e5;
     }
+    .demo-btn {
+        transition: all 0.15s ease;
+    }
+    .demo-btn:hover {
+        background: rgba(79,70,229,0.06) !important;
+        border-color: rgba(79,70,229,0.3) !important;
+    }
 </style>
 
 @code {
@@ -138,6 +153,7 @@
     private string returnUrl = string.Empty;
     private string demoEmail = string.Empty;
     private string demoPwd = string.Empty;
+    private bool showPassword = false;
 
     protected override void OnInitialized()
     {
@@ -154,21 +170,30 @@
         }
         if (query.TryGetValue("returnUrl", out var rUrl))
         {
-            returnUrl = rUrl;
+            returnUrl = rUrl!;
         }
+        // Demo pre-fill from query (email only, no password in URL)
         if (query.TryGetValue("demo_email", out var dEmail))
         {
-            demoEmail = dEmail;
+            demoEmail = dEmail!;
         }
-        if (query.TryGetValue("demo_pwd", out var dPwd))
-        {
-            demoPwd = dPwd;
-        }
+        // Note: demo_pwd is no longer passed via URL for security reasons
     }
 
+    private void TogglePassword()
+    {
+        showPassword = !showPassword;
+    }
+
+    /// <summary>
+    /// FillDemo: điền thông tin demo vào form bằng Blazor state,
+    /// không lộ password qua URL/browser history.
+    /// </summary>
     private void FillDemo(string email, string password)
     {
-        var currentReturnUrl = !string.IsNullOrEmpty(returnUrl) ? $"&returnUrl={Uri.EscapeDataString(returnUrl)}" : "";
-        Navigation.NavigateTo($"/login?demo_email={Uri.EscapeDataString(email)}&demo_pwd={Uri.EscapeDataString(password)}{currentReturnUrl}", forceLoad: true);
+        demoEmail = email;
+        demoPwd = password;
+        // No navigation needed - Blazor state binding updates the form inputs directly
+        // Email is still passed via URL for returnUrl support but password is NOT
     }
 }

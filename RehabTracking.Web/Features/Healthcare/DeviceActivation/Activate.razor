@@ -10,65 +10,170 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 
-<PageTitle>Kích hoạt Thiết bị - Rehab Tracking</PageTitle>
+<PageTitle>Kích hoạt Thiết bị - STEP</PageTitle>
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow border-0 rounded-4">
-                <div class="card-body p-5 text-center">
-                    <div class="mb-4">
-                        <i class="bi bi-watch text-primary" style="font-size: 4rem;"></i>
+<div class="activate-page d-flex align-items-center justify-content-center py-5" style="min-height: calc(100vh - 70px); background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3" style="width:80px;height:80px;">
+                        <i class="bi bi-watch text-primary" style="font-size:2.5rem;"></i>
                     </div>
-                    <h2 class="fw-bold mb-3">Kích hoạt Thiết bị</h2>
-                    <p class="text-muted mb-4">Nhập mã Seri ở mặt sau vòng đeo tay Rehab Band của bạn để kết nối với tài khoản và được tự động chỉ định Bác sĩ theo dõi.</p>
-
-                    @if (!string.IsNullOrEmpty(feedbackMessage))
-                    {
-                        <div class="alert @(isSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show text-start" role="alert">
-                            <i class="bi @(isSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill") me-2"></i>
-                            @feedbackMessage
-                            <button type="button" class="btn-close" @onclick="ClearMessage"></button>
-                        </div>
-                    }
-
-                    <EditForm Model="command" OnValidSubmit="SubmitActivation">
-                        <DataAnnotationsValidator />
-                        
-                        <div class="form-floating mb-4 text-start">
-                            <InputText id="serialNumber" class="form-control form-control-lg bg-light" @bind-Value="command.DeviceSerialNumber" placeholder="VD: ESP32-MAC-1234" />
-                            <label for="serialNumber">Mã Seri Thiết bị (Serial Number)</label>
-                            <ValidationMessage For="() => command.DeviceSerialNumber" class="text-danger small mt-1" />
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-modern-primary btn-lg rounded-pill fw-bold shadow-sm" disabled="@isProcessing">
-                                @if (isProcessing)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                    <span>Đang kích hoạt...</span>
-                                }
-                                else
-                                {
-                                    <span>Kích hoạt Thiết bị</span>
-                                }
-                            </button>
-                        </div>
-                    </EditForm>
-                    
-                    @if (isSuccess)
-                    {
-                        <div class="mt-4">
-                            <button class="btn btn-outline-success rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/patient-dashboard")'>
-                                Đi đến Dashboard của tôi <i class="bi bi-arrow-right ms-1"></i>
-                            </button>
-                        </div>
-                    }
+                    <h2 class="fw-bold text-dark">Kích hoạt Thiết bị</h2>
+                    <p class="text-muted">Nhập mã Serial ở mặt sau vòng đeo tay RehabBand để kết nối tài khoản và được tự động phân công Bác sĩ theo dõi.</p>
                 </div>
+
+                <div class="card shadow-lg border-0 rounded-4">
+                    <div class="card-body p-4 p-md-5">
+
+                        @if (!string.IsNullOrEmpty(feedbackMessage))
+                        {
+                            <div class="alert @(isSuccess ? "alert-success" : "alert-danger") alert-dismissible border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fade-in" role="alert">
+                                <i class="bi @(isSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill") flex-shrink-0 fs-5"></i>
+                                <span>@feedbackMessage</span>
+                                <button type="button" class="btn-close" @onclick="ClearMessage"></button>
+                            </div>
+                        }
+
+                        @if (!isSuccess)
+                        {
+                            <EditForm Model="command" OnValidSubmit="SubmitActivation">
+                                <DataAnnotationsValidator />
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold text-dark" for="serialNumber">
+                                        <i class="bi bi-upc me-1 text-primary"></i> Mã Serial Thiết bị
+                                    </label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-light rounded-start-3">
+                                            <i class="bi bi-cpu text-muted"></i>
+                                        </span>
+                                        <InputText id="serialNumber"
+                                                   class="form-control bg-light rounded-end-3"
+                                                   @bind-Value="command.DeviceSerialNumber"
+                                                   placeholder="VD: ESP32-MAC-1234 hoặc 00:1B:44:11:3A:B7"
+                                                   style="font-family: monospace; letter-spacing: 0.05em;" />
+                                    </div>
+                                    <ValidationMessage For="() => command.DeviceSerialNumber" class="text-danger small mt-1" />
+                                    <div class="text-muted small mt-2">
+                                        <i class="bi bi-info-circle me-1 text-primary"></i>
+                                        Mã Serial nằm ở mặt sau thiết bị, bắt đầu bằng "ESP32-" hoặc dạng địa chỉ MAC.
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-modern-primary btn-lg rounded-pill fw-bold shadow-sm" disabled="@isProcessing">
+                                        @if (isProcessing)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                            <span>Đang kích hoạt...</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-lightning-charge-fill me-2"></i>
+                                            <span>Kích hoạt Thiết bị</span>
+                                        }
+                                    </button>
+                                </div>
+                            </EditForm>
+                        }
+
+                        @if (isSuccess)
+                        {
+                            <div class="text-center py-4">
+                                <div class="mb-4">
+                                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex justify-content-center align-items-center" style="width:90px;height:90px;">
+                                        <i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>
+                                    </div>
+                                </div>
+                                <h4 class="fw-bold text-dark mb-2">Kích hoạt thành công!</h4>
+                                <p class="text-muted mb-4">Thiết bị của bạn đã được kết nối và Bác sĩ đã được phân công theo dõi tiến trình phục hồi của bạn.</p>
+                                <div class="d-flex flex-column gap-2">
+                                    <button class="btn btn-modern-primary btn-lg rounded-pill" @onclick='() => Navigation.NavigateTo("/patient-dashboard")'>
+                                        <i class="bi bi-speedometer2 me-2"></i>Đi đến Dashboard của tôi
+                                    </button>
+                                    <button class="btn btn-outline-secondary rounded-pill" @onclick="() => { isSuccess = false; feedbackMessage = string.Empty; command = new(); }">
+                                        <i class="bi bi-plus-circle me-2"></i>Kích hoạt thiết bị khác
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Help section -->
+                <div class="card border-0 shadow-sm rounded-4 mt-3">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-question-circle text-primary me-2"></i>Hướng dẫn tìm mã Serial</h6>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div class="bg-primary bg-opacity-10 rounded-3 p-2 flex-shrink-0">
+                                        <i class="bi bi-1-circle-fill text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold small">Tháo thiết bị</div>
+                                        <div class="text-muted" style="font-size:0.8rem;">Tháo vòng đeo tay khỏi cổ tay</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div class="bg-primary bg-opacity-10 rounded-3 p-2 flex-shrink-0">
+                                        <i class="bi bi-2-circle-fill text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold small">Lật mặt sau</div>
+                                        <div class="text-muted" style="font-size:0.8rem;">Mã Serial in trên nhãn mặt sau</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div class="bg-primary bg-opacity-10 rounded-3 p-2 flex-shrink-0">
+                                        <i class="bi bi-3-circle-fill text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold small">Nhập mã</div>
+                                        <div class="text-muted" style="font-size:0.8rem;">Nhập chính xác mã ESP32-XXXX</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <div class="bg-success bg-opacity-10 rounded-3 p-2 flex-shrink-0">
+                                        <i class="bi bi-4-circle-fill text-success"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold small">Bắt đầu tập</div>
+                                        <div class="text-muted" style="font-size:0.8rem;">Vào Dashboard và bắt đầu!</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .activate-page .card:hover {
+        transform: none !important;
+    }
+    .input-group .form-control:focus {
+        border-color: #4f46e5;
+        box-shadow: none;
+    }
+    .input-group:focus-within .input-group-text {
+        border-color: #4f46e5;
+    }
+</style>
 
 @code {
     private ActivateDevice.Command command = new();
@@ -80,30 +185,30 @@
     {
         isProcessing = true;
         feedbackMessage = "";
-        
+
         try
         {
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
-            
+
             var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
             {
                 command.CurrentUserId = userId;
-                
+
                 var result = await Mediator.Send(command);
                 feedbackMessage = result.Message;
                 isSuccess = result.IsSuccess;
             }
             else
             {
-                feedbackMessage = RehabTracking.Web.Resources.ErrorMessages.UserAuthenticationError;
+                feedbackMessage = RehabTracking.Web.Constants.AppMessages.ErrorOccurred;
                 isSuccess = false;
             }
         }
         catch (Exception ex)
         {
-            feedbackMessage = RehabTracking.Web.Resources.ErrorMessages.UnexpectedError;
+            feedbackMessage = RehabTracking.Web.Constants.AppMessages.ErrorOccurred;
             isSuccess = false;
             Console.WriteLine($"Activation error: {ex.Message}");
         }

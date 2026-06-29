@@ -1,36 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* ============================================================
-   CSS Design Tokens
+   CSS Design Tokens (Premium & Vibrant)
    ============================================================ */
 :root {
     --primary-color: #4f46e5;
-    --primary-hover: #4338ca;
+    --primary-hover: #3730a3;
+    --primary-light: #e0e7ff;
     --secondary-color: #0ea5e9;
+    --secondary-hover: #0284c7;
     --accent-color: #ec4899;
     --bg-color: #f8fafc;
-    --card-bg: #ffffff;
+    --card-bg: rgba(255, 255, 255, 0.95);
     --text-main: #0f172a;
     --text-muted: #64748b;
     --success-color: #10b981;
     --danger-color: #ef4444;
     --warning-color: #f59e0b;
     --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
-    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -2px rgba(0,0,0,0.03);
-    --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.08), 0 10px 10px -5px rgba(0,0,0,0.03);
-    --radius-sm: 0.5rem;
-    --radius-md: 1rem;
-    --radius-lg: 1.5rem;
-    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Modern Shadows */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03);
+    --shadow-md: 0 4px 12px -1px rgba(0,0,0,0.05), 0 2px 6px -1px rgba(0,0,0,0.03);
+    --shadow-lg: 0 15px 30px -5px rgba(0,0,0,0.08), 0 8px 12px -5px rgba(0,0,0,0.04);
+    --shadow-xl: 0 25px 50px -10px rgba(0,0,0,0.1), 0 10px 15px -5px rgba(0,0,0,0.05);
+    --shadow-glow: 0 0 25px rgba(79, 70, 229, 0.25);
+    
+    /* Radii */
+    --radius-sm: 0.6rem;
+    --radius-md: 1.2rem;
+    --radius-lg: 1.8rem;
+    --transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* ============================================================
    Base Styles
    ============================================================ */
 html, body {
-    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-main);
     margin: 0;
@@ -98,15 +105,18 @@ html {
    ============================================================ */
 .modern-card {
     background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: var(--radius-md);
-    border: 1px solid rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow: var(--shadow-md);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: var(--transition);
 }
 
 .modern-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
     box-shadow: var(--shadow-xl);
+    border: 1px solid rgba(79, 70, 229, 0.1);
 }
 
 /* Glowing Telemetry Card */
@@ -358,7 +368,7 @@ main {
     border-radius: var(--radius-sm) !important;
     border: none !important;
     box-shadow: var(--shadow-md) !important;
-    font-family: 'Outfit', sans-serif !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
 /* ============================================================
@@ -372,3 +382,107 @@ main {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ============================================================
+   Toast Notification (Add to Cart feedback)
+   ============================================================ */
+.toast-notification {
+    background: white;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-left: 4px solid #10b981;
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -2px rgba(0,0,0,0.03);
+    animation: slideInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideInDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   Live Indicator (Doctor Dashboard telemetry)
+   ============================================================ */
+.live-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: livePulse 1.4s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+    0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+    70%  { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* ============================================================
+   Input group button (show/hide password toggle)
+   ============================================================ */
+.input-group button.input-group-text {
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.input-group button.input-group-text:hover {
+    background: #e9ecef;
+    border-color: #4f46e5;
+}
+
+/* ============================================================
+   Table row hover improvement
+   ============================================================ */
+.table-hover tbody tr:hover {
+    background-color: rgba(79, 70, 229, 0.03);
+}
+
+/* ============================================================
+   Additional badge variants
+   ============================================================ */
+.badge-soft-info {
+    background-color: rgba(14, 165, 233, 0.12);
+    color: #0284c7;
+    font-weight: 600;
+}
+
+/* ============================================================
+   Cursor utility
+   ============================================================ */
+.cursor-pointer { cursor: pointer; }
+
+/* ============================================================
+   Custom Tooltips (Premium look)
+   ============================================================ */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.9);
+    color: white;
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    box-shadow: var(--shadow-md);
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    animation: tooltippop 0.2s forwards ease-out;
+}
+
+@keyframes tooltippop {
+    0% { opacity: 0; transform: translate(-50%, 5px); }
+    100% { opacity: 1; transform: translate(-50%, 0); }
+}
+

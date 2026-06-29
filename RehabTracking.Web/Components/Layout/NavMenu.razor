@@ -1,7 +1,9 @@
 @using RehabTracking.Web.Features.ECommerce.Cart
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject CartState CartState
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @implements IDisposable
 @rendermode InteractiveServer
 
@@ -9,7 +11,7 @@
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center gap-2" href="/">
             <i class="bi bi-activity text-primary fs-3"></i>
-            <span>RehabTracking</span>
+            <span>STEP</span>
         </a>
 
         <!-- Mobile toggle -->
@@ -217,7 +219,7 @@
         color: #0f172a;
         cursor: pointer;
         transition: background-color 0.15s ease, color 0.15s ease;
-        font-family: 'Outfit', sans-serif;
+        font-family: 'Inter', sans-serif;
     }
 
     .dropdown-item-btn:hover {
@@ -254,11 +256,50 @@
     private int cartCount = 0;
     private bool userDropdownOpen = false;
     private bool mobileMenuOpen = false;
+    private int _currentUserId = 0;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        cartCount = CartState.Items.Sum(i => i.Quantity);
+        // Gán UserId vào CartState để isolate giỏ hàng theo user
+        await SyncUserToCart();
+
         CartState.OnChange += HandleCartChange;
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
+
+        cartCount = CartState.Items.Sum(i => i.Quantity);
+    }
+
+    /// <summary>
+    /// Đọc UserId từ claims và gán vào CartState.
+    /// Được gọi khi init và khi auth state thay đổi (login/logout).
+    /// </summary>
+    private async Task SyncUserToCart()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                _currentUserId = userId;
+                CartState.SetUser(userId);
+            }
+        }
+        else
+        {
+            // User đã đăng xuất: reset về 0, giỏ hàng sẽ trả về rỗng
+            _currentUserId = 0;
+            CartState.SetUser(0);
+        }
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        await SyncUserToCart();
+        cartCount = CartState.Items.Sum(i => i.Quantity);
+        await InvokeAsync(StateHasChanged);
     }
 
     private void HandleCartChange()
@@ -298,6 +339,11 @@
     private void HandleLogout()
     {
         userDropdownOpen = false;
+        // Xóa giỏ hàng của user hiện tại trước khi đăng xuất
+        if (_currentUserId > 0)
+        {
+            CartState.ClearCartForUser(_currentUserId);
+        }
         // Navigate to logout endpoint - force full page load to bypass Blazor router
         Navigation.NavigateTo("/api/auth/logout", forceLoad: true);
     }
@@ -311,5 +357,6 @@
     public void Dispose()
     {
         CartState.OnChange -= HandleCartChange;
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
     }
 }

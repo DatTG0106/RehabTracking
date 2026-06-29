@@ -4,14 +4,100 @@
     <NavMenu/>
 
     <main class="flex-grow-1 d-flex flex-column">
-        <article class="content p-4 flex-grow-1">
+        <article class="content p-0 flex-grow-1">
             @Body
         </article>
+        
+        <!-- Footer -->
+        <footer class="bg-dark text-light py-5 mt-auto border-top" style="background: linear-gradient(to right, #0f172a, #1e293b) !important;">
+            <div class="container py-4">
+                <div class="row g-5">
+                    <div class="col-lg-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <i class="bi bi-activity text-primary fs-2 me-2"></i>
+                            <h3 class="fw-bold mb-0">STEP<span class="text-primary"></span></h3>
+                        </div>
+                        <p class="text-muted opacity-75 mb-4" style="line-height: 1.8;">
+                            Nền tảng phục hồi chức năng thông minh hàng đầu, giải pháp theo dõi và tập luyện chuyên khoa toàn diện. Chúng tôi kết nối bệnh nhân và bác sĩ qua công nghệ cảm biến y sinh hiện đại.
+                        </p>
+                        <div class="d-flex gap-3">
+                            <a href="#" class="btn btn-outline-light rounded-circle d-flex justify-content-center align-items-center p-0 border-secondary" style="width: 40px; height: 40px; transition: all 0.3s;">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                            <a href="#" class="btn btn-outline-light rounded-circle d-flex justify-content-center align-items-center p-0 border-secondary" style="width: 40px; height: 40px; transition: all 0.3s;">
+                                <i class="bi bi-youtube"></i>
+                            </a>
+                            <a href="#" class="btn btn-outline-light rounded-circle d-flex justify-content-center align-items-center p-0 border-secondary" style="width: 40px; height: 40px; transition: all 0.3s;">
+                                <i class="bi bi-linkedin"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-sm-6 col-lg-2 offset-lg-1">
+                        <h5 class="fw-bold text-white mb-4">Về chúng tôi</h5>
+                        <ul class="list-unstyled d-flex flex-column gap-3">
+                            <li><a href="#about-us" class="text-muted text-decoration-none footer-link">Đội ngũ sáng lập</a></li>
+                            <li><a href="#features" class="text-muted text-decoration-none footer-link">Công nghệ</a></li>
+                            <li><a href="#" class="text-muted text-decoration-none footer-link">Tuyển dụng</a></li>
+                            <li><a href="#" class="text-muted text-decoration-none footer-link">Tin tức Y tế</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-sm-6 col-lg-2">
+                        <h5 class="fw-bold text-white mb-4">Hỗ trợ</h5>
+                        <ul class="list-unstyled d-flex flex-column gap-3">
+                            <li><a href="#" class="text-muted text-decoration-none footer-link">Hướng dẫn mua hàng</a></li>
+                            <li><a href="#" class="text-muted text-decoration-none footer-link">Chính sách bảo hành</a></li>
+                            <li><a href="#" class="text-muted text-decoration-none footer-link">Câu hỏi thường gặp (FAQ)</a></li>
+                            <li><a href="#" class="text-muted text-decoration-none footer-link">Chính sách bảo mật</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-lg-3">
+                        <h5 class="fw-bold text-white mb-4">Liên hệ</h5>
+                        <ul class="list-unstyled d-flex flex-column gap-3 mb-4">
+                            <li class="d-flex align-items-start">
+                                <i class="bi bi-geo-alt-fill text-primary mt-1 me-3"></i>
+                                <span class="text-muted opacity-75">600 Nguyễn Văn Cừ Nối Dài, An Bình, Cần Thơ</span>
+                            </li>
+                            <li class="d-flex align-items-center">
+                                <i class="bi bi-envelope-fill text-primary me-3"></i>
+                                <span class="text-muted opacity-75">support@STEP.vn</span>
+                            </li>
+                            <li class="d-flex align-items-center">
+                                <i class="bi bi-telephone-fill text-primary me-3"></i>
+                                <span class="text-muted opacity-75">0787775716</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <hr class="border-secondary my-5 opacity-25">
+                
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <p class="text-muted small mb-0">&copy; 2026 STEP. Bản quyền đã được bảo hộ.</p>
+                    <div class="d-flex gap-3 mt-3 mt-md-0">
+                        <img src="https://placehold.co/40x25/ffffff/000000?text=Visa" alt="Visa" class="rounded">
+                        <img src="https://placehold.co/40x25/ffffff/000000?text=VNPay" alt="VNPay" class="rounded">
+                        <img src="https://placehold.co/40x25/ffffff/000000?text=Momo" alt="Momo" class="rounded">
+                    </div>
+                </div>
+            </div>
+        </footer>
     </main>
 </div>
 
+<style>
+    .footer-link { transition: color 0.2s ease; }
+    .footer-link:hover { color: var(--primary-color) !important; text-decoration: underline !important; }
+    .btn-outline-light:hover { background-color: var(--primary-color); border-color: var(--primary-color); }
+</style>
+
 <div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+    <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+        <span>Đã xảy ra lỗi không mong muốn.</span>
+        <a href="" class="reload btn btn-sm btn-warning rounded-pill px-3">Tải lại</a>
+        <a class="dismiss btn btn-sm btn-outline-light rounded-circle" style="pointer-events: auto;"><i class="bi bi-x" style="pointer-events: none;"></i></a>
+    </div>
 </div>

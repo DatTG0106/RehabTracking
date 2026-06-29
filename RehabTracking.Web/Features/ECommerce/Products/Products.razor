@@ -4,6 +4,7 @@
 @using RehabTracking.Web.Features.ECommerce.Products
 @using RehabTracking.Web.Features.ECommerce.Cart
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject IMediator Mediator
 @inject CartState CartState
 @inject NavigationManager Navigation
@@ -11,26 +12,45 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 
-<PageTitle>Sản phẩm - RehabTracking</PageTitle>
+<PageTitle>Sản phẩm - STEP</PageTitle>
 
 <div class="container-fluid p-0">
     <!-- Hero Section / Landing Page -->
     <div class="hero-section text-white text-center py-5">
         <div class="container py-5 mt-4">
             <div class="hero-badge mb-4 animate-fade-in-up">
-                <i class="bi bi-award-fill me-2 text-warning"></i> Nền tảng Y khoa IoT Số 1 Việt Nam
+                <i class="bi bi-award-fill me-2 text-warning"></i> Giải pháp Phục hồi Chức năng Hàng đầu Việt Nam
             </div>
-            <h1 class="display-3 fw-black mb-4 animate-fade-in-up" style="animation-delay: 0.1s; letter-spacing: -1px;">Rehab<span class="text-info">Tracking</span> System</h1>
-            <p class="lead mb-5 opacity-90 mx-auto animate-fade-in-up" style="max-width: 700px; font-weight: 300; animation-delay: 0.2s;">
-                Phục hồi chức năng đột quỵ tại nhà với công nghệ <strong class="fw-bold">IoT & AI</strong> tiên tiến. Kết nối trực tiếp với bác sĩ chuyên khoa, theo dõi tiến trình qua từng cử động nhỏ nhất.
+            <h1 class="display-3 fw-black mb-4 animate-fade-in-up" style="animation-delay: 0.1s; letter-spacing: -1px;">
+                Lấy lại <span class="text-info">Cuộc sống</span> của bạn
+            </h1>
+            <p class="lead mb-5 opacity-90 mx-auto animate-fade-in-up" style="max-width: 680px; font-weight: 300; animation-delay: 0.2s; line-height: 1.8;">
+                Đội ngũ bác sĩ chuyên khoa và công nghệ <strong class="fw-bold">cảm biến y sinh tiên tiến</strong> cùng đồng hành — giúp bạn phục hồi nhanh hơn, tập luyện thông minh hơn, và sống trọn vẹn hơn ngay tại nhà.
             </p>
-            <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
                 <a href="#products" class="btn btn-light btn-lg rounded-pill fw-bold text-primary px-5 shadow">
                     <i class="bi bi-grid me-2"></i>Xem Thiết Bị
                 </a>
                 <a href="#product-details" class="btn btn-outline-light btn-lg rounded-pill px-5">
-                    <i class="bi bi-info-circle me-2"></i>Tìm hiểu thêm
+                    <i class="bi bi-play-circle me-2"></i>Cách hoạt động
                 </a>
+            </div>
+            <!-- Live trust indicator -->
+            <div class="d-flex justify-content-center gap-4 flex-wrap animate-fade-in-up" style="animation-delay: 0.4s; opacity: 0.85;">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="position-relative d-inline-block">
+                        <span class="badge bg-success rounded-circle p-1" style="width:10px;height:10px;"></span>
+                    </span>
+                    <span style="font-size:0.85rem;">Giám sát trực tiếp 24/7</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check text-success"></i>
+                    <span style="font-size:0.85rem;">Đạt chuẩn y tế quốc tế</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-patch-check text-warning"></i>
+                    <span style="font-size:0.85rem;">Được kiểm chứng lâm sàng</span>
+                </div>
             </div>
         </div>
     </div>
@@ -79,10 +99,24 @@
         </div>
     </div>
 
+    <!-- Trusted Partners Logo Bar -->
+    <div class="bg-light py-4 border-bottom">
+        <div class="container">
+            <p class="text-center text-muted small fw-bold text-uppercase mb-4">Được tin dùng bởi các bệnh viện & trung tâm y tế hàng đầu</p>
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 gap-md-5 opacity-75">
+                <h5 class="fw-bold text-secondary mb-0"><i class="bi bi-hospital me-2"></i>Chợ Rẫy Hospital</h5>
+                <h5 class="fw-bold text-secondary mb-0"><i class="bi bi-building-add me-2"></i>ĐHYD TP.HCM</h5>
+                <h5 class="fw-bold text-secondary mb-0"><i class="bi bi-bandaid me-2"></i>Rehab Center 115</h5>
+                <h5 class="fw-bold text-secondary mb-0"><i class="bi bi-heart-pulse me-2"></i>Vinmec Healthcare</h5>
+                <h5 class="fw-bold text-secondary mb-0"><i class="bi bi-lungs me-2"></i>FV Hospital</h5>
+            </div>
+        </div>
+    </div>
+
     <!-- Info Section -->
     <div id="features" class="container py-5">
         <div class="text-center mb-5">
-            <h2 class="fw-bold">Tại sao chọn RehabTracking?</h2>
+            <h2 class="fw-bold">Tại sao chọn STEP?</h2>
             <p class="text-muted">Hệ sinh thái y tế thông minh kết nối Bệnh nhân - Thiết bị - Bác sĩ, mang lại hiệu quả phục hồi toàn diện.</p>
         </div>
         <div class="row g-4 text-center">
@@ -91,7 +125,7 @@
                     <div class="feature-icon bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width:70px;height:70px;">
                         <i class="bi bi-cpu fs-2"></i>
                     </div>
-                    <h5 class="fw-bold">Thiết bị IoT Chuyên dụng</h5>
+                    <h5 class="fw-bold">Thiết bị Cảm biến Chuyên dụng</h5>
                     <p class="text-muted mb-0">Cảm biến ESP32 kết hợp MPU6050 & EMG đo góc quay khớp (ROM) và lực cơ chuẩn xác từng millimet. Tự động đồng bộ lên nền tảng đám mây.</p>
                 </div>
             </div>
@@ -149,7 +183,7 @@
             <div class="row align-items-center g-5">
                 <div class="col-lg-6">
                     <div class="position-relative">
-                        <img src="https://placehold.co/600x450/e0e7ff/4f46e5?text=Smart+Glove+IoT" alt="Thiết bị IoT RehabTracking" class="img-fluid rounded-4 shadow-lg w-100 object-fit-cover" />
+                        <img src="https://placehold.co/600x450/e0e7ff/4f46e5?text=Smart+Glove+STEP" alt="Thiết bị STEP" class="img-fluid rounded-4 shadow-lg w-100 object-fit-cover" />
                         <div class="position-absolute bottom-0 end-0 m-4 bg-white p-3 rounded-4 shadow-lg text-center">
                             <i class="bi bi-shield-check text-success fs-1"></i>
                             <div class="fw-bold mt-1">Đạt chuẩn Y tế</div>
@@ -158,10 +192,10 @@
                 </div>
                 <div class="col-lg-6">
                     <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-3">
-                        <i class="bi bi-info-circle-fill me-1"></i> Tìm hiểu thêm về sản phẩm
+                        <i class="bi bi-stars me-1"></i> Câu chuyện đằng sau sản phẩm
                     </span>
-                    <h2 class="fw-bold mb-4">Giải pháp Phục hồi chức năng Toàn diện</h2>
-                    <p class="text-muted mb-4 fs-5">Hệ thống <strong>RehabTracking</strong> là sự kết hợp hoàn hảo giữa phần cứng IoT thông minh và nền tảng phần mềm mạnh mẽ, mang đến trải nghiệm phục hồi chức năng chuyên nghiệp ngay tại nhà.</p>
+                    <h2 class="fw-bold mb-4">Từ Phòng Bệnh đến Cuộc Sống Bình Thường</h2>
+                    <p class="text-muted mb-4 fs-5">Hệ thống <strong>STEP</strong> ra đời từ trăn trở của những người thân yêu phải đối mặt với hành trình phục hồi đơn độc. Chúng tôi tạo ra một người bạn đồng hành thông minh — luôn hiện diện, luôn đo lường, và luôn kết nối bạn với bác sĩ dù ở bất kỳ đâu.</p>
                     
                     <div class="d-flex mb-4 p-3 bg-light rounded-4 shadow-sm border border-white">
                         <div class="flex-shrink-0">
@@ -203,6 +237,250 @@
         </div>
     </div>
 
+    <!-- Target Audience (Đối tượng sử dụng) -->
+    <div class="py-5 bg-light border-bottom">
+        <div class="container py-4">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
+                    <i class="bi bi-people me-1"></i> Đối tượng sử dụng
+                </span>
+                <h2 class="fw-bold">STEP dành cho ai?</h2>
+                <p class="text-muted">Giải pháp được thiết kế tối ưu cho nhiều nhóm đối tượng cần phục hồi chức năng.</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-4">
+                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                            <i class="bi bi-heart-pulse fs-2"></i>
+                        </div>
+                        <h5 class="fw-bold">Bệnh nhân Đột quỵ</h5>
+                        <p class="text-muted small">Những người bị di chứng liệt nửa người, yếu tay, cần phục hồi tầm vận động (ROM) và trương lực cơ thông qua tập luyện cường độ cao, lặp lại nhiều lần.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-4">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                            <i class="bi bi-bandaid fs-2"></i>
+                        </div>
+                        <h5 class="fw-bold">Sau Chấn thương / Phẫu thuật</h5>
+                        <p class="text-muted small">Người bị gãy xương, đứt gân, thoái hóa khớp sau khi tháo bột/phẫu thuật cần hệ thống giám sát để tập vật lý trị liệu an toàn tại nhà mà không lo sai tư thế.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-4">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                            <i class="bi bi-person-wheelchair fs-2"></i>
+                        </div>
+                        <h5 class="fw-bold">Người cao tuổi</h5>
+                        <p class="text-muted small">Giúp người già duy trì sự linh hoạt của khớp, chống teo cơ, cứng khớp do ít vận động. Giao diện trực quan, dễ sử dụng chỉ với 1 nút bấm.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-4">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                            <i class="bi bi-clipboard2-pulse fs-2"></i>
+                        </div>
+                        <h5 class="fw-bold">Phòng khám & Bệnh viện</h5>
+                        <p class="text-muted small">Cung cấp công cụ mạnh mẽ cho Bác sĩ để theo dõi đồng thời hàng trăm bệnh nhân từ xa, tối ưu hóa nguồn lực y tế và giường bệnh.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tech Specs (Thông số Kỹ thuật) -->
+    <div class="py-5 bg-white border-bottom">
+        <div class="container py-4">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6 order-lg-2">
+                    <img src="https://placehold.co/600x600/e0e7ff/4f46e5?text=Sơ+Đồ+Cảm+Biến" alt="Kiến trúc cảm biến" class="img-fluid rounded-4 shadow-lg w-100 object-fit-cover" />
+                </div>
+                <div class="col-lg-6 order-lg-1">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-3">
+                        <i class="bi bi-motherboard me-1"></i> Sức mạnh Phần cứng
+                    </span>
+                    <h2 class="fw-bold mb-4">Lõi Công Nghệ Vi Điều Khiển ESP32</h2>
+                    <p class="text-muted mb-4 fs-6">Sản phẩm Smart Glove không phải là đồ chơi. Nó là một thiết bị đo lường y sinh học thực thụ, được cấu thành từ những vi mạch tiên tiến nhất.</p>
+                    
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-4">
+                            <div class="d-flex">
+                                <i class="bi bi-check-circle-fill text-success fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Cảm biến Gia tốc & Góc quay MPU6050 (6-DOF)</h6>
+                                    <p class="text-muted small mb-0">Đo lường chính xác tọa độ 3D của bàn tay. Áp dụng bộ lọc Kalman filter để loại bỏ nhiễu rung lắc, tính toán ra góc gập (ROM - Range of Motion) với sai số dưới 1 độ.</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="mb-4">
+                            <div class="d-flex">
+                                <i class="bi bi-check-circle-fill text-success fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Cảm biến Điện cơ (EMG Sensor - MyoWare)</h6>
+                                    <p class="text-muted small mb-0">Thu thập tín hiệu điện phát ra từ màng tế bào cơ khi cơ co lại (Đơn vị: microVolt). Giúp bác sĩ biết cơ bắp có thực sự hoạt động hay bệnh nhân chỉ đang di chuyển bằng quán tính.</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="mb-4">
+                            <div class="d-flex">
+                                <i class="bi bi-check-circle-fill text-success fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Kết nối Đa tầng WiFi + Bluetooth Low Energy (BLE)</h6>
+                                    <p class="text-muted small mb-0">Chip ESP32 mạnh mẽ tự động chuyển đổi giữa WiFi để đẩy dữ liệu lên Cloud MQTT và BLE để ghép nối trực tiếp với Điện thoại siêu tiết kiệm pin.</p>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="d-flex">
+                                <i class="bi bi-check-circle-fill text-success fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Thời lượng Pin Lithium-Polymer 3000mAh</h6>
+                                    <p class="text-muted small mb-0">Cho phép tập luyện liên tục 48 giờ hoặc chế độ Standby lên đến 2 tuần. Tích hợp cổng sạc Type-C siêu tốc.</p>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Science (Cơ sở khoa học) -->
+    <div class="py-5" style="background-color: #0f172a; color: white;">
+        <div class="container py-5 text-center">
+            <h2 class="fw-bold mb-4">Cơ sở Khoa học: <span class="text-primary">Tính dẻo của Não bộ (Neuroplasticity)</span></h2>
+            <p class="lead opacity-75 mb-5 mx-auto" style="max-width: 800px;">
+                Đột quỵ làm chết các nơ-ron thần kinh điều khiển vận động. Phương pháp của STEP dựa trên nguyên lý <strong>Neuroplasticity</strong> - Khả năng tổ chức lại của não bộ bằng cách hình thành các liên kết thần kinh mới bù đắp cho phần não đã hỏng.
+            </p>
+            <div class="row g-4 text-start">
+                <div class="col-md-4">
+                    <div class="p-4 bg-white bg-opacity-10 rounded-4 h-100 border border-secondary border-opacity-25 hover-lift">
+                        <h3 class="text-info mb-3">01</h3>
+                        <h5 class="fw-bold">Cường độ cao (High-Intensity)</h5>
+                        <p class="small opacity-75">Tập luyện với số Rep (lặp lại) hàng nghìn lần. Gamification của chúng tôi kích thích bệnh nhân thực hiện nhiều số Reps hơn 300% so với tập chay truyền thống.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-4 bg-white bg-opacity-10 rounded-4 h-100 border border-secondary border-opacity-25 hover-lift">
+                        <h3 class="text-info mb-3">02</h3>
+                        <h5 class="fw-bold">Tập trung vào nhiệm vụ (Task-Specific)</h5>
+                        <p class="small opacity-75">Các tựa game thiết kế mô phỏng thao tác gắp đồ vật, vặn nắm cửa, giúp não bộ ghi nhớ lại chức năng sinh hoạt hàng ngày (ADL).</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-4 bg-white bg-opacity-10 rounded-4 h-100 border border-secondary border-opacity-25 hover-lift">
+                        <h3 class="text-info mb-3">03</h3>
+                        <h5 class="fw-bold">Phản hồi tức thì (Biofeedback)</h5>
+                        <p class="small opacity-75">Việc bệnh nhân ngay lập tức nhìn thấy đường biểu đồ EMG/ROM nhích lên trên màn hình khi họ cố gắng cử động sẽ kích hoạt vòng lặp phần thưởng Dopamine trong não.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gamification Showcase -->
+    <div class="py-5 bg-white border-bottom">
+        <div class="container py-4">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
+                    <i class="bi bi-controller me-1"></i> Trị liệu bằng Trò chơi
+                </span>
+                <h2 class="fw-bold">Thư viện Gamification Độc quyền</h2>
+                <p class="text-muted">Biến những giờ phút vật lý trị liệu khô khan thành trải nghiệm giải trí tuyệt vời.</p>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Game 1 -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift">
+                        <img src="https://placehold.co/600x350/fef08a/ca8a04?text=Catch+The+Apple" class="card-img-top object-fit-cover" style="height: 200px;" alt="Game 1">
+                        <div class="card-body p-4">
+                            <span class="badge bg-warning text-dark mb-3">Rèn luyện Lực bóp</span>
+                            <h5 class="fw-bold mb-2">Hái Táo (Catch The Apple)</h5>
+                            <p class="text-muted small mb-0">Bệnh nhân phải gập tay (sử dụng tín hiệu ROM) với một lực nhất định (đo bằng tín hiệu EMG) để điều khiển giỏ hứng những quả táo rơi xuống màn hình. Giúp kích thích nhóm cơ cẳng tay.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Game 2 -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift">
+                        <img src="https://placehold.co/600x350/bfdbfe/2563eb?text=Space+Explorer" class="card-img-top object-fit-cover" style="height: 200px;" alt="Game 2">
+                        <div class="card-body p-4">
+                            <span class="badge bg-primary mb-3">Tầm vận động cổ tay</span>
+                            <h5 class="fw-bold mb-2">Phi Thuyền Không Gian</h5>
+                            <p class="text-muted small mb-0">Sử dụng thao tác xoay (Pronation/Supination) cổ tay để điều khiển tàu vũ trụ né chướng ngại vật. Thuật toán sẽ tự tăng độ khó (vận tốc) khi bệnh nhân tập tốt hơn.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Game 3 -->
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift">
+                        <img src="https://placehold.co/600x350/bbf7d0/16a34a?text=Piano+Master" class="card-img-top object-fit-cover" style="height: 200px;" alt="Game 3">
+                        <div class="card-body p-4">
+                            <span class="badge bg-success mb-3">Phục hồi thần kinh tinh</span>
+                            <h5 class="fw-bold mb-2">Bậc thầy Piano</h5>
+                            <p class="text-muted small mb-0">Yêu cầu cử động độc lập từng ngón tay để gõ đúng phím đàn. Rất phù hợp cho giai đoạn cuối của quá trình phục hồi (Fine Motor Skills) sau phẫu thuật nối gân.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-5">
+                <a href="#" class="btn btn-outline-primary rounded-pill px-4 py-2">Khám phá toàn bộ 20+ Minigames</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="py-5 bg-light border-bottom">
+        <div class="container py-4">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
+                    <i class="bi bi-bar-chart-fill me-1"></i> Khác biệt vượt trội
+                </span>
+                <h2 class="fw-bold">Tại sao STEP là sự lựa chọn số 1?</h2>
+            </div>
+            
+            <div class="table-responsive rounded-4 shadow-sm bg-white">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="py-4 px-4 fs-5 text-muted fw-normal" style="width: 40%">Tiêu chí</th>
+                            <th scope="col" class="py-4 px-4 fs-5 fw-bold text-dark text-center border-start" style="width: 30%">Tập tại Bệnh viện (Truyền thống)</th>
+                            <th scope="col" class="py-4 px-4 fs-5 fw-bold text-primary text-center border-start border-primary border-2" style="width: 30%; background-color: #f0fdf4;">STEP Smart Glove</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="py-4 px-4 fw-bold">Chi phí & Thời gian di chuyển</td>
+                            <td class="py-4 px-4 text-center text-muted border-start">Tốn kém, mất hàng giờ kẹt xe</td>
+                            <td class="py-4 px-4 text-center fw-bold text-success border-start border-primary border-2" style="background-color: #f0fdf4;">Tập ngay tại nhà 24/7</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 fw-bold">Độ chính xác dữ liệu tập</td>
+                            <td class="py-4 px-4 text-center text-muted border-start">Đo bằng mắt thường / Thước dây</td>
+                            <td class="py-4 px-4 text-center fw-bold text-success border-start border-primary border-2" style="background-color: #f0fdf4;">Cảm biến chuẩn xác tới 1 độ & 1 microVolt</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 fw-bold">Động lực tập luyện (Motivation)</td>
+                            <td class="py-4 px-4 text-center text-muted border-start">Bài tập lặp đi lặp lại nhàm chán</td>
+                            <td class="py-4 px-4 text-center fw-bold text-success border-start border-primary border-2" style="background-color: #f0fdf4;">Gamification (Tập như chơi Game)</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 fw-bold">Sự giám sát của Bác sĩ</td>
+                            <td class="py-4 px-4 text-center text-muted border-start">1 Bác sĩ kèm 1 Bệnh nhân (Quá tải)</td>
+                            <td class="py-4 px-4 text-center fw-bold text-success border-start border-primary border-2" style="background-color: #f0fdf4;">Giám sát Real-time 100+ bệnh nhân cùng lúc</td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 px-4 fw-bold">Báo cáo Y khoa & Phác đồ</td>
+                            <td class="py-4 px-4 text-center text-muted border-start">Ghi chép sổ sách thủ công</td>
+                            <td class="py-4 px-4 text-center fw-bold text-success border-start border-primary border-2" style="background-color: #f0fdf4;">AI tự động xuất File PDF và vẽ Biểu đồ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- How it works section (Quy trình) -->
     <div class="py-5" style="background-color: #f8fafc;">
         <div class="container py-4">
@@ -210,7 +488,7 @@
                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
                     <i class="bi bi-signpost-split me-1"></i> Quy trình
                 </span>
-                <h2 class="fw-bold">Hành trình Phục hồi cùng RehabTracking</h2>
+                <h2 class="fw-bold">Hành trình Phục hồi cùng STEP</h2>
                 <p class="text-muted">4 bước đơn giản để bắt đầu tập luyện và kết nối với bác sĩ chuyên khoa.</p>
             </div>
             
@@ -258,10 +536,10 @@
         <div class="container">
             <div class="text-center mb-5">
                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
-                    <i class="bi bi-box-seam me-1"></i> Thiết bị IoT Y tế
+                    <i class="bi bi-box-seam me-1"></i> Thiết bị &amp; Phần cứng
                 </span>
                 <h2 class="fw-bold">Sản phẩm &amp; Thiết bị</h2>
-                <p class="text-muted">Đặt mua bộ thiết bị IoT để bắt đầu hành trình phục hồi của bạn.</p>
+                <p class="text-muted">Đặt mua bộ cảm biến y sinh STEP để bắt đầu hành trình phục hồi của bạn.</p>
             </div>
 
             @if (isLoading)
@@ -294,10 +572,20 @@
             {
                 @if (!string.IsNullOrEmpty(addedMessage))
                 {
-                    <div class="alert alert-success alert-dismissible fade show mb-4 d-flex align-items-center shadow-sm" role="alert">
-                        <i class="bi bi-cart-check-fill me-2 fs-5"></i>
-                        <div>@addedMessage</div>
-                        <button type="button" class="btn-close" @onclick="() => addedMessage = string.Empty"></button>
+                    <div class="toast-notification d-flex align-items-center gap-3 fade-in" role="alert">
+                        <div class="bg-success rounded-circle d-flex justify-content-center align-items-center flex-shrink-0" style="width:40px;height:40px;">
+                            <i class="bi bi-cart-check-fill text-white fs-5"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold text-dark" style="font-size:0.9rem;">@addedMessage</div>
+                            <div class="text-muted small">Xem giỏ hàng để tiến hành thanh toán</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="/cart" class="btn btn-sm btn-success rounded-pill px-3">Xem giỏ hàng</a>
+                            <button class="btn btn-sm btn-light rounded-pill" @onclick="() => addedMessage = string.Empty">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
                     </div>
                 }
                 <div class="row row-cols-1 row-cols-md-3 g-4">
@@ -361,12 +649,91 @@
         </div>
     </div>
     
+    <!-- Pricing Plans Section -->
+    <div class="py-5 border-bottom bg-white">
+        <div class="container py-4">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
+                    <i class="bi bi-tags-fill me-1"></i> Bảng giá dịch vụ
+                </span>
+                <h2 class="fw-bold">Nâng cấp lộ trình phục hồi của bạn</h2>
+                <p class="text-muted">Chọn gói dịch vụ phần mềm đi kèm thiết bị phù hợp nhất với nhu cầu của bạn.</p>
+            </div>
+            
+            <div class="row g-4 justify-content-center">
+                <!-- Basic Plan -->
+                <div class="col-md-4">
+                    <div class="card border border-light shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 pb-0 text-center">
+                            <h5 class="fw-bold text-muted mb-1">Gói Cơ Bản</h5>
+                            <div class="display-5 fw-bold text-dark">Miễn phí</div>
+                            <p class="text-muted small mt-2">Mặc định đi kèm khi mua thiết bị</p>
+                        </div>
+                        <div class="card-body p-4">
+                            <ul class="list-unstyled mb-4">
+                                <li class="mb-3"><i class="bi bi-check2 text-success me-2 fw-bold"></i> Kết nối Bluetooth App Mobile</li>
+                                <li class="mb-3"><i class="bi bi-check2 text-success me-2 fw-bold"></i> Xem biểu đồ thống kê cá nhân</li>
+                                <li class="mb-3"><i class="bi bi-check2 text-success me-2 fw-bold"></i> 3 Trò chơi phục hồi cơ bản</li>
+                                <li class="mb-3 text-muted opacity-50"><i class="bi bi-x me-2"></i> Không kết nối trực tiếp Bác sĩ</li>
+                                <li class="mb-3 text-muted opacity-50"><i class="bi bi-x me-2"></i> Không sử dụng AI phân tích</li>
+                            </ul>
+                            <button class="btn btn-outline-secondary w-100 rounded-pill fw-bold" disabled>Đã bao gồm</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Premium Plan -->
+                <div class="col-md-4">
+                    <div class="card border-primary shadow-lg rounded-4 h-100 position-relative" style="transform: scale(1.05); z-index: 10;">
+                        <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2 text-uppercase letter-spacing-1">Khuyên dùng</div>
+                        <div class="card-header bg-primary text-white text-center rounded-top-4 pt-4 pb-3 border-0">
+                            <h5 class="fw-bold mb-1 opacity-75">Gói Đặc Quyền</h5>
+                            <div class="display-5 fw-bold">499.000₫<span class="fs-6 fw-normal opacity-75">/tháng</span></div>
+                            <p class="small mt-2 mb-0">Giải pháp toàn diện nhất</p>
+                        </div>
+                        <div class="card-body p-4">
+                            <ul class="list-unstyled mb-4">
+                                <li class="mb-3"><i class="bi bi-check-circle-fill text-primary me-2"></i> Toàn bộ tính năng gói Cơ bản</li>
+                                <li class="mb-3"><i class="bi bi-check-circle-fill text-primary me-2"></i> Chỉ định 1 Bác sĩ chuyên khoa theo dõi Live 24/7</li>
+                                <li class="mb-3"><i class="bi bi-check-circle-fill text-primary me-2"></i> Trợ lý AI phân tích và đưa ra phác đồ tập luyện</li>
+                                <li class="mb-3"><i class="bi bi-check-circle-fill text-primary me-2"></i> Mở khóa toàn bộ thư viện Gamification (20+ games)</li>
+                                <li class="mb-3"><i class="bi bi-check-circle-fill text-primary me-2"></i> Tải báo cáo Y khoa (PDF) hàng tuần</li>
+                            </ul>
+                            <button class="btn btn-primary w-100 rounded-pill fw-bold shadow">Đăng ký ngay</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- VIP Plan -->
+                <div class="col-md-4">
+                    <div class="card border border-light shadow-sm rounded-4 h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 pb-0 text-center">
+                            <h5 class="fw-bold text-muted mb-1">Gói Chuyên Gia</h5>
+                            <div class="display-5 fw-bold text-dark">Liên hệ</div>
+                            <p class="text-muted small mt-2">Dành cho Phòng khám / Bệnh viện</p>
+                        </div>
+                        <div class="card-body p-4">
+                            <ul class="list-unstyled mb-4">
+                                <li class="mb-3"><i class="bi bi-check2 text-success me-2 fw-bold"></i> Cấp tài khoản Doctor không giới hạn</li>
+                                <li class="mb-3"><i class="bi bi-check2 text-success me-2 fw-bold"></i> Quản lý bệnh nhân quy mô lớn</li>
+                                <li class="mb-3"><i class="bi bi-check2 text-success me-2 fw-bold"></i> Tích hợp API vào hệ thống HIS của bệnh viện</li>
+                                <li class="mb-3"><i class="bi bi-check2 text-success me-2 fw-bold"></i> Hỗ trợ kỹ thuật On-site 24/7</li>
+                                <li class="mb-3"><i class="bi bi-check2 text-success me-2 fw-bold"></i> Tùy chỉnh Logo & Tên miền riêng (White-label)</li>
+                            </ul>
+                            <button class="btn btn-outline-primary w-100 rounded-pill fw-bold">Nhận báo giá</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Testimonials / Cảm nhận -->
     <div class="py-5" style="background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);">
         <div class="container py-4">
             <div class="text-center mb-5">
                 <h2 class="fw-bold">Khách hàng & Bác sĩ nói gì?</h2>
-                <p class="text-muted">Phản hồi thực tế từ những người đã trải nghiệm RehabTracking.</p>
+                <p class="text-muted">Phản hồi thực tế từ những người đã trải nghiệm STEP.</p>
             </div>
             <div class="row g-4">
                 <div class="col-md-4">
@@ -374,7 +741,7 @@
                         <div class="d-flex text-warning mb-3">
                             <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
                         </div>
-                        <p class="text-muted fst-italic mb-4">"Từ ngày có găng tay RehabTracking, tôi không cần phải đến bệnh viện 3 lần/tuần nữa. Bác sĩ theo dõi rất sát sao và tôi tập như đang chơi game, rất thú vị."</p>
+                        <p class="text-muted mb-4">"Từ ngày có găng tay STEP, tôi không cần phải đến bệnh viện 3 lần/tuần nữa. Bác sĩ theo dõi rất sát sao và tôi tập như đang chơi game, rất thú vị."</p>
                         <div class="d-flex align-items-center mt-auto">
                             <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 45px; height: 45px;">M</div>
                             <div class="ms-3">
@@ -392,7 +759,7 @@
                         <div class="d-flex text-warning mb-3">
                             <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
                         </div>
-                        <p class="text-muted fst-italic mb-4">"Số liệu EMG và ROM được truyền Live với độ trễ gần như bằng 0. Tính năng này thực sự thay đổi cách chúng tôi quản lý và theo dõi tiến trình của hàng trăm bệnh nhân."</p>
+                        <p class="text-muted mb-4">"Số liệu EMG và ROM được truyền Live với độ trễ gần như bằng 0. Tính năng này thực sự thay đổi cách chúng tôi quản lý và theo dõi tiến trình của hàng trăm bệnh nhân."</p>
                         <div class="d-flex align-items-center mt-auto">
                             <img src="https://placehold.co/45x45/0ea5e9/ffffff?text=BS" class="rounded-circle" alt="Bác sĩ" />
                             <div class="ms-3">
@@ -407,7 +774,7 @@
                         <div class="d-flex text-warning mb-3">
                             <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
                         </div>
-                        <p class="text-muted fst-italic mb-4">"Ứng dụng rất mượt, tính năng giỏ hàng và giao hàng nhanh. Bố tôi đã tiến bộ rõ rệt chỉ sau 2 tháng nhờ tập luyện đúng phác đồ hệ thống AI đề xuất."</p>
+                        <p class="text-muted mb-4">"Ứng dụng rất mượt, tính năng giỏ hàng và giao hàng nhanh. Bố tôi đã tiến bộ rõ rệt chỉ sau 2 tháng nhờ tập luyện đúng phác đồ hệ thống AI đề xuất."</p>
                         <div class="d-flex align-items-center mt-auto">
                             <div class="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" style="width: 45px; height: 45px;">L</div>
                             <div class="ms-3">
@@ -420,84 +787,320 @@
             </div>
         </div>
     </div>
-    <!-- About Us Section -->
-    <div id="about-us" class="bg-white py-5 border-top">
-        <div class="container">
+    
+    <!-- FAQ Section -->
+    <div class="py-5" style="background-color: #f8fafc;">
+        <div class="container py-4">
             <div class="text-center mb-5">
                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
-                    <i class="bi bi-people-fill me-1"></i> Đội ngũ
+                    <i class="bi bi-question-circle me-1"></i> Giải đáp thắc mắc
                 </span>
-                <h2 class="fw-bold">Về Chúng Tôi</h2>
-                <p class="text-muted">Những con người nhiệt huyết đứng sau RehabTracking.</p>
+                <h2 class="fw-bold">Câu hỏi thường gặp (FAQ)</h2>
+                <p class="text-muted">Tổng hợp những câu hỏi người dùng thường gặp khi sử dụng hệ thống.</p>
             </div>
-            <div class="row g-4 justify-content-center">
-                <div class="col-md-4 col-lg-3">
-                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
-                        <div class="mb-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
-                                <i class="bi bi-person-circle fs-1"></i>
+            
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <!-- FIX: Blazor-native accordion, not Bootstrap JS (compatible with InteractiveServer) -->
+                    <div class="accordion-flush bg-white rounded-4 shadow-sm overflow-hidden">
+                        @{
+                            var faqItems = new[]
+                            {
+                                ("faq1", "Thiết bị có tương thích với điện thoại của tôi không?",
+                                 "Thiết bị sử dụng kết nối WiFi và Bluetooth chuẩn mới nhất, hoàn toàn tương thích với mọi thiết bị di động (iOS, Android), máy tính bảng, và laptop có trình duyệt web hiện đại. Không cần cài thêm driver hay phần mềm bổ sung."),
+                                ("faq2", "Bác sĩ có thể theo dõi tôi theo thời gian thực không?",
+                                 "Hoàn toàn có thể. Nhờ công nghệ SignalR, dữ liệu góc gập (ROM) và điện cơ (EMG) của bạn sẽ được truyền trực tiếp đến màn hình của bác sĩ chuyên khoa với độ trễ chưa tới 1 giây. Bác sĩ có thể theo dõi hàng trăm bệnh nhân cùng lúc từ xa."),
+                                ("faq3", "Chính sách bảo hành như thế nào?",
+                                 "Tất cả thiết bị STEP đều được bảo hành chính hãng 1 đổi 1 trong vòng 12 tháng đối với lỗi từ nhà sản xuất. Đội ngũ kỹ thuật hỗ trợ 24/7 qua hotline và trực tiếp tại trung tâm dịch vụ."),
+                                ("faq4", "Dữ liệu y tế của tôi có được bảo mật không?",
+                                 "Chắc chắn. Chúng tôi sử dụng chuẩn mã hóa AES-256 và HTTPS/TLS 1.3 để bảo vệ dữ liệu sức khỏe của bạn theo tiêu chuẩn HIPAA. Dữ liệu chỉ được truy cập bởi bạn và bác sĩ chuyên khoa được chỉ định. Chúng tôi không bao giờ bán hay chia sẻ dữ liệu cá nhân."),
+                                ("faq5", "Tôi có cần kỹ năng kỹ thuật để sử dụng thiết bị không?",
+                                 "Không cần. Thiết bị được thiết kế để người cao tuổi và người không rành công nghệ vẫn có thể sử dụng dễ dàng. Chỉ cần 3 bước: Đeo găng tay → Bật nguồn → Nhấn \"Bắt đầu\" trên ứng dụng. Thiết bị tự động kết nối và truyền dữ liệu."),
+                                ("faq6", "Mất bao lâu để thấy kết quả phục hồi?",
+                                 "Tùy theo mức độ tổn thương ban đầu, đa số bệnh nhân nhận thấy cải thiện rõ rệt sau 4-8 tuần tập luyện đúng phác đồ. Hệ thống AI sẽ tự động điều chỉnh độ khó và thông báo cho bác sĩ khi bạn đạt các mốc phục hồi quan trọng.")
+                            };
+                        }
+                        @foreach (var (id, question, answer) in faqItems)
+                        {
+                            var isOpen = activeFaq == id;
+                            <div class="border-bottom" style="@(isOpen ? "background-color: #fafbff;" : "")">
+                                <button class="w-100 text-start d-flex justify-content-between align-items-center px-4 py-3 bg-transparent border-0 fw-bold text-dark"
+                                        style="font-family: 'Inter', sans-serif; font-size: 0.95rem; cursor: pointer;"
+                                        @onclick='() => ToggleFaq(id)'>
+                                    <span>@question</span>
+                                    <i class="bi @(isOpen ? "bi-chevron-up text-primary" : "bi-chevron-down text-muted") ms-3 flex-shrink-0" style="transition: transform 0.2s;"></i>
+                                </button>
+                                @if (isOpen)
+                                {
+                                    <div class="px-4 pb-4 text-muted" style="line-height: 1.7; animation: fadeInUp 0.2s ease-out;">
+                                        @answer
+                                    </div>
+                                }
                             </div>
-                        </div>
-                        <h5 class="fw-bold mb-1">Lê Huỳnh Đại Nghĩa</h5>
-                        <p class="text-primary small fw-semibold mb-2">Leader</p>
-                        <p class="text-muted small mb-0">Ngành Kinh tế</p>
+                        }
                     </div>
                 </div>
-                <div class="col-md-4 col-lg-3">
-                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
-                        <div class="mb-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
-                                <i class="bi bi-person-circle fs-1"></i>
-                            </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Blog & Medical Articles Section -->
+    <div class="py-5" style="background-color: #f8fafc;">
+        <div class="container py-4">
+            <div class="d-flex justify-content-between align-items-end mb-5">
+                <div>
+                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 mb-2">
+                        <i class="bi bi-newspaper me-1"></i> Kiến thức Y khoa
+                    </span>
+                    <h2 class="fw-bold">Tin tức & Bài viết mới nhất</h2>
+                    <p class="text-muted mb-0">Cập nhật những phương pháp phục hồi chức năng sau đột quỵ tiên tiến nhất.</p>
+                </div>
+                <a href="#" class="btn btn-outline-primary rounded-pill d-none d-md-block">Xem tất cả bài viết <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden feature-card">
+                        <img src="https://placehold.co/600x350/e0e7ff/4f46e5?text=Phục+Hồi+Cơ+Bản" class="card-img-top object-fit-cover" style="height: 200px;" alt="News 1">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <span class="text-primary small fw-bold mb-2">Kiến thức y khoa</span>
+                            <h5 class="fw-bold mb-3">Tầm quan trọng của việc tập luyện sớm sau đột quỵ</h5>
+                            <p class="text-muted small mb-4 flex-grow-1">Việc bắt đầu vật lý trị liệu trong vòng 24-48 giờ đầu tiên sau khi chỉ số sinh tồn ổn định có thể gia tăng 30% tỷ lệ phục hồi hoàn toàn chức năng vận động...</p>
+                            <a href="#" class="text-primary fw-bold text-decoration-none small">Đọc tiếp <i class="bi bi-arrow-right"></i></a>
                         </div>
-                        <h5 class="fw-bold mb-1">Nguyễn Lâm Hoàng Ngọc</h5>
-                        <p class="text-muted small mb-0 mt-2">Ngành Kinh tế</p>
                     </div>
                 </div>
-                <div class="col-md-4 col-lg-3">
-                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
-                        <div class="mb-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
-                                <i class="bi bi-person-circle fs-1"></i>
-                            </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden feature-card">
+                        <img src="https://placehold.co/600x350/dcfce7/16a34a?text=Cảm+Biến+Y+Sinh" class="card-img-top object-fit-cover" style="height: 200px;" alt="Bài viết công nghệ">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <span class="text-success small fw-bold mb-2">Công nghệ</span>
+                            <h5 class="fw-bold mb-3">Ứng dụng cảm biến góc MPU6050 trong đo tầm vận động (ROM)</h5>
+                            <p class="text-muted small mb-4 flex-grow-1">Thay vì dùng thước đo góc truyền thống, cảm biến quay gia tốc MPU6050 giúp ghi lại chính xác từng độ gập duỗi ngón tay và truyền về nền tảng thước đo loại Elite...</p>
+                            <a href="#" class="text-primary fw-bold text-decoration-none small">Đọc tiếp <i class="bi bi-arrow-right"></i></a>
                         </div>
-                        <h5 class="fw-bold mb-1">Chung Khánh Hà</h5>
-                        <p class="text-muted small mb-0 mt-2">Ngành Kinh tế</p>
                     </div>
                 </div>
-                <div class="col-md-4 col-lg-3">
-                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
-                        <div class="mb-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
-                                <i class="bi bi-person-circle fs-1"></i>
-                            </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden feature-card">
+                        <img src="https://placehold.co/600x350/fef3c7/d97706?text=Dinh+Dưỡng" class="card-img-top object-fit-cover" style="height: 200px;" alt="News 3">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <span class="text-warning small fw-bold mb-2">Dinh dưỡng</span>
+                            <h5 class="fw-bold mb-3">Thực đơn chuẩn Y khoa dành cho bệnh nhân đột quỵ tại nhà</h5>
+                            <p class="text-muted small mb-4 flex-grow-1">Một chế độ ăn ít muối, giàu Omega-3, hạn chế mỡ động vật và tăng cường chất xơ không chỉ ngăn ngừa tái phát mà còn thúc đẩy quá trình tái tạo nơ-ron thần kinh...</p>
+                            <a href="#" class="text-primary fw-bold text-decoration-none small">Đọc tiếp <i class="bi bi-arrow-right"></i></a>
                         </div>
-                        <h5 class="fw-bold mb-1">Trần Gia Đạt</h5>
-                        <p class="text-muted small mb-0 mt-2">Ngành Kĩ thuật phần mềm</p>
                     </div>
                 </div>
-                <div class="col-md-4 col-lg-3">
-                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
-                        <div class="mb-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
-                                <i class="bi bi-person-circle fs-1"></i>
-                            </div>
+            </div>
+            
+            <div class="text-center mt-4 d-block d-md-none">
+                <a href="#" class="btn btn-outline-primary rounded-pill w-100">Xem tất cả bài viết</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- About Us Section (Expanded) -->
+    <div id="about-us" class="bg-white py-5 border-top">
+        <div class="container py-4">
+            
+            <!-- 1. Our Story -->
+            <div class="row align-items-center mb-5 pb-4 border-bottom">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <div class="position-relative">
+                        <img src="https://placehold.co/700x500/e0e7ff/4f46e5?text=Câu+Chuyện+STEP" alt="STEP Story" class="img-fluid rounded-4 shadow-lg w-100 object-fit-cover" />
+                        <div class="position-absolute bottom-0 end-0 bg-white p-4 rounded-tl-4 shadow" style="border-top-left-radius: 1rem;">
+                            <h4 class="text-primary fw-bold mb-0">Thành lập năm 2026</h4>
+                            <p class="text-muted small mb-0">Đại học FPT Cần Thơ</p>
                         </div>
-                        <h5 class="fw-bold mb-1">Ngô Quốc Hưng</h5>
-                        <p class="text-muted small mb-0 mt-2">Ngành Kĩ thuật phần mềm</p>
                     </div>
                 </div>
-                <div class="col-md-4 col-lg-3">
-                    <div class="card border-0 shadow-sm text-center p-4 h-100 rounded-4">
-                        <div class="mb-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center" style="width:80px;height:80px;">
-                                <i class="bi bi-person-circle fs-1"></i>
-                            </div>
+                <div class="col-lg-6 ps-lg-5">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-3">
+                        <i class="bi bi-book-half me-1"></i> Câu chuyện của chúng tôi
+                    </span>
+                    <h2 class="fw-bold mb-4">Từ Đồ Án Khởi Nghiệp đến Sứ Mệnh Y Tế</h2>
+                    <p class="text-muted lead mb-4">Mọi thứ bắt đầu khi chúng tôi chứng kiến người thân phải vất vả trong quá trình phục hồi chức năng sau cơn bạo bệnh. Việc đi lại đến bệnh viện khó khăn, chi phí đắt đỏ và sự thiếu hụt thiết bị hỗ trợ tại nhà đã cản trở họ.</p>
+                    <p class="text-muted mb-4">STEP được sinh ra từ khát vọng thu hẹp khoảng cách đó. Chúng tôi kết hợp kiến thức từ Kinh Tế để tối ưu hóa chi phí sản xuất, kỹ năng của Kỹ Thuật Phần Mềm để xây dựng thuật toán đo lường chính xác, và dựa vào Thiết Kế Đồ Họa để tạo ra trải nghiệm gamification đầy cảm hứng cho người bệnh.</p>
+                    <blockquote class="blockquote border-start border-primary border-4 ps-3 py-2 bg-light rounded-end">
+                        <p class="mb-0 text-dark fs-6" style="font-style: normal !important; font-family: 'Inter', sans-serif !important;">"Chúng tôi không chỉ chế tạo một chiếc găng tay điện tử. Chúng tôi đang xây dựng một nền tảng hy vọng, giúp bệnh nhân tự chủ lấy lại cuộc sống của chính mình."</p>
+                    </blockquote>
+                </div>
+            </div>
+            
+            <!-- 2. Core Values -->
+            <div class="text-center mb-5">
+                <h3 class="fw-bold">Giá trị cốt lõi</h3>
+                <p class="text-muted">Kim chỉ nam cho mọi hành động và sản phẩm của STEP</p>
+            </div>
+            <div class="row g-4 mb-5 pb-5 border-bottom">
+                <div class="col-md-4">
+                    <div class="text-center px-3">
+                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex justify-content-center align-items-center mb-4" style="width: 80px; height: 80px;">
+                            <i class="bi bi-heart fs-1"></i>
                         </div>
-                        <h5 class="fw-bold mb-1">Lê Trần Kim Tuyến</h5>
-                        <p class="text-muted small mb-0 mt-2">Ngành thiết kế đồ họa</p>
+                        <h4 class="fw-bold">Thấu Cảm (Empathy)</h4>
+                        <p class="text-muted small">Mỗi dòng code, mỗi thiết kế phần cứng đều đặt người bệnh làm trung tâm. Chúng tôi thấu hiểu nỗi đau của họ để tạo ra thiết bị thân thiện và không gây mặc cảm.</p>
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="text-center px-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex justify-content-center align-items-center mb-4" style="width: 80px; height: 80px;">
+                            <i class="bi bi-lightbulb fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold">Đổi Mới (Innovation)</h4>
+                        <p class="text-muted small">Tiên phong ứng dụng cảm biến y sinh (Biosensor) kết hợp với SignalR Real-time vào lĩnh vực Vật lý trị liệu từ xa (Tele-rehabilitation) tại thị trường Việt Nam.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center px-3">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex justify-content-center align-items-center mb-4" style="width: 80px; height: 80px;">
+                            <i class="bi bi-shield-check fs-1"></i>
+                        </div>
+                        <h4 class="fw-bold">Chính Trực (Integrity)</h4>
+                        <p class="text-muted small">Tuân thủ nghiêm ngặt các tiêu chuẩn bảo mật dữ liệu y tế (HIPAA). Dữ liệu sinh học của người dùng là tài sản vô giá và luôn được bảo vệ ở mức cao nhất.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. The Team -->
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
+                    <i class="bi bi-people-fill me-1"></i> Đội ngũ Sáng lập
+                </span>
+                <h2 class="fw-bold">Những con người nhiệt huyết</h2>
+                <p class="text-muted">Đội ngũ đa ngành kết hợp giữa Kinh tế, Kỹ thuật và Thiết kế.</p>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Nghĩa -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
+                        <div class="p-3 d-flex justify-content-center">
+                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Nghĩa" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Leader">
+                        </div>
+                        <div class="card-body text-center pt-0">
+                            <h5 class="fw-bold mb-1">Lê Huỳnh Đại Nghĩa</h5>
+                            <span class="badge bg-primary mb-3 px-3 py-2">Leader / CEO</span>
+                            <p class="text-muted small mb-4">Chuyên ngành Kinh tế. Phụ trách định hướng chiến lược, nghiên cứu thị trường Telehealth và quản lý dòng tài chính của dự án. Người truyền cảm hứng cho toàn đội.</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                                <a href="#" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-envelope-fill"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Ngọc -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
+                        <div class="p-3 d-flex justify-content-center">
+                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Ngọc" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Ngọc">
+                        </div>
+                        <div class="card-body text-center pt-0">
+                            <h5 class="fw-bold mb-1">Nguyễn Lâm Hoàng Ngọc</h5>
+                            <span class="badge bg-info text-dark mb-3 px-3 py-2">Operations Manager</span>
+                            <p class="text-muted small mb-4">Chuyên ngành Kinh tế. Tối ưu hóa chuỗi cung ứng linh kiện (ESP32, MPU6050), quản lý quy trình sản xuất phần cứng và đảm bảo tiến độ bàn giao sản phẩm.</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hà -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
+                        <div class="p-3 d-flex justify-content-center">
+                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Hà" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Hà">
+                        </div>
+                        <div class="card-body text-center pt-0">
+                            <h5 class="fw-bold mb-1">Chung Khánh Hà</h5>
+                            <span class="badge bg-warning text-dark mb-3 px-3 py-2">Marketing Lead</span>
+                            <p class="text-muted small mb-4">Chuyên ngành Kinh tế. Đảm nhận vai trò truyền thông, xây dựng thương hiệu STEP và kết nối với mạng lưới các bác sĩ, chuyên gia vật lý trị liệu.</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Đạt -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
+                        <div class="p-3 d-flex justify-content-center">
+                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Đạt" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Đạt">
+                        </div>
+                        <div class="card-body text-center pt-0">
+                            <h5 class="fw-bold mb-1">Trần Gia Đạt</h5>
+                            <span class="badge bg-dark mb-3 px-3 py-2">CTO / Lead Developer</span>
+                            <p class="text-muted small mb-4">Chuyên ngành Kỹ thuật phần mềm. Kiến trúc sư trưởng của hệ thống Blazor, xây dựng hạ tầng SignalR Real-time và kiến trúc Clean Architecture cho Backend.</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-github"></i></a>
+                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hưng -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
+                        <div class="p-3 d-flex justify-content-center">
+                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Hưng" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Hưng">
+                        </div>
+                        <div class="card-body text-center pt-0">
+                            <h5 class="fw-bold mb-1">Ngô Quốc Hưng</h5>
+                            <span class="badge bg-secondary mb-3 px-3 py-2">Hardware &amp; Firmware Engineer</span>
+                            <p class="text-muted small mb-4">Chuyên ngành Kỹ thuật phần mềm. Lập trình vi điều khiển C/C++, phát triển Firmware cho ESP32, xử lý tín hiệu cảm biến MPU6050 và giao thức MQTT.</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-github"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tuyến -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
+                        <div class="p-3 d-flex justify-content-center">
+                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Tuyến" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Tuyến">
+                        </div>
+                        <div class="card-body text-center pt-0">
+                            <h5 class="fw-bold mb-1">Lê Trần Kim Tuyến</h5>
+                            <span class="badge bg-danger mb-3 px-3 py-2">UI/UX Designer</span>
+                            <p class="text-muted small mb-4">Chuyên ngành Thiết kế đồ họa. Đảm nhận việc thiết kế giao diện (Figma), tạo hình Gamification, 3D Models và nhận diện thương hiệu cho STEP.</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="#" class="btn btn-sm btn-light text-danger rounded-circle"><i class="bi bi-dribbble"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Final Call to Action (CTA) Section -->
+    <div class="py-5 text-center text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);">
+        <!-- Background decorative elements -->
+        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: url('data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'0.05\' fill-rule=\'evenodd\'/%3E%3C/svg%3E'); opacity: 0.5;"></div>
+        
+        <div class="container py-5 position-relative z-1">
+            <h2 class="display-5 fw-bold mb-4">Sẵn sàng phục hồi sức khỏe cùng STEP?</h2>
+            <p class="lead mb-5 opacity-90 mx-auto" style="max-width: 700px;">
+                Chỉ với vài thao tác đơn giản, bạn có thể bắt đầu quá trình luyện tập tại nhà dưới sự giám sát trực tiếp của các bác sĩ chuyên khoa.
+            </p>
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                <a href="#products" class="btn btn-light btn-lg rounded-pill fw-bold text-primary px-5 py-3 shadow-lg">
+                    <i class="bi bi-cart3 me-2"></i> Mua Thiết bị Ngay
+                </a>
+                <a href="/register" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3">
+                    <i class="bi bi-person-plus me-2"></i> Tạo tài khoản Bệnh nhân
+                </a>
+            </div>
+            <div class="mt-5 small opacity-75">
+                <i class="bi bi-shield-check me-1"></i> Miễn phí vận chuyển toàn quốc &bull; Hỗ trợ kỹ thuật 24/7 &bull; Bảo hành chính hãng 12 tháng
             </div>
         </div>
     </div>
@@ -666,6 +1269,14 @@
     
     private bool showDetailsModal = false;
     private Product? selectedProduct;
+    
+    // For FAQ Accordion
+    private string activeFaq = string.Empty;
+
+    private void ToggleFaq(string id)
+    {
+        activeFaq = activeFaq == id ? string.Empty : id;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -689,14 +1300,30 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity == null || !authState.User.Identity.IsAuthenticated)
         {
-            Navigation.NavigateTo("/login?returnUrl=/cart");
+            Navigation.NavigateTo("/login?returnUrl=/");
             return;
         }
 
         if (product.StockQuantity <= 0) return;
+
+        // Đảm bảo CartState biết user hiện tại trước khi thêm hàng
+        var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            CartState.SetUser(userId);
+        }
+
         CartState.AddToCart(product, 1);
-        addedMessage = $"✓ Đã thêm \"{product.ProductName}\" vào giỏ hàng!";
-        Navigation.NavigateTo("/cart");
+        // Show toast notification instead of redirecting immediately
+        addedMessage = product.ProductName;
+        _ = AutoDismissToast();
+    }
+
+    private async Task AutoDismissToast()
+    {
+        await Task.Delay(5000);
+        addedMessage = string.Empty;
+        await InvokeAsync(StateHasChanged);
     }
 
     private void ShowDetailsModal(Product product)

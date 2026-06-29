@@ -1,13 +1,15 @@
 @page "/cart"
 @using RehabTracking.Web.Features.ECommerce.Cart
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using RehabTracking.Web.Constants
 @inject CartState CartState
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 @implements IDisposable
 
-<PageTitle>Giỏ hàng - RehabTracking</PageTitle>
+<PageTitle>Giỏ hàng - STEP</PageTitle>
 
 <div class="container py-4">
     <div class="d-flex align-items-center mb-4">
@@ -25,8 +27,8 @@
             <div class="mb-4">
                 <i class="bi bi-cart-x" style="font-size:6rem; color: #e2e8f0;"></i>
             </div>
-            <h4 class="fw-bold text-muted mb-2">Giỏ hàng trống</h4>
-            <p class="text-muted mb-4">Bạn chưa thêm sản phẩm nào vào giỏ hàng.</p>
+            <h4 class="fw-bold text-muted mb-2">@AppMessages.CartEmpty</h4>
+            <p class="text-muted mb-4">@AppMessages.CartEmptyDesc</p>
             <a href="/" class="btn btn-modern-primary rounded-pill px-5 shadow-sm">
                 <i class="bi bi-shop me-2"></i>Xem sản phẩm
             </a>
@@ -183,7 +185,14 @@
             Navigation.NavigateTo("/login?returnUrl=/cart");
             return;
         }
-        
+
+        // Đảm bảo CartState được gán đúng userId để isolate giỏ hàng
+        var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            CartState.SetUser(userId);
+        }
+
         CartState.OnChange += StateHasChanged;
     }
 

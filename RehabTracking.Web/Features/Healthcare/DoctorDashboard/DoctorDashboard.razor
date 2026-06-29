@@ -11,7 +11,7 @@
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>Dashboard Bác sĩ - TeleRehab</PageTitle>
+<PageTitle>Dashboard Bác sĩ - STEP</PageTitle>
 
 <div class="container-fluid py-4">
     <div class="row mb-4">
@@ -25,9 +25,14 @@
         <!-- Sidebar Patient Roster (Now as top horizontal cards on mobile/lg-left) -->
         <div class="col-xl-3 col-lg-4">
             <div class="d-flex flex-column gap-3">
-                <div class="modern-card p-3 d-flex align-items-center justify-content-between">
-                    <span class="fw-bold text-muted text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">Bệnh nhân của bạn</span>
-                    <span class="badge bg-primary rounded-pill">@(patients?.Count ?? 0)</span>
+                <div class="modern-card p-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fw-bold text-muted text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.05em;">Bệnh nhân của bạn</span>
+                        <span class="badge bg-primary rounded-pill">@(filteredPatients?.Count ?? 0)</span>
+                    </div>
+                    <input type="search" class="form-control form-control-sm rounded-3 bg-light" 
+                           placeholder="🔍 Tìm bệnh nhân..." @bind="searchQuery" @bind:event="oninput"
+                           style="font-size: 0.88rem;" />
                 </div>
 
                 @if (patients == null)
@@ -44,9 +49,17 @@
                 }
                 else
                 {
-                    <div class="patient-list d-flex flex-lg-column gap-3 overflow-auto pb-2 pb-lg-0" style="max-height: calc(100vh - 200px);">
-                        @foreach (var patient in patients)
+                    @if (filteredPatients?.Any() == false && !string.IsNullOrEmpty(searchQuery))
+                    {
+                        <div class="text-center py-3 text-muted small">
+                            <i class="bi bi-search me-1"></i>Không tìm thấy "@searchQuery"
+                        </div>
+                    }
+                    <div class="patient-list d-flex flex-lg-column gap-3 overflow-auto pb-2 pb-lg-0" style="max-height: calc(100vh - 250px);">
+                        @if (filteredPatients != null)
                         {
+                            @foreach (var patient in filteredPatients)
+                            {
                             bool isSelected = selectedPatient?.PatientId == patient.PatientId;
                             <div class="modern-card p-3 cursor-pointer @(isSelected ? "border-primary border-2" : "border-0")" 
                                  style="cursor: pointer; min-width: 250px; transition: all 0.2s; @(isSelected ? "box-shadow: 0 0 0 0.25rem rgba(79,70,229,0.25);" : "")"
@@ -61,6 +74,7 @@
                                     </div>
                                 </div>
                             </div>
+                        }
                         }
                     </div>
                 }
@@ -81,17 +95,19 @@
                                     <span class="badge badge-soft-warning px-3 py-2 rounded-pill">
                                         <i class="bi bi-file-medical"></i> @selectedPatient.MedicalHistory
                                     </span>
-                                    @if (!string.IsNullOrEmpty(successMessage))
-                                    {
-                                        <div class="mt-2 text-success small fw-bold">
-                                            <i class="bi bi-check-circle-fill me-1"></i> @successMessage
-                                        </div>
-                                    }
                                 </div>
                                 <button class="btn btn-modern-primary rounded-pill btn-sm px-4 py-2" @onclick="ShowTreatmentModal">
                                     <i class="bi bi-sliders me-1"></i> Điều chỉnh Phác đồ
                                 </button>
                             </div>
+                            @if (!string.IsNullOrEmpty(successMessage))
+                            {
+                                <div class="alert @(isSuccessAlert ? "alert-success" : "alert-danger") alert-dismissible border-0 rounded-3 d-flex align-items-center gap-2 mb-3 fade-in">
+                                    <i class="bi @(isSuccessAlert ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill") flex-shrink-0"></i>
+                                    <span>@successMessage</span>
+                                    <button type="button" class="btn-close" @onclick="() => successMessage = string.Empty"></button>
+                                </div>
+                            }
                             
                             <hr class="text-muted opacity-25">
                             
@@ -209,11 +225,38 @@
             else
             {
                 <div class="modern-card h-100 d-flex flex-column align-items-center justify-content-center p-5 text-center" style="min-height: 60vh;">
-                    <img src="/favicon.png" alt="Select" style="width: 120px; opacity: 0.1;" class="mb-4" />
-                    <h3 class="fw-bold text-muted">Chưa chọn Bệnh nhân</h3>
-                    <p class="text-muted mx-auto" style="max-width: 400px;">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex justify-content-center align-items-center mb-4" style="width: 100px; height: 100px;">
+                        <i class="bi bi-person-lines-fill text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-2">Chưa chọn Bệnh nhân</h3>
+                    <p class="text-muted mx-auto mb-4" style="max-width: 400px;">
                         Chọn một bệnh nhân từ danh sách bên trái để xem hồ sơ bệnh án, dữ liệu trực tiếp và lịch sử điều trị.
                     </p>
+                    <div class="row g-3 w-100" style="max-width: 500px;">
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-4 text-center">
+                                <i class="bi bi-activity text-primary fs-3 mb-2 d-block"></i>
+                                <div class="small fw-semibold">EMG Live</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Xem tín hiệu
+cơ</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-4 text-center">
+                                <i class="bi bi-sliders text-success fs-3 mb-2 d-block"></i>
+                                <div class="small fw-semibold">Phác đồ</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Chỉnh mục
+tiêu</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-3 bg-light rounded-4 text-center">
+                                <i class="bi bi-calendar3 text-info fs-3 mb-2 d-block"></i>
+                                <div class="small fw-semibold">Lịch sử</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Xem tiếnđộ</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             }
         </div>
@@ -279,6 +322,13 @@
     private PatientProfile? selectedPatient;
     private bool showModal = false;
     private AdjustTreatmentCommand adjustModel = new();
+    private string searchQuery = "";
+
+    // Computed: filter patients by name for search
+    private List<PatientProfile> filteredPatients =>
+        patients == null ? new() :
+        string.IsNullOrWhiteSpace(searchQuery) ? patients :
+        patients.Where(p => p.User?.FullName?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true).ToList();
 
     // SignalR & Chart
     private HubConnection? hubConnection;
@@ -286,6 +336,7 @@
     private int currentListeningPatientId = 0;
 
     private string successMessage = "";
+    private bool isSuccessAlert = false; // FIX: Use boolean instead of emoji detection
 
     protected override async Task OnInitializedAsync()
     {
@@ -300,13 +351,26 @@
                 { 
                     PatientId = 1, 
                     DateOfBirth = new DateOnly(1979, 1, 1), 
-                    Gender = "Male", 
-                    MedicalHistory = "Post-stroke right arm weakness",
-                    User = new User { FullName = "John Doe", PhoneNumber = "0123456789" },
+                    Gender = "Nam", 
+                    MedicalHistory = "Yếu cơ tay phải sau đột quỵ",
+                    User = new User { FullName = "Nguyễn Văn An", PhoneNumber = "0901234567" },
                     ExerciseSessions = new List<ExerciseSession> 
                     {
                         new ExerciseSession { StartTime = DateTime.UtcNow, DurationMinutes = 15, RepetitionsCount = 12, MaxRom = 45 },
                         new ExerciseSession { StartTime = DateTime.UtcNow.AddDays(-1), DurationMinutes = 20, RepetitionsCount = 8, MaxRom = 30 }
+                    }
+                });
+                patients.Add(new PatientProfile
+                {
+                    PatientId = 2,
+                    DateOfBirth = new DateOnly(1985, 5, 15),
+                    Gender = "Nữ",
+                    MedicalHistory = "Phục hồi sau chấn thương đầu gối",
+                    User = new User { FullName = "Trần Thị Bình", PhoneNumber = "0912345678" },
+                    ExerciseSessions = new List<ExerciseSession>
+                    {
+                        new ExerciseSession { StartTime = DateTime.UtcNow.AddDays(-2), DurationMinutes = 25, RepetitionsCount = 15, MaxRom = 60 },
+                        new ExerciseSession { StartTime = DateTime.UtcNow.AddDays(-3), DurationMinutes = 20, RepetitionsCount = 10, MaxRom = 45 }
                     }
                 });
             }
@@ -380,8 +444,11 @@
             var result = await Mediator.Send(adjustModel);
             if (result)
             {
-                successMessage = "Treatment plan updated successfully!";
-                // Refresh data if needed, or update locally
+                // FIX: Close modal only on SUCCESS, not in finally block
+                showModal = false;
+                successMessage = "Phác đồ điều trị đã được cập nhật thành công!";
+                isSuccessAlert = true; // FIX: Set boolean flag
+                // Update local state to reflect changes immediately
                 var existingPlan = selectedPatient?.TreatmentPlans?.FirstOrDefault();
                 if (existingPlan != null)
                 {
@@ -390,14 +457,18 @@
                     existingPlan.Description = adjustModel.Description;
                 }
             }
+            else
+            {
+                // FIX: Do NOT close modal on failure - show error instead
+                successMessage = "Không thể cập nhật phác đồ. Vui lòng thử lại.";
+                isSuccessAlert = false; // FIX: Set boolean flag
+            }
         }
         catch (Exception ex)
         {
+            successMessage = "Lỗi hệ thống khi lưu phác đồ. Vui lòng thử lại.";
+            isSuccessAlert = false; // FIX: Set boolean flag
             Console.WriteLine($"Error saving plan: {ex.Message}");
-        }
-        finally
-        {
-            showModal = false;
         }
     }
 

@@ -7,14 +7,14 @@
 @inject IMediator Mediator
 @rendermode InteractiveServer
 
-<PageTitle>Admin Dashboard</PageTitle>
+<PageTitle>Admin Dashboard - STEP</PageTitle>
 
 <div class="container-fluid py-4">
     <!-- Hero Section -->
     <div class="row mb-5 align-items-center">
         <div class="col-lg-8">
             <h1 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2.5rem;">Trung Tâm Xử Lý Đơn Hàng</h1>
-            <p class="text-muted fs-5">Quản lý và xuất kho thiết bị y tế IoT. Đảm bảo bảo mật toàn bộ dữ liệu y khoa của bệnh nhân.</p>
+            <p class="text-muted fs-5">Quản lý và xuất kho thiết bị STEP Smart Glove. Đảm bảo bảo mật toàn bộ dữ liệu y khoa của bệnh nhân.</p>
         </div>
         <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
             <div class="d-inline-flex gap-3">
@@ -29,23 +29,74 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Success/Error Alert with auto-dismiss -->
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success alert-dismissible border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fade-in" role="alert">
+            <i class="bi bi-check-circle-fill flex-shrink-0 fs-5"></i>
+            <span>@successMessage</span>
+            <button type="button" class="btn-close ms-auto" @onclick="() => successMessage = string.Empty"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(globalErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fade-in" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 fs-5"></i>
+            <span>@globalErrorMessage</span>
+            <button type="button" class="btn-close ms-auto" @onclick="() => globalErrorMessage = string.Empty"></button>
+        </div>
+    }
+
     <!-- Data Table Card -->
     <div class="row g-4">
         <div class="col-12">
             <div class="modern-card p-0 overflow-hidden">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold text-dark mb-0">Đơn Hàng Chờ Xử Lý</h5>
-                    @if (!string.IsNullOrEmpty(successMessage))
+                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">Danh Sách Đơn Hàng</h5>
+                            <p class="text-muted small mb-0 mt-1">Gán mã Serial để kích hoạt thiết bị STEP trước khi giao hàng cho khách</p>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- Search -->
+                            <div class="input-group" style="width: 220px;">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                    <i class="bi bi-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control bg-light border-start-0 rounded-end-3"
+                                       placeholder="Tìm kiếm..."
+                                       @bind="orderSearch" @bind:event="oninput" />
+                            </div>
+                            <!-- Status Filter -->
+                            <select class="form-select rounded-3" style="width: 160px;" @bind="statusFilter">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="Pending">Chờ xử lý</option>
+                                <option value="Shipped">Giao thành công</option>
+                                <option value="Processing">Trong kho</option>
+                            </select>
+                            <button class="btn btn-light rounded-3 px-3" @onclick="LoadOrders" disabled="@isRefreshing" title="Làm mới">
+                                @if (isRefreshing)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(orderSearch) || !string.IsNullOrEmpty(statusFilter))
                     {
-                        <div class="alert alert-success alert-dismissible fade show mt-3 mb-0" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i> @successMessage
-                            <button type="button" class="btn-close" @onclick="() => successMessage = string.Empty"></button>
+                        <div class="mt-3 d-flex align-items-center gap-2">
+                            <span class="badge bg-primary rounded-pill">@filteredOrders.Count kết quả</span>
+                            <button class="btn btn-sm btn-link text-muted text-decoration-none p-0" @onclick="ClearFilters">
+                                <i class="bi bi-x-circle me-1"></i>Xóa bộ lọc
+                            </button>
                         </div>
                     }
-                    <button class="btn btn-sm btn-light rounded-pill px-3" @onclick="LoadOrders">
-                        <i class="bi bi-arrow-clockwise me-1"></i> Làm mới
-                    </button>
                 </div>
                 <div class="card-body p-0">
                     @if (orders == null)
@@ -71,16 +122,25 @@
                             <table class="table table-hover align-middle mb-0 border-top">
                                 <thead class="table-light text-muted">
                                     <tr>
-                                        <th class="ps-4 py-3 text-uppercase font-weight-semibold" style="font-size: 0.85rem;">Mã ĐH</th>
-                                        <th class="py-3 text-uppercase font-weight-semibold" style="font-size: 0.85rem;">Thông Tin Khách Hàng</th>
-                                        <th class="py-3 text-uppercase font-weight-semibold" style="font-size: 0.85rem;">Ngày Đặt</th>
-                                        <th class="py-3 text-uppercase font-weight-semibold" style="font-size: 0.85rem;">Tổng Tiền</th>
-                                        <th class="py-3 text-uppercase font-weight-semibold" style="font-size: 0.85rem;">Trạng Thái</th>
-                                        <th class="pe-4 py-3 text-end text-uppercase font-weight-semibold" style="font-size: 0.85rem;">Thao Tác</th>
+                                        <th class="ps-4 py-3 text-uppercase" style="font-size: 0.85rem;">Mã ĐH</th>
+                                        <th class="py-3 text-uppercase" style="font-size: 0.85rem;">Thông Tin Khách Hàng</th>
+                                        <th class="py-3 text-uppercase" style="font-size: 0.85rem;">Ngày Đặt</th>
+                                        <th class="py-3 text-uppercase" style="font-size: 0.85rem;">Tổng Tiền</th>
+                                        <th class="py-3 text-uppercase" style="font-size: 0.85rem;">Trạng Thái</th>
+                                        <th class="pe-4 py-3 text-end text-uppercase" style="font-size: 0.85rem;">Thao Tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var order in orders)
+                                    @if (!filteredOrders.Any())
+                                    {
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-5">
+                                                <i class="bi bi-search fs-1 opacity-25 mb-2 d-block"></i>
+                                                Không tìm thấy đơn hàng nào khớp với bộ lọc.
+                                            </td>
+                                        </tr>
+                                    }
+                                    @foreach (var order in filteredOrders)
                                     {
                                         <tr style="transition: all 0.2s;">
                                             <td class="ps-4 fw-bold text-dark">#@order.OrderId</td>
@@ -93,7 +153,7 @@
                                             <td class="text-muted">
                                                 <div class="d-flex align-items-center">
                                                     <i class="bi bi-calendar-event me-2"></i>
-                                                    @(order.OrderDate?.ToString("MMM dd, yyyy") ?? "N/A")
+                                                    @(order.OrderDate?.ToString("dd/MM/yyyy") ?? "N/A")
                                                 </div>
                                             </td>
                                             <td class="fw-bold" style="color: var(--primary-color);">@order.TotalAmount.ToString("N0")₫</td>
@@ -104,7 +164,7 @@
                                             </td>
                                             <td class="pe-4 text-end">
                                                 <button class="btn btn-modern-primary rounded-pill btn-sm px-3 shadow-sm" @onclick="() => OpenProcessModal(order)">
-                                                    Gán mã IoT
+                                                    <i class="bi bi-cpu me-1"></i> Gán Serial
                                                 </button>
                                             </td>
                                         </tr>
@@ -131,15 +191,15 @@
                             <i class="bi bi-cpu-fill text-primary fs-4"></i>
                         </div>
                         <div>
-                            <h5 class="modal-title fw-bold mb-0">Gán Thiết Bị IoT</h5>
-                            <span class="text-muted small">Đơn hàng #@selectedOrder.OrderId</span>
+                            <h5 class="modal-title fw-bold mb-0">Gán Thiết Bị cho Đơn hàng</h5>
+                            <span class="text-muted small">Đơn hàng #@selectedOrder.OrderId · @selectedOrder.Customer?.FullName</span>
                         </div>
                     </div>
                     <button type="button" class="btn-close" @onclick="CloseProcessModal"></button>
                 </div>
                 <div class="modal-body px-4 py-4">
                     <p class="text-muted">Nhập địa chỉ MAC hoặc số Serial của thiết bị ESP32 trước khi giao hàng cho khách.</p>
-                    
+
                     @if (!string.IsNullOrEmpty(errorMessage))
                     {
                         <div class="alert alert-danger border-0 rounded-3 py-2 d-flex align-items-center gap-2">
@@ -149,17 +209,33 @@
                     }
 
                     <div class="form-floating mb-2">
-                        <input type="text" class="form-control" id="macInput" placeholder="VD: 00:1B:44:11:3A:B7" @bind="deviceSerialNumber" @bind:event="oninput" style="border-radius: 0.75rem;" />
+                        <input type="text" class="form-control" id="macInput" placeholder="VD: 00:1B:44:11:3A:B7"
+                               @bind="deviceSerialNumber" @bind:event="oninput" style="border-radius: 0.75rem;"
+                               maxlength="50" />
                         <label for="macInput">Mã MAC / Serial Thiết Bị</label>
                     </div>
-                    <div class="d-flex text-muted small align-items-center mt-2">
-                        <i class="bi bi-info-circle me-1 text-primary"></i> Khách hàng sẽ sử dụng mã này để kích hoạt thiết bị.
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="text-muted small d-flex align-items-center">
+                            <i class="bi bi-info-circle me-1 text-primary"></i> Khách hàng sẽ dùng mã này để kích hoạt thiết bị.
+                        </div>
+                        <small class="text-muted">@(deviceSerialNumber.Length)/50</small>
                     </div>
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-light rounded-pill px-4" @onclick="CloseProcessModal">Hủy</button>
-                    <button type="button" class="btn btn-modern-primary rounded-pill px-4" @onclick="SubmitProcessOrder" disabled="@(string.IsNullOrWhiteSpace(deviceSerialNumber) || deviceSerialNumber.Length < 6)">
-                        <i class="bi bi-send-check me-2"></i> Xác nhận & Giao Hàng
+                    <button type="button" class="btn btn-modern-primary rounded-pill px-4"
+                            @onclick="SubmitProcessOrder"
+                            disabled="@(string.IsNullOrWhiteSpace(deviceSerialNumber) || deviceSerialNumber.Trim().Length < 6 || isSubmitting)">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span>Đang xử lý...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-send-check me-2"></i>
+                            <span>Xác nhận &amp; Giao Hàng</span>
+                        }
                     </button>
                 </div>
             </div>
@@ -169,12 +245,47 @@
 
 @code {
     private List<Order>? orders;
+    private string orderSearch = string.Empty;
+    private string statusFilter = string.Empty;
+
+    // Computed filtered list
+    private List<Order> filteredOrders
+    {
+        get
+        {
+            if (orders == null) return new();
+            var q = orders.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(orderSearch))
+            {
+                var term = orderSearch.Trim();
+                q = q.Where(o =>
+                    (o.Customer?.FullName?.Contains(term, StringComparison.OrdinalIgnoreCase) == true) ||
+                    o.OrderId.ToString().Contains(term) ||
+                    (o.ShippingAddress?.Contains(term, StringComparison.OrdinalIgnoreCase) == true));
+            }
+            if (!string.IsNullOrWhiteSpace(statusFilter))
+            {
+                q = q.Where(o => o.Status?.Equals(statusFilter, StringComparison.OrdinalIgnoreCase) == true);
+            }
+            return q.ToList();
+        }
+    }
+
+    private void ClearFilters()
+    {
+        orderSearch = string.Empty;
+        statusFilter = string.Empty;
+    }
+
     private int shippedTodayCount = 0;
     private Order? selectedOrder;
     private bool showProcessModal = false;
+    private bool isRefreshing = false;
+    private bool isSubmitting = false;
     private string deviceSerialNumber = "";
     private string errorMessage = "";
     private string successMessage = "";
+    private string globalErrorMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -183,14 +294,22 @@
 
     private async Task LoadOrders()
     {
+        isRefreshing = true;
         try
         {
             orders = await Mediator.Send(new GetPendingOrdersQuery());
+            // BUG FIX: Load shipped today count from actual DB query instead of local counter
+            shippedTodayCount = await Mediator.Send(new GetShippedTodayCountQuery());
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error fetching orders: {ex.Message}");
+            globalErrorMessage = "Không thể tải danh sách đơn hàng. Vui lòng thử lại.";
             orders = new List<Order>();
+        }
+        finally
+        {
+            isRefreshing = false;
         }
     }
 
@@ -206,6 +325,7 @@
     {
         showProcessModal = false;
         selectedOrder = null;
+        errorMessage = "";
     }
 
     private async Task SubmitProcessOrder()
@@ -218,20 +338,24 @@
             return;
         }
 
+        isSubmitting = true;
+        errorMessage = "";
+
         try
         {
-            var result = await Mediator.Send(new ProcessOrderCommand 
-            { 
+            var result = await Mediator.Send(new ProcessOrderCommand
+            {
                 OrderId = selectedOrder.OrderId,
                 DeviceSerialNumber = deviceSerialNumber.Trim()
             });
 
             if (result)
             {
+                var orderId = selectedOrder.OrderId;
+                var serial = deviceSerialNumber.Trim();
                 CloseProcessModal();
-                successMessage = $"Đơn #{selectedOrder.OrderId} đã được gán thiết bị {deviceSerialNumber.Trim()} và chuyển trạng thái Đã giao thành công.";
-                shippedTodayCount++;
-                await LoadOrders(); // Refresh the list
+                successMessage = $"✅ Đơn #{orderId} đã được gán thiết bị [{serial}] và chuyển trạng thái 'Đã giao' thành công!";
+                await LoadOrders(); // Refresh list and update shippedTodayCount from DB
             }
             else
             {
@@ -240,7 +364,11 @@
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message;
+            errorMessage = ex.Message.Length < 200 ? ex.Message : "Lỗi hệ thống. Vui lòng thử lại.";
+        }
+        finally
+        {
+            isSubmitting = false;
         }
     }
 }

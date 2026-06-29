@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RehabTracking.Web.Entities;
 using RehabTracking.Web.Features.ECommerce.Cart;
+using RehabTracking.Web.Constants;
 
 namespace RehabTracking.Web.Features.ECommerce.Checkout;
 
@@ -45,10 +46,10 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, int>
                     .FirstOrDefaultAsync(p => p.ProductId == item.Product.ProductId, cancellationToken);
                 
                 if (product == null)
-                    throw new Exception($"Sản phẩm không tồn tại (ID: {item.Product.ProductId})");
+                    throw new Exception(string.Format(AppMessages.ProductNotFound, item.Product.ProductId));
                     
                 if (product.StockQuantity < item.Quantity)
-                    throw new Exception($"Sản phẩm '{product.ProductName}' không đủ số lượng trong kho (Còn lại: {product.StockQuantity}).");
+                    throw new Exception(string.Format(AppMessages.OutOfStock, product.ProductName, product.StockQuantity));
                 
                 // Trừ tồn kho
                 product.StockQuantity -= item.Quantity;

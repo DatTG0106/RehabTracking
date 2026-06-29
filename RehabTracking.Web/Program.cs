@@ -18,7 +18,7 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddSingleton<RehabTracking.Web.Features.ECommerce.Cart.CartState>(); // Singleton: persist cart across Blazor circuit
+builder.Services.AddScoped<RehabTracking.Web.Features.ECommerce.Cart.CartState>(); // Scoped: mỗi Blazor circuit (tab/user) có giỏ hàng riêng
 builder.Services.AddRadzenComponents();
 builder.Services.AddSignalR();
 

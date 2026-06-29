@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RehabTracking.Web.Entities;
 using RehabTracking.Web.Features.Identity.Login;
+using RehabTracking.Web.Features.Identity.Register;
 
 namespace RehabTracking.Web.Features.Identity;
 
@@ -22,40 +23,63 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromForm] LoginCommand command)
     {
-        // Mock authentication check or real check
-        // In reality, you'd check password hash. Here we just match the email and password directly or mock it
         var user = await _context.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == command.Email);
+            .FirstOrDefaultAsync(u => u.Email == command.Email.Trim().ToLowerInvariant());
 
-        // For registered users, verify the password (plain text check for demo purposes)
-        if (user != null && !string.IsNullOrEmpty(user.PasswordHash))
+        // Verify password: support both hashed (new users) and plain-text (legacy seeded demo accounts)
+        if (user != null)
         {
-            if (user.PasswordHash != command.Password)
+            bool passwordValid = RegisterCommandHandler.VerifyPassword(command.Password, user.PasswordHash ?? "");
+            if (!passwordValid)
             {
                 return Redirect("/login?error=InvalidCredentials");
             }
         }
-        else if (user == null && command.Email.Contains("@"))
+        else
         {
-            // Allow dummy login for demo purposes if DB is empty and user doesn't exist
-            var roleName = command.Email.Contains("doctor") ? "Doctor" : 
-                           command.Email.Contains("admin") ? "Admin" : "Patient";
-                           
-            user = new User
+            // Demo fallback: if user not found in DB, try demo accounts by email pattern
+            if (!command.Email.Contains("@test.com") && !command.Email.Contains("@demo."))
             {
-                UserId = roleName == "Doctor" ? 1 : (roleName == "Admin" ? 99 : 2), // Dummy ID
-                Email = command.Email,
-                FullName = "Test " + roleName,
-                Role = new Role { RoleName = roleName }
-            };
+                return Redirect("/login?error=InvalidCredentials");
+            }
+
+            var roleName = command.Email.Contains("doctor") ? "Doctor"
+                         : command.Email.Contains("admin") ? "Admin"
+                         : "Patient";
+
+            // Check if seeded demo user exists
+            var demoUser = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email.Contains(roleName.ToLower()));
+
+            if (demoUser != null)
+            {
+                user = demoUser;
+                bool passwordValid = RegisterCommandHandler.VerifyPassword(command.Password, user.PasswordHash ?? "");
+                if (!passwordValid)
+                    return Redirect("/login?error=InvalidCredentials");
+            }
+            else
+            {
+                // True fallback for completely empty DB (first run only)
+                user = new User
+                {
+                    UserId = roleName == "Doctor" ? 1 : (roleName == "Admin" ? 99 : 2),
+                    Email = command.Email,
+                    FullName = roleName == "Doctor" ? "BS. Nguyễn Văn Bác Sĩ"
+                             : roleName == "Admin" ? "Quản Trị Viên"
+                             : "Bệnh Nhân Demo",
+                    Role = new Role { RoleName = roleName }
+                };
+            }
         }
 
         if (user != null)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.FullName),
+                new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Role, user.Role?.RoleName ?? "Patient")

@@ -5,7 +5,7 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Đăng ký - RehabTracking</PageTitle>
+<PageTitle>Đăng ký - STEP</PageTitle>
 
 <div class="register-page d-flex align-items-center justify-content-center py-5" style="min-height: calc(100vh - 70px); background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);">
     <div class="container">
@@ -63,8 +63,16 @@
                                     <span class="input-group-text bg-light border-end-0 rounded-start-3">
                                         <i class="bi bi-lock text-muted"></i>
                                     </span>
-                                    <InputText type="password" id="password" class="form-control bg-light border-start-0 rounded-end-3"
-                                               @bind-Value="registerModel.Password" placeholder="Tối thiểu 6 ký tự" />
+                                    <input type="@(showPassword ? "text" : "password")" id="password"
+                                           class="form-control bg-light border-start-0"
+                                           placeholder="Tối thiểu 6 ký tự"
+                                           value="@registerModel.Password"
+                                           @oninput="e => { registerModel.Password = e.Value?.ToString() ?? string.Empty; }" />
+                                    <button type="button" class="input-group-text bg-light border-start-0 rounded-end-3"
+                                            @onclick="TogglePassword" style="cursor:pointer;"
+                                            title="@(showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu")">
+                                        <i class="bi @(showPassword ? "bi-eye-slash" : "bi-eye") text-muted"></i>
+                                    </button>
                                 </div>
                                 <ValidationMessage For="() => registerModel.Password" class="text-danger small mt-1" />
                             </div>
@@ -75,8 +83,16 @@
                                     <span class="input-group-text bg-light border-end-0 rounded-start-3">
                                         <i class="bi bi-lock-fill text-muted"></i>
                                     </span>
-                                    <InputText type="password" id="confirmPassword" class="form-control bg-light border-start-0 rounded-end-3"
-                                               @bind-Value="registerModel.ConfirmPassword" placeholder="Nhập lại mật khẩu" />
+                                    <input type="@(showConfirmPassword ? "text" : "password")" id="confirmPassword"
+                                           class="form-control bg-light border-start-0"
+                                           placeholder="Nhập lại mật khẩu"
+                                           value="@registerModel.ConfirmPassword"
+                                           @oninput="e => { registerModel.ConfirmPassword = e.Value?.ToString() ?? string.Empty; }" />
+                                    <button type="button" class="input-group-text bg-light border-start-0 rounded-end-3"
+                                            @onclick="ToggleConfirmPassword" style="cursor:pointer;"
+                                            title="@(showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu")">
+                                        <i class="bi @(showConfirmPassword ? "bi-eye-slash" : "bi-eye") text-muted"></i>
+                                    </button>
                                 </div>
                                 <ValidationMessage For="() => registerModel.ConfirmPassword" class="text-danger small mt-1" />
                             </div>
@@ -150,6 +166,11 @@
     private RegisterModel registerModel = new();
     private string errorMessage = string.Empty;
     private bool isSubmitting = false;
+    private bool showPassword = false;
+    private bool showConfirmPassword = false;
+
+    private void TogglePassword() => showPassword = !showPassword;
+    private void ToggleConfirmPassword() => showConfirmPassword = !showConfirmPassword;
 
     private async Task HandleRegister()
     {

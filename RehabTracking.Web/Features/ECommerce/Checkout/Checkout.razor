@@ -2,6 +2,7 @@
 @using MediatR
 @using RehabTracking.Web.Features.ECommerce.Cart
 @using RehabTracking.Web.Features.ECommerce.Checkout
+@using RehabTracking.Web.Constants
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
 @inject CartState CartState
@@ -10,7 +11,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 
-<PageTitle>Thanh toán - RehabTracking</PageTitle>
+<PageTitle>Thanh toán - STEP</PageTitle>
 
 <div class="container py-4">
     <div class="d-flex align-items-center mb-4">
@@ -291,7 +292,7 @@
         {
             errorMessage = ex.Message.Contains("Sản phẩm") || ex.Message.Contains("kho")
                 ? ex.Message
-                : "Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại.";
+                : AppMessages.OrderFailed;
             Console.WriteLine($"Error placing order: {ex.Message}");
         }
         finally

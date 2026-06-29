@@ -13,6 +13,8 @@ public class PatientProgressResult
 {
     public List<ExerciseSession> Sessions { get; set; } = new();
     public TreatmentPlan? TreatmentPlan { get; set; }
+    /// <summary>True if the user has activated a device and has a PatientProfile.</summary>
+    public bool HasPatientProfile { get; set; } = false;
 }
 
 public class GetPatientProgressQueryHandler : IRequestHandler<GetPatientProgressQuery, PatientProgressResult>
@@ -43,7 +45,7 @@ public class GetPatientProgressQueryHandler : IRequestHandler<GetPatientProgress
             .FirstOrDefaultAsync(p => p.UserId == currentUserId, cancellationToken);
 
         if (patientProfile == null)
-            return new PatientProgressResult();
+            return new PatientProgressResult { HasPatientProfile = false };
 
         // Get exercise sessions
         var sessions = await _context.ExerciseSessions
@@ -61,7 +63,8 @@ public class GetPatientProgressQueryHandler : IRequestHandler<GetPatientProgress
         return new PatientProgressResult
         {
             Sessions = sessions,
-            TreatmentPlan = treatmentPlan
+            TreatmentPlan = treatmentPlan,
+            HasPatientProfile = true
         };
     }
 }

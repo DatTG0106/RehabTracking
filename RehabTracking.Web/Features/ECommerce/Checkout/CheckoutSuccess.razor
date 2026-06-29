@@ -2,11 +2,11 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Đặt hàng thành công - RehabTracking</PageTitle>
+<PageTitle>Đặt hàng thành công - STEP</PageTitle>
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5 text-center">
+        <div class="col-md-7 col-lg-6 text-center">
             <div class="card border-0 shadow-lg rounded-4 p-5">
                 <!-- Success animation -->
                 <div class="success-icon-wrapper mb-4">
@@ -15,22 +15,66 @@
                     </div>
                 </div>
 
-                <h2 class="fw-bold text-dark mb-2">Đặt hàng thành công!</h2>
-                <p class="text-muted lead mb-4">Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đang được xử lý và sẽ sớm được giao.</p>
+                <h2 class="fw-bold text-dark mb-2">Đặt hàng thành công! 🎉</h2>
+                <p class="text-muted lead mb-4">Cảm ơn bạn đã tin tưởng STEP. Đơn hàng của bạn đã được ghi nhận và đang được xử lý.</p>
 
-                <div class="bg-light rounded-3 p-3 mb-4 text-start">
-                    <div class="d-flex align-items-center gap-3 mb-2">
-                        <i class="bi bi-truck text-primary fs-4"></i>
-                        <div>
-                            <div class="fw-semibold">Đơn hàng đang được chuẩn bị</div>
-                            <div class="text-muted small">Admin sẽ gán thiết bị IoT và giao trong 3-5 ngày</div>
+                <!-- Order Timeline -->
+                <div class="text-start mb-4">
+                    <h6 class="fw-bold text-dark mb-3">Hành trình đơn hàng của bạn:</h6>
+                    <div class="timeline">
+                        <!-- Step 1: Done -->
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="flex-shrink-0 d-flex flex-column align-items-center">
+                                <div class="rounded-circle d-flex justify-content-center align-items-center bg-success text-white" style="width:36px;height:36px;flex-shrink:0;">
+                                    <i class="bi bi-check-lg"></i>
+                                </div>
+                                <div style="width:2px;height:100%;background:#e2e8f0;margin-top:4px;min-height:20px;"></div>
+                            </div>
+                            <div class="pb-3">
+                                <div class="fw-semibold text-success">Đặt hàng thành công</div>
+                                <div class="text-muted small">Hệ thống đã nhận đơn — @DateTime.Now.ToString("HH:mm, dd/MM/yyyy")</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <i class="bi bi-watch text-success fs-4"></i>
-                        <div>
-                            <div class="fw-semibold">Kích hoạt thiết bị</div>
-                            <div class="text-muted small">Dùng mã serial trên hộp để kích hoạt tại mục "Activate Device"</div>
+
+                        <!-- Step 2: In progress -->
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="flex-shrink-0 d-flex flex-column align-items-center">
+                                <div class="rounded-circle d-flex justify-content-center align-items-center bg-primary text-white" style="width:36px;height:36px;flex-shrink:0;">
+                                    <i class="bi bi-gear-wide-connected" style="animation: spin 2s linear infinite;"></i>
+                                </div>
+                                <div style="width:2px;height:100%;background:#e2e8f0;margin-top:4px;min-height:20px;"></div>
+                            </div>
+                            <div class="pb-3">
+                                <div class="fw-semibold text-primary">Admin đang chuẩn bị thiết bị</div>
+                                <div class="text-muted small">Gán mã Serial, kiểm định và đóng gói thiết bị STEP — dự kiến trong 24h</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Pending -->
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="flex-shrink-0 d-flex flex-column align-items-center">
+                                <div class="rounded-circle d-flex justify-content-center align-items-center bg-light text-muted border" style="width:36px;height:36px;flex-shrink:0;">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                                <div style="width:2px;height:100%;background:#e2e8f0;margin-top:4px;min-height:20px;"></div>
+                            </div>
+                            <div class="pb-3">
+                                <div class="fw-semibold text-muted">Vận chuyển</div>
+                                <div class="text-muted small">Dự kiến giao hàng: <strong>@DateTime.Now.AddDays(5).ToString("dd/MM/yyyy")</strong></div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Pending -->
+                        <div class="d-flex gap-3">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle d-flex justify-content-center align-items-center bg-light text-muted border" style="width:36px;height:36px;flex-shrink:0;">
+                                    <i class="bi bi-watch"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="fw-semibold text-muted">Kích hoạt thiết bị</div>
+                                <div class="text-muted small">Nhập mã Serial trên hộp để bắt đầu tập luyện</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -47,6 +91,34 @@
         </div>
     </div>
 </div>
+
+<style>
+    .success-icon-wrapper {
+        display: flex;
+        justify-content: center;
+    }
+    .success-ring {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        animation: successPop 0.5s ease-out;
+        box-shadow: 0 0 0 16px rgba(16,185,129,0.15), 0 0 0 32px rgba(16,185,129,0.07);
+    }
+    @@keyframes successPop {
+        0% { transform: scale(0); }
+        70% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
 
 <style>
     .success-icon-wrapper {

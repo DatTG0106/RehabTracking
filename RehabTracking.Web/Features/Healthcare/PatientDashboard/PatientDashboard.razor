@@ -8,13 +8,15 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
 @using Radzen.Blazor
+@using RehabTracking.Web.Constants
 @inject IMediator Mediator
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @implements IAsyncDisposable
+@implements IDisposable
 @rendermode InteractiveServer
 
-<PageTitle>Dashboard Bệnh nhân - RehabTracking</PageTitle>
+<PageTitle>Dashboard Bệnh nhân - STEP</PageTitle>
 
 <div class="container-fluid py-4">
     @if (isLoading)
@@ -22,7 +24,31 @@
         <div class="d-flex align-items-center justify-content-center" style="min-height: 60vh;">
             <div class="text-center">
                 <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;" role="status"></div>
-                <p class="text-muted fw-medium">Đang tải dữ liệu...</p>
+                <p class="text-muted fw-medium">@AppMessages.LoadingData</p>
+            </div>
+        </div>
+    }
+    else if (!hasPatientProfile)
+    {
+        <!-- No device activated yet -->
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="modern-card p-5 text-center">
+                    <div class="mb-4">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex justify-content-center align-items-center" style="width:100px;height:100px;">
+                            <i class="bi bi-watch text-warning" style="font-size:3rem;"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-2">@AppMessages.WelcomePrefix @patientName!</h3>
+                    <p class="text-muted mb-4">@AppMessages.NoDeviceActivated</p>
+                    <a href="/activate-device" class="btn btn-modern-primary btn-lg rounded-pill px-5 shadow">
+                        <i class="bi bi-watch me-2"></i>Kích hoạt thiết bị ngay
+                    </a>
+                    <div class="mt-4 text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Mã Serial nằm ở mặt sau vòng đeo tay RehabBand của bạn.
+                    </div>
+                </div>
             </div>
         </div>
     }
@@ -32,9 +58,18 @@
         <div class="row mb-4 align-items-center">
             <div class="col-lg-8">
                 <h1 class="fw-bold mb-1" style="font-size: 2rem; color: var(--text-main);">
-                    Chào mừng, <span style="color: var(--primary-color);">@patientName</span>! 👋
+                    @AppMessages.WelcomePrefix <span style="color: var(--primary-color);">@patientName</span>! 👋
                 </h1>
-                <p class="text-muted">Bạn đang tiến bộ tốt trong hành trình phục hồi chức năng.</p>
+                <p class="text-muted">
+                    @if (sessions.Any())
+                    {
+                        <span>@AppMessages.ProgressGood</span>
+                    }
+                    else
+                    {
+                        <span>@AppMessages.ProgressStartToday</span>
+                    }
+                </p>
             </div>
             <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                 @if (!isExercising)
@@ -50,13 +85,32 @@
                             <i class="bi bi-stopwatch me-1"></i>
                             <span class="session-timer">@FormatElapsedTime()</span>
                         </div>
-                        <button class="btn btn-danger btn-lg rounded-pill shadow-sm fw-semibold" @onclick="StopSession">
-                            <i class="bi bi-stop-fill fs-5 me-1"></i> Dừng tập
+                        <button class="btn btn-danger btn-lg rounded-pill shadow-sm fw-semibold" @onclick="StopSession" disabled="@isSavingSession">
+                            @if (isSavingSession)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                <span>Đang lưu...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-stop-fill fs-5 me-1"></i>
+                                <span>Dừng tập</span>
+                            }
                         </button>
                     </div>
                 }
             </div>
         </div>
+
+        <!-- Session saved notification -->
+        @if (!string.IsNullOrEmpty(sessionSavedMsg))
+        {
+            <div class="alert @(sessionSavedSuccess ? "alert-success" : "alert-warning") alert-dismissible border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fade-in" role="alert">
+                <i class="bi @(sessionSavedSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill") flex-shrink-0"></i>
+                <span>@sessionSavedMsg</span>
+                <button type="button" class="btn-close" @onclick="() => sessionSavedMsg = string.Empty"></button>
+            </div>
+        }
 
         @if (isExercising)
         {
@@ -69,7 +123,7 @@
                 </div>
                 <div class="ms-auto text-end">
                     <div class="text-success fw-bold">@currentEMG.ToString("0.0") µV</div>
-                    <div class="text-muted small">EMG hiện tại</div>
+                    <div class="text-muted small cursor-pointer" data-tooltip="Hoạt động điện cơ (Càng cao càng tốt)">EMG hiện tại <i class="bi bi-info-circle ms-1"></i></div>
                 </div>
             </div>
         }
@@ -91,7 +145,7 @@
                         <span class="text-muted fw-medium">phút</span>
                     </div>
                     <div class="progress mt-3" style="height: 4px; border-radius: 2px; background-color: rgba(79,70,229,0.1);">
-                        <div class="progress-bar bg-primary" style="width: @(Math.Min(todayDuration * 100 / Math.Max(treatmentPlan?.TargetDuration ?? 30, 1), 100))%;"></div>
+                        <div class="progress-bar bg-primary" style="width: @(Math.Min(todayDuration * 100 / Math.Max(treatmentPlan?.TargetDuration ?? 30, 1), 100))%; transition: width 0.5s ease;"></div>
                     </div>
                     <div class="text-muted small mt-1">Mục tiêu: @(treatmentPlan?.TargetDuration ?? 30) phút</div>
                 </div>
@@ -110,7 +164,7 @@
                         <span class="text-muted fw-medium">lần</span>
                     </div>
                     <div class="progress mt-3" style="height: 4px; border-radius: 2px; background-color: rgba(16,185,129,0.1);">
-                        <div class="progress-bar bg-success" style="width: @(Math.Min(todayReps * 100 / Math.Max(treatmentPlan?.TargetRepetitions ?? 30, 1), 100))%;"></div>
+                        <div class="progress-bar bg-success" style="width: @(Math.Min(todayReps * 100 / Math.Max(treatmentPlan?.TargetRepetitions ?? 30, 1), 100))%; transition: width 0.5s ease;"></div>
                     </div>
                     <div class="text-muted small mt-1">Mục tiêu: @(treatmentPlan?.TargetRepetitions ?? 30) lần</div>
                 </div>
@@ -130,18 +184,18 @@
                     </div>
                     <div class="progress" style="height: 6px; border-radius: 3px; background-color: rgba(14,165,233,0.1);">
                         <div class="progress-bar bg-info" role="progressbar"
-                             style="width: @recoveryScore%; border-radius: 3px;"
+                             style="width: @recoveryScore%; border-radius: 3px; transition: width 0.5s ease;"
                              aria-valuenow="@recoveryScore" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     <div class="text-muted small mt-1">
-                        @(recoveryScore >= 80 ? "🏆 Xuất sắc!" : recoveryScore >= 60 ? "👍 Tốt" : "💪 Cố gắng lên!")
+                        @(recoveryScore >= 80 ? "🏆 Xuất sắc!" : recoveryScore >= 60 ? "👍 Tốt" : recoveryScore > 0 ? "💪 Cố gắng lên!" : "📊 Chưa có dữ liệu")
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Chart & Plan -->
-        <div class="row g-4">
+        <div class="row g-4 mb-4">
             <!-- Live Chart -->
             <div class="col-lg-8">
                 <div class="modern-card glow-card p-4 h-100">
@@ -162,8 +216,8 @@
                         <div class="d-flex align-items-center justify-content-center bg-light rounded-4" style="height:320px;">
                             <div class="text-center text-muted p-4">
                                 <i class="bi bi-activity text-muted" style="font-size:4rem;opacity:0.2;"></i>
-                                <h5 class="mt-3 fw-bold">Chưa có dữ liệu</h5>
-                                <p class="small">Nhấn <strong>"Bắt đầu Tập luyện"</strong> để xem biểu đồ EMG trực tiếp</p>
+                                <h5 class="mt-3 fw-bold">@AppMessages.NoDataYet</h5>
+                                <p class="small">@AppMessages.ClickToStart</p>
                             </div>
                         </div>
                     }
@@ -172,7 +226,7 @@
                         <div class="rounded-4 overflow-hidden" style="height: 320px;">
                             <RadzenChart Style="width: 100%; height: 100%;">
                                 <RadzenLineSeries Smooth="true" Data="@liveData" CategoryProperty="Time" ValueProperty="EMGValue"
-                                                 Title="EMG (µV)" Stroke="var(--primary-color)" StrokeWidth="2.5">
+                                                  Title="EMG (µV)" Stroke="var(--primary-color)" StrokeWidth="2.5">
                                     <RadzenSeriesDataLabels Visible="false" />
                                     <RadzenMarkers MarkerType="MarkerType.None" />
                                 </RadzenLineSeries>
@@ -242,12 +296,12 @@
                         {
                             <div class="text-center py-4 text-muted">
                                 <i class="bi bi-clipboard2 fs-1 opacity-30 mb-3 d-block"></i>
-                                <p class="small">Chưa có phác đồ điều trị. Bác sĩ của bạn sẽ cập nhật sớm.</p>
+                                <p class="small">@AppMessages.NoTreatmentPlan</p>
                             </div>
                         }
                     </div>
 
-                    <!-- Session history mini -->
+                    <!-- Today's sessions mini list -->
                     @if (todaySessions.Any())
                     {
                         <div class="p-4 border-top">
@@ -255,7 +309,7 @@
                             @foreach (var s in todaySessions.Take(3))
                             {
                                 <div class="d-flex justify-content-between align-items-center py-1">
-                                    <span class="small text-muted">@s.StartTime.ToString("HH:mm")</span>
+                                    <span class="small text-muted">@s.StartTime.ToLocalTime().ToString("HH:mm")</span>
                                     <span class="small">@s.DurationMinutes phút · @s.RepetitionsCount lần</span>
                                     @if (s.RepetitionsCount >= (treatmentPlan?.TargetRepetitions ?? 10))
                                     {
@@ -271,6 +325,97 @@
                     }
                 </div>
             </div>
+        </div>
+
+        <!-- Exercise History Table -->
+        <div class="modern-card overflow-hidden mb-4">
+            <div class="card-header bg-white border-bottom-0 p-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-calendar3 text-primary me-2"></i>Lịch sử Tập luyện (30 ngày gần nhất)
+                </h5>
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">@sessions.Count buổi</span>
+            </div>
+            @if (sessions.Any())
+            {
+                <!-- Weekly Progress Summary -->
+                <div class="px-4 pb-3">
+                    <div class="row g-2">
+                        @for (int d = 6; d >= 0; d--)
+                        {
+                            var day = DateTime.UtcNow.AddDays(-d);
+                            var daySessions = sessions.Where(s => s.StartTime.Date == day.Date).ToList();
+                            var dayReps = daySessions.Sum(s => s.RepetitionsCount);
+                            var isToday = d == 0;
+                            var hasData = daySessions.Any();
+                            var targetReps = treatmentPlan?.TargetRepetitions ?? 30;
+                            var fillPct = Math.Min(dayReps * 100 / Math.Max(targetReps, 1), 100);
+                            var col = d;
+                            <div class="col" style="min-width: 0;">
+                                <div class="text-center">
+                                    <div class="small text-muted mb-1" style="font-size:0.7rem;">@day.ToString("ddd").ToUpper()</div>
+                                    <div class="position-relative mx-auto" style="width:36px; height:60px; background:#f1f5f9; border-radius:8px; overflow:hidden;">
+                                        <div class="position-absolute bottom-0 start-0 w-100"
+                                             style="height:@fillPct%; background: @(hasData ? (fillPct >= 100 ? "#10b981" : "#4f46e5") : "#e2e8f0"); border-radius:6px; transition: height 0.5s ease;"></div>
+                                    </div>
+                                    <div class="small mt-1" style="font-size:0.7rem; font-weight:@(isToday ? "bold" : "normal"); color:@(isToday ? "#4f46e5" : "#94a3b8");">@day.Day</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <span class="text-muted" style="font-size:0.72rem;"><span style="display:inline-block;width:10px;height:10px;background:#10b981;border-radius:2px;"></span> Đạt mục tiêu</span>
+                        <span class="text-muted" style="font-size:0.72rem;"><span style="display:inline-block;width:10px;height:10px;background:#4f46e5;border-radius:2px;"></span> Chưa đủ</span>
+                        <span class="text-muted" style="font-size:0.72rem;"><span style="display:inline-block;width:10px;height:10px;background:#e2e8f0;border-radius:2px;"></span> Nghỉ</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted">
+                            <tr>
+                                <th class="ps-4 text-uppercase small">Ngày tập</th>
+                                <th class="text-uppercase small">Thời lượng</th>
+                                <th class="text-uppercase small">Số Reps</th>
+                                <th class="text-uppercase small cursor-pointer" data-tooltip="Tầm vận động khớp tối đa">Max ROM <i class="bi bi-info-circle"></i></th>
+                                <th class="text-uppercase small cursor-pointer" data-tooltip="Hoạt động điện cơ trung bình">EMG TB <i class="bi bi-info-circle"></i></th>
+                                <th class="pe-4 text-uppercase small">Kết quả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var session in sessions.Take(10))
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-medium text-dark">@session.StartTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-muted">@session.DurationMinutes phút</td>
+                                    <td class="fw-bold" style="color: var(--secondary-color);">@session.RepetitionsCount</td>
+                                    <td class="text-muted">@session.MaxRom°</td>
+                                    <td class="text-muted">@session.AvgEmg.ToString("0.0") µV</td>
+                                    <td class="pe-4">
+                                        @if (session.RepetitionsCount >= (treatmentPlan?.TargetRepetitions ?? 10))
+                                        {
+                                            <span class="badge badge-soft-success rounded-pill px-3 py-2">
+                                                <i class="bi bi-check-circle-fill me-1"></i>Hoàn thành
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-soft-warning rounded-pill px-3 py-2">
+                                                <i class="bi bi-exclamation-circle me-1"></i>Cần cải thiện
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-calendar-x fs-1 opacity-30 mb-3 d-block"></i>
+                    <p>@AppMessages.NoHistory</p>
+                </div>
+            }
         </div>
     }
 </div>
@@ -289,7 +434,7 @@
         50% { opacity: 0.3; }
     }
     .session-timer {
-        font-family: 'Outfit', monospace;
+        font-family: 'Inter', monospace;
         font-size: 1.1rem;
         letter-spacing: 0.05em;
     }
@@ -301,22 +446,26 @@
     private TreatmentPlan? treatmentPlan;
     private bool isExercising = false;
     private bool isLoading = true;
+    private bool isSavingSession = false;
+    private bool hasPatientProfile = true;
     private int patientId = 0;
     private string patientName = "Bạn";
     private double currentEMG = 0;
+    private string sessionSavedMsg = string.Empty;
+    private bool sessionSavedSuccess = false;
 
     // Computed stats
     private int todayDuration => todaySessions.Sum(s => s.DurationMinutes);
     private int todayReps => todaySessions.Sum(s => s.RepetitionsCount);
 
-    // Recovery score calculated from actual data
+    // BUG FIX: Sort by date descending before computing recovery score
     private int recoveryScore
     {
         get
         {
             if (!sessions.Any()) return 0;
             var targetReps = treatmentPlan?.TargetRepetitions ?? 30;
-            var recentSessions = sessions.Take(7).ToList();
+            var recentSessions = sessions.OrderByDescending(s => s.StartTime).Take(7).ToList();
             if (!recentSessions.Any()) return 0;
             var avgReps = recentSessions.Average(s => s.RepetitionsCount);
             var score = (int)Math.Min((avgReps / Math.Max(targetReps, 1)) * 100, 100);
@@ -324,8 +473,9 @@
         }
     }
 
-    // Timer
+    // Timer - FIX: PeriodicTimer triggers UI re-render every second during exercise
     private DateTime sessionStartTime;
+    private CancellationTokenSource? _timerCts;
 
     // SignalR & Chart
     private HubConnection? hubConnection;
@@ -349,6 +499,7 @@
             var result = await Mediator.Send(new GetPatientProgressQuery { PatientId = patientId });
             sessions = result.Sessions;
             treatmentPlan = result.TreatmentPlan;
+            hasPatientProfile = result.HasPatientProfile;
             todaySessions = sessions.Where(s => s.StartTime.Date == DateTime.UtcNow.Date).ToList();
         }
         catch (Exception ex)
@@ -356,6 +507,7 @@
             Console.WriteLine($"Error loading patient data: {ex.Message}");
             sessions = new();
             todaySessions = new();
+            hasPatientProfile = false;
         }
 
         // Setup SignalR
@@ -373,7 +525,8 @@
         });
 
         await hubConnection.StartAsync();
-        await hubConnection.SendAsync("JoinPatientGroup", patientId);
+        if (patientId > 0)
+            await hubConnection.SendAsync("JoinPatientGroup", patientId);
 
         isLoading = false;
     }
@@ -383,39 +536,96 @@
         isExercising = true;
         sessionStartTime = DateTime.Now;
         liveData.Clear();
+        sessionSavedMsg = string.Empty;
         _ = SimulateDataLoop();
+        // FIX: Start a periodic timer to update the UI timer display every second
+        _timerCts = new CancellationTokenSource();
+        _ = RunSessionTimerAsync(_timerCts.Token);
+    }
+
+    private async Task RunSessionTimerAsync(CancellationToken token)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(token) && isExercising)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException) { /* Normal cancellation */ }
     }
 
     private async Task StopSession()
     {
         isExercising = false;
+        // FIX: Cancel the UI timer
+        _timerCts?.Cancel();
+        _timerCts = null;
+        isSavingSession = true;
 
-        // Save session if we had some duration
         var durationMinutes = (int)(DateTime.Now - sessionStartTime).TotalMinutes;
-        if (durationMinutes > 0 && patientId > 0)
+
+        try
         {
-            try
+            if (durationMinutes > 0 && patientId > 0)
             {
-                // Create a new session record via MediatR
-                var sessionReps = liveData.Count; // approximate
-                var newSession = new ExerciseSession
+                var sessionReps = Math.Max(liveData.Count, 1);
+                var avgEmg = liveData.Any() ? liveData.Average(d => d.EMGValue) : 0;
+                var maxRom = liveData.Any() ? (int)(liveData.Max(d => d.EMGValue) / 2) : 0;
+
+                // BUG FIX: Now saves to DB via MediatR command
+                var saved = await Mediator.Send(new SaveSessionCommand
                 {
                     PatientId = patientId,
-                    StartTime = sessionStartTime.ToUniversalTime(),
-                    EndTime = DateTime.UtcNow,
+                    StartTime = sessionStartTime,
+                    EndTime = DateTime.Now,
                     DurationMinutes = durationMinutes,
                     RepetitionsCount = sessionReps,
-                    MaxRom = liveData.Any() ? (int)liveData.Max(d => d.EMGValue / 2) : 0,
-                    AvgEmg = liveData.Any() ? liveData.Average(d => d.EMGValue) : 0,
+                    MaxRom = maxRom,
+                    AvgEmg = avgEmg,
                     DeviceType = "Simulator"
-                };
+                });
 
-                todaySessions.Insert(0, newSession);
+                if (saved)
+                {
+                    var newSession = new ExerciseSession
+                    {
+                        PatientId = patientId,
+                        StartTime = sessionStartTime.ToUniversalTime(),
+                        EndTime = DateTime.UtcNow,
+                        DurationMinutes = durationMinutes,
+                        RepetitionsCount = sessionReps,
+                        MaxRom = maxRom,
+                        AvgEmg = avgEmg,
+                        DeviceType = "Simulator"
+                    };
+                    sessions.Insert(0, newSession);
+                    todaySessions.Insert(0, newSession);
+                    sessionSavedMsg = string.Format(AppMessages.SessionSavedSuccessTemplate, durationMinutes);
+                    sessionSavedSuccess = true;
+                }
+                else
+                {
+                    sessionSavedMsg = AppMessages.SessionSavedError;
+                    sessionSavedSuccess = false;
+                }
             }
-            catch (Exception ex)
+            else if (durationMinutes <= 0)
             {
-                Console.WriteLine($"Error saving session: {ex.Message}");
+                sessionSavedMsg = AppMessages.SessionTooShort;
+                sessionSavedSuccess = false;
             }
+        }
+        catch (Exception ex)
+        {
+            sessionSavedMsg = AppMessages.SessionSaveException;
+            sessionSavedSuccess = false;
+            Console.WriteLine($"Error saving session: {ex.Message}");
+        }
+        finally
+        {
+            isSavingSession = false;
         }
     }
 
@@ -430,17 +640,33 @@
     {
         while (isExercising && hubConnection?.State == HubConnectionState.Connected)
         {
-            await hubConnection.SendAsync("SimulateData", patientId);
+            try
+            {
+                await hubConnection.SendAsync("SimulateData", patientId);
+            }
+            catch
+            {
+                break; // Exit loop if SignalR disconnects
+            }
             await Task.Delay(1000);
         }
     }
 
     public async ValueTask DisposeAsync()
     {
+        _timerCts?.Cancel();
+        _timerCts?.Dispose();
         if (hubConnection is not null)
         {
             await hubConnection.DisposeAsync();
         }
+    }
+
+    // IDisposable for CancellationTokenSource
+    public void Dispose()
+    {
+        _timerCts?.Cancel();
+        _timerCts?.Dispose();
     }
 
     public class ChartDataPoint

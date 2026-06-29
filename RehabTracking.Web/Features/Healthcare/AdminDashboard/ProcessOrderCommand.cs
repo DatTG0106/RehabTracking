@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RehabTracking.Web.Entities;
+using RehabTracking.Web.Constants;
 
 namespace RehabTracking.Web.Features.Healthcare.AdminDashboard;
 
@@ -30,7 +31,11 @@ public class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCommand, b
                 .FirstOrDefaultAsync(o => o.OrderId == request.OrderId, cancellationToken);
                 
             if (order == null)
-                return false;
+                throw new Exception(string.Format(AppMessages.OrderNotFound, request.OrderId));
+
+            // BUG FIX: Prevent processing an already-shipped order
+            if (order.Status == "Shipped" || order.Status == "Completed")
+                throw new Exception(string.Format(AppMessages.OrderAlreadyProcessed, request.OrderId, order.Status));
 
             // 1. Sinh vòng tay mới (Gán mã MAC)
             // Kiểm tra xem MAC này đã tồn tại chưa để tránh trùng lặp
@@ -38,7 +43,7 @@ public class ProcessOrderCommandHandler : IRequestHandler<ProcessOrderCommand, b
                 .AnyAsync(d => d.DeviceSerialNumber == request.DeviceSerialNumber, cancellationToken);
                 
             if (existingDevice)
-                throw new Exception("Mã Serial này đã tồn tại trong hệ thống. Vui lòng nhập mã khác.");
+                throw new Exception(AppMessages.SerialExists);
 
             var newDevice = new Device
             {
