@@ -39,10 +39,8 @@
                     <div class="col-sm-6 col-lg-2 offset-lg-1">
                         <h5 class="fw-bold text-white mb-4">Về chúng tôi</h5>
                         <ul class="list-unstyled d-flex flex-column gap-3">
-                            <li><a href="#about-us" class="text-muted text-decoration-none footer-link">Đội ngũ sáng lập</a></li>
-                            <li><a href="#features" class="text-muted text-decoration-none footer-link">Công nghệ</a></li>
-                            <li><a href="javascript:void(0)" class="text-muted text-decoration-none footer-link">Tuyển dụng</a></li>
-                            <li><a href="javascript:void(0)" class="text-muted text-decoration-none footer-link">Tin tức Y tế</a></li>
+                            <li><a href="/#team" class="text-muted text-decoration-none footer-link" onclick="setTimeout(() => { var el = document.getElementById('team'); if(el) window.scrollTo({top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: 'smooth'}); }, 100)">Đội ngũ sáng lập</a></li>
+                            <li><a href="#features" class="text-muted text-decoration-none footer-link">Về sản phẩm</a></li>
                         </ul>
                     </div>
                     
