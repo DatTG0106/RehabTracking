@@ -42,6 +42,12 @@ public class SubmitEMGDataCommandHandler : IRequestHandler<SubmitEMGDataCommand,
 
     public async Task<bool> Handle(SubmitEMGDataCommand request, CancellationToken cancellationToken)
     {
+        var patientExists = await _context.PatientProfiles.AnyAsync(p => p.PatientId == request.PatientId, cancellationToken);
+        if (!patientExists)
+        {
+            throw new Exception($"Patient with ID {request.PatientId} not found.");
+        }
+
         var session = new ExerciseSession
         {
             PatientId = request.PatientId,

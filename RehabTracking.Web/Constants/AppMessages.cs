@@ -19,10 +19,10 @@ namespace RehabTracking.Web.Constants
         public const string NoHistory = "Chưa có lịch sử tập luyện. Hãy bắt đầu buổi tập đầu tiên!";
 
         // Session Messages
-        public const string SessionSavedSuccessTemplate = "✅ Buổi tập {0} phút đã được lưu thành công!";
-        public const string SessionSavedError = "⚠️ Buổi tập đã ghi nhận nhưng không thể lưu vào hệ thống.";
-        public const string SessionTooShort = "ℹ️ Buổi tập quá ngắn (< 1 phút), không được lưu.";
-        public const string SessionSaveException = "❌ Lỗi khi lưu buổi tập. Vui lòng thử lại.";
+        public const string SessionSavedSuccessTemplate = "Buổi tập {0} phút đã được lưu thành công!";
+        public const string SessionSavedError = "Buổi tập đã ghi nhận nhưng không thể lưu vào hệ thống.";
+        public const string SessionTooShort = "Buổi tập quá ngắn (< 1 phút), không được lưu.";
+        public const string SessionSaveException = "Lỗi khi lưu buổi tập. Vui lòng thử lại.";
 
         // Cart & Checkout
         public const string CartEmpty = "Giỏ hàng trống";
@@ -76,5 +76,10 @@ namespace RehabTracking.Web.Constants
         public const string ProductNotFound = "Sản phẩm không tồn tại (ID: {0})";
         public const string OutOfStock = "Sản phẩm '{0}' không đủ số lượng trong kho (Còn lại: {1}).";
         public const string InvalidSerialLength = "Mã Serial hoặc địa chỉ MAC phải chứa ít nhất 6 ký tự.";
+        public const string OrderProcessedSuccessTemplate = "Đơn #{0} đã được gán thiết bị [{1}] và chuyển trạng thái 'Đã giao' thành công!";
+        public const string ConfirmToggleAccount = "Bạn có chắc chắn muốn {0} tài khoản {1}?";
+        public const string ConfirmResetPassword = "Bạn có muốn đặt lại mật khẩu cho {0} về mặc định ({1})?";
+        public const string ActionSuccess = "Thành công";
+        public const string ActionError = "Lỗi";
     }
 }

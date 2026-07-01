@@ -25,6 +25,15 @@ public static class CreateDoctorAccount
 
         public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(request.FullName))
+                return new Result(false, "Vui lòng nhập họ tên bác sĩ.");
+
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return new Result(false, "Vui lòng nhập email.");
+
+            if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
+                return new Result(false, "Mật khẩu phải có ít nhất 6 ký tự.");
+
             var emailExists = await _db.Users.AnyAsync(u => u.Email == request.Email.Trim().ToLower(), cancellationToken);
             if (emailExists)
             {

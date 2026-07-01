@@ -46,6 +46,15 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result>
 
     public async Task<Result> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.FullName))
+            return new Result(false, "Vui lòng nhập họ tên.");
+            
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return new Result(false, "Vui lòng nhập email.");
+            
+        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
+            return new Result(false, "Mật khẩu phải có ít nhất 6 ký tự.");
+
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
         if (existingUser != null)
         {

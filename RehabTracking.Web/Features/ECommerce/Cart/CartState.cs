@@ -60,6 +60,7 @@ public class CartState
     public void AddToCart(Product product, int quantity = 1)
     {
         if (_currentUserId <= 0) return; // Không cho add nếu chưa set user
+        if (quantity <= 0) return;
 
         var items = Items;
         var existingItem = items.FirstOrDefault(i => i.Product.ProductId == product.ProductId);

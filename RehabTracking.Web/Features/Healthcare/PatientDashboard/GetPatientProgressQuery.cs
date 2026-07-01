@@ -52,12 +52,14 @@ public class GetPatientProgressQueryHandler : IRequestHandler<GetPatientProgress
             .Where(e => e.PatientId == patientProfile.PatientId)
             .OrderByDescending(e => e.StartTime)
             .Take(30)
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
 
         // Get active treatment plan
         var treatmentPlan = await _context.TreatmentPlans
             .Where(t => t.PatientId == patientProfile.PatientId && t.IsActive == true)
             .OrderByDescending(t => t.CreatedAt)
+            .AsNoTracking()
             .FirstOrDefaultAsync(cancellationToken);
 
         return new PatientProgressResult

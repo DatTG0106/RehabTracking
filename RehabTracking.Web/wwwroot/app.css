@@ -34,6 +34,31 @@
 }
 
 /* ============================================================
+   Radzen Theme Overrides (Material 3 base)
+   ============================================================ */
+:root {
+    --rz-primary: var(--primary-color);
+    --rz-primary-light: var(--primary-light);
+    --rz-primary-dark: var(--primary-hover);
+    --rz-secondary: var(--secondary-color);
+    --rz-info: var(--secondary-color);
+    --rz-success: var(--success-color);
+    --rz-warning: var(--warning-color);
+    --rz-danger: var(--danger-color);
+    
+    --rz-border-radius: var(--radius-sm);
+    --rz-border-radius-lg: var(--radius-md);
+    
+    --rz-grid-cell-padding: 0.8rem 1rem;
+    --rz-grid-header-padding: 1rem;
+    --rz-grid-header-background-color: var(--bg-color);
+    --rz-grid-header-color: var(--text-muted);
+    --rz-grid-header-font-weight: 600;
+    --rz-grid-header-font-size: 0.85rem;
+    --rz-grid-header-text-transform: uppercase;
+}
+
+/* ============================================================
    Base Styles
    ============================================================ */
 html, body {
@@ -105,18 +130,18 @@ html {
    ============================================================ */
 .modern-card {
     background: var(--card-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-radius: var(--radius-md);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
     transition: var(--transition);
 }
 
 .modern-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-    border: 1px solid rgba(79, 70, 229, 0.1);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px 0 rgba(79, 70, 229, 0.15);
+    border: 1px solid rgba(79, 70, 229, 0.2);
 }
 
 .card {
@@ -425,19 +450,32 @@ main {
    Toast Notification (Add to Cart feedback)
    ============================================================ */
 .toast-notification {
-    background: white;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    border-left: 4px solid #10b981;
-    border-radius: 1rem;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.06), 0 4px 6px -2px rgba(0,0,0,0.03);
-    animation: slideInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    position: fixed;
+    top: 90px;
+    right: 24px;
+    z-index: 1080;
+    min-width: 350px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-left: 6px solid #10b981;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(16, 185, 129, 0.25);
+    animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    transform-origin: right center;
 }
 
-@keyframes slideInDown {
-    from { opacity: 0; transform: translateY(-16px); }
-    to   { opacity: 1; transform: translateY(0); }
+@keyframes slideInRight {
+    from { 
+        opacity: 0; 
+        transform: translateX(60px) scale(0.9); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateX(0) scale(1); 
+    }
 }
 
 /* ============================================================
@@ -524,3 +562,69 @@ main {
     100% { opacity: 1; transform: translate(-50%, 0); }
 }
 
+/* ============================================================
+   Radzen Notification Toasts Override (Global Synchronization)
+   ============================================================ */
+.rz-notification {
+    z-index: 1080 !important;
+}
+
+.rz-notification-message {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(0, 0, 0, 0.05) !important;
+    color: var(--text-main) !important;
+    padding: 1rem 1.25rem !important;
+    animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+.rz-notification-message-success {
+    border-left: 6px solid var(--success-color) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(16, 185, 129, 0.25) !important;
+}
+
+.rz-notification-message-error {
+    border-left: 6px solid var(--danger-color) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(239, 68, 68, 0.25) !important;
+}
+
+.rz-notification-message-info {
+    border-left: 6px solid var(--secondary-color) !important;
+    border-color: rgba(14, 165, 233, 0.3) !important;
+    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(14, 165, 233, 0.25) !important;
+}
+
+.rz-notification-message-warning {
+    border-left: 6px solid var(--warning-color) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(245, 158, 11, 0.25) !important;
+}
+
+.rz-notification-message .rz-notification-message-title {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    color: var(--text-main) !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.rz-notification-message .rz-notification-message-detail {
+    font-family: 'Inter', sans-serif !important;
+    color: var(--text-muted) !important;
+    font-size: 0.85rem !important;
+}
+
+.rz-notification-message .rz-notification-icon {
+    font-size: 1.5rem !important;
+    margin-right: 1rem !important;
+}
+
+.rz-notification-message-success .rz-notification-icon { color: var(--success-color) !important; }
+.rz-notification-message-error .rz-notification-icon { color: var(--danger-color) !important; }
+.rz-notification-message-info .rz-notification-icon { color: var(--secondary-color) !important; }
+.rz-notification-message-warning .rz-notification-icon { color: var(--warning-color) !important; }

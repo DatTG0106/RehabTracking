@@ -37,7 +37,8 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, List<Pa
             .Where(p => p.DoctorId == doctorUserId)
             .Include(p => p.User)
             .Include(p => p.ExerciseSessions)
-            .Include(p => p.TreatmentPlans) // ✅ Fixed: Include treatment plans so modal shows correct values
+            .Include(p => p.TreatmentPlans) 
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
     }
 }

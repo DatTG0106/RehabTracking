@@ -19,6 +19,6 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, List<Pr
 
     public async Task<List<Product>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Products.ToListAsync(cancellationToken);
+        return await _context.Products.AsNoTracking().ToListAsync(cancellationToken);
     }
 }

@@ -24,6 +24,11 @@ public static class ResetPassword
 
         public async Task<Result> Handle(Command request, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
+            {
+                return new Result(false, "Mật khẩu mới phải có ít nhất 6 ký tự.");
+            }
+
             var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == request.TargetUserId, cancellationToken);
             if (user == null)
             {

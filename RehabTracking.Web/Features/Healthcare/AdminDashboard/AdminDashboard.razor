@@ -354,12 +354,12 @@
                 var orderId = selectedOrder.OrderId;
                 var serial = deviceSerialNumber.Trim();
                 CloseProcessModal();
-                successMessage = $"✅ Đơn #{orderId} đã được gán thiết bị [{serial}] và chuyển trạng thái 'Đã giao' thành công!";
+                successMessage = string.Format(RehabTracking.Web.Constants.AppMessages.OrderProcessedSuccessTemplate, orderId, serial);
                 await LoadOrders(); // Refresh list and update shippedTodayCount from DB
             }
             else
             {
-                errorMessage = "Không thể xử lý đơn hàng này. Vui lòng thử lại.";
+                errorMessage = RehabTracking.Web.Constants.AppMessages.OrderFailed;
             }
         }
         catch (Exception ex)

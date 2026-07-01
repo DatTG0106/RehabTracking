@@ -35,10 +35,12 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, int>
             {
                 CustomerId = request.UserId,
                 OrderDate = DateTime.UtcNow,
-                TotalAmount = request.Items.Sum(i => i.Product.Price * i.Quantity),
+                TotalAmount = 0, // Will calculate below
                 Status = request.PaymentMethod == "VNPay" ? "Awaiting Payment" : "Pending",
                 OrderDetails = new List<OrderDetail>()
             };
+
+            decimal calculatedTotal = 0;
 
             foreach (var item in request.Items)
             {
@@ -47,6 +49,9 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, int>
                 
                 if (product == null)
                     throw new Exception(string.Format(AppMessages.ProductNotFound, item.Product.ProductId));
+                    
+                if (item.Quantity <= 0)
+                    throw new Exception("Số lượng sản phẩm không hợp lệ.");
                     
                 if (product.StockQuantity < item.Quantity)
                     throw new Exception(string.Format(AppMessages.OutOfStock, product.ProductName, product.StockQuantity));
@@ -61,7 +66,11 @@ public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, int>
                     Quantity = item.Quantity,
                     Price = product.Price
                 });
+
+                calculatedTotal += product.Price * item.Quantity;
             }
+
+            order.TotalAmount = calculatedTotal;
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync(cancellationToken);

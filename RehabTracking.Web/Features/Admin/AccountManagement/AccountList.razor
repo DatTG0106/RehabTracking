@@ -114,7 +114,7 @@
                         <Template Context="user">
                             <div class="d-flex align-items-center py-1">
                                 <div class="bg-light rounded-circle d-flex justify-content-center align-items-center text-secondary fw-bold shadow-sm me-3" style="width: 40px; height: 40px;">
-                                    @(user.FullName.Length > 0 ? user.FullName.Substring(0, 1).ToUpper() : "U")
+                                    @(string.IsNullOrEmpty(user.FullName) ? "U" : user.FullName.Substring(0, 1).ToUpper())
                                 </div>
                                 <div>
                                     <h6 class="fw-bold mb-0 text-dark">@user.FullName</h6>
@@ -272,8 +272,9 @@
 
     private async Task ToggleStatus(UserDto user)
     {
+        string actionText = user.IsActive ? "KHÓA" : "MỞ KHÓA";
         bool? confirm = await DialogService.Confirm(
-            $"Bạn có chắc chắn muốn {(user.IsActive ? "KHÓA" : "MỞ KHÓA")} tài khoản {user.FullName}?", 
+            string.Format(RehabTracking.Web.Constants.AppMessages.ConfirmToggleAccount, actionText, user.FullName), 
             "Xác nhận thao tác", 
             new ConfirmOptions() { OkButtonText = "Đồng ý", CancelButtonText = "Hủy" });
             
@@ -282,13 +283,13 @@
             var result = await Mediator.Send(new ToggleAccountStatus.Command(user.UserId));
             if (result.IsSuccess)
             {
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Thành công", Detail = result.Message, Duration = 4000 });
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = RehabTracking.Web.Constants.AppMessages.ActionSuccess, Detail = result.Message, Duration = 4000 });
                 await LoadData();
                 await grid.Reload();
             }
             else
             {
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Lỗi", Detail = result.Message, Duration = 4000 });
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = RehabTracking.Web.Constants.AppMessages.ActionError, Detail = result.Message, Duration = 4000 });
             }
         }
     }
@@ -296,7 +297,7 @@
     private async Task ResetPassword(UserDto user)
     {
         bool? confirm = await DialogService.Confirm(
-            $"Bạn có muốn đặt lại mật khẩu cho {user.FullName} về mặc định (Doctor@123)?", 
+            string.Format(RehabTracking.Web.Constants.AppMessages.ConfirmResetPassword, user.FullName, "Doctor@123"), 
             "Cấp lại mật khẩu", 
             new ConfirmOptions() { OkButtonText = "Đặt lại", CancelButtonText = "Hủy" });
             
@@ -305,11 +306,11 @@
             var result = await Mediator.Send(new ResetPassword.Command(user.UserId, "Doctor@123"));
             if (result.IsSuccess)
             {
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Thành công", Detail = result.Message, Duration = 4000 });
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = RehabTracking.Web.Constants.AppMessages.ActionSuccess, Detail = result.Message, Duration = 4000 });
             }
             else
             {
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Lỗi", Detail = result.Message, Duration = 4000 });
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = RehabTracking.Web.Constants.AppMessages.ActionError, Detail = result.Message, Duration = 4000 });
             }
         }
     }
@@ -358,7 +359,7 @@
             
             if (response.IsSuccess)
             {
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Thành công", Detail = response.Message, Duration = 4000 });
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = RehabTracking.Web.Constants.AppMessages.ActionSuccess, Detail = response.Message, Duration = 4000 });
                 newDoctorName = "";
                 newDoctorEmail = "";
                 await LoadData();
@@ -366,7 +367,7 @@
             }
             else
             {
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Lỗi", Detail = response.Message, Duration = 4000 });
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = RehabTracking.Web.Constants.AppMessages.ActionError, Detail = response.Message, Duration = 4000 });
             }
         }
     }
