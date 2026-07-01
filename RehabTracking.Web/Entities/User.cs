@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace RehabTracking.Web.Entities;
@@ -30,4 +30,6 @@ public partial class User
     public virtual Role Role { get; set; } = null!;
 
     public virtual ICollection<TreatmentPlan> TreatmentPlans { get; set; } = new List<TreatmentPlan>();
+    
+    public bool IsActive { get; set; } = true;
 }

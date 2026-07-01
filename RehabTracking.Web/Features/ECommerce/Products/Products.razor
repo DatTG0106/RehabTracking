@@ -28,12 +28,12 @@
                 Đội ngũ bác sĩ chuyên khoa và công nghệ <strong class="fw-bold">cảm biến y sinh tiên tiến</strong> cùng đồng hành — giúp bạn phục hồi nhanh hơn, tập luyện thông minh hơn, và sống trọn vẹn hơn ngay tại nhà.
             </p>
             <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
-                <a href="#products" class="btn btn-light btn-lg rounded-pill fw-bold text-primary px-5 shadow">
+                <button @onclick='() => ScrollTo("products")' class="btn btn-light btn-lg rounded-pill fw-bold text-primary px-5 shadow">
                     <i class="bi bi-grid me-2"></i>Xem Thiết Bị
-                </a>
-                <a href="#product-details" class="btn btn-outline-light btn-lg rounded-pill px-5">
+                </button>
+                <button @onclick='() => ScrollTo("how-it-works")' class="btn btn-outline-light btn-lg rounded-pill px-5">
                     <i class="bi bi-play-circle me-2"></i>Cách hoạt động
-                </a>
+                </button>
             </div>
             <!-- Live trust indicator -->
             <div class="d-flex justify-content-center gap-4 flex-wrap animate-fade-in-up" style="animation-delay: 0.4s; opacity: 0.85;">
@@ -425,7 +425,7 @@
                 </div>
             </div>
             <div class="text-center mt-5">
-                <a href="#" class="btn btn-outline-primary rounded-pill px-4 py-2">Khám phá toàn bộ 20+ Minigames</a>
+                <a href="javascript:void(0)" class="btn btn-outline-primary rounded-pill px-4 py-2">Khám phá toàn bộ 20+ Minigames</a>
             </div>
         </div>
     </div>
@@ -482,7 +482,7 @@
     </div>
 
     <!-- How it works section (Quy trình) -->
-    <div class="py-5" style="background-color: #f8fafc;">
+    <div id="how-it-works" class="py-5" style="background-color: #f8fafc;">
         <div class="container py-4">
             <div class="text-center mb-5">
                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
@@ -789,7 +789,7 @@
     </div>
     
     <!-- FAQ Section -->
-    <div class="py-5" style="background-color: #f8fafc;">
+    <div id="faq" class="py-5" style="background-color: #f8fafc;">
         <div class="container py-4">
             <div class="text-center mb-5">
                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
@@ -855,7 +855,7 @@
                     <h2 class="fw-bold">Tin tức & Bài viết mới nhất</h2>
                     <p class="text-muted mb-0">Cập nhật những phương pháp phục hồi chức năng sau đột quỵ tiên tiến nhất.</p>
                 </div>
-                <a href="#" class="btn btn-outline-primary rounded-pill d-none d-md-block">Xem tất cả bài viết <i class="bi bi-arrow-right ms-1"></i></a>
+                <a href="javascript:void(0)" class="btn btn-outline-primary rounded-pill d-none d-md-block">Xem tất cả bài viết <i class="bi bi-arrow-right ms-1"></i></a>
             </div>
             
             <div class="row g-4">
@@ -866,7 +866,7 @@
                             <span class="text-primary small fw-bold mb-2">Kiến thức y khoa</span>
                             <h5 class="fw-bold mb-3">Tầm quan trọng của việc tập luyện sớm sau đột quỵ</h5>
                             <p class="text-muted small mb-4 flex-grow-1">Việc bắt đầu vật lý trị liệu trong vòng 24-48 giờ đầu tiên sau khi chỉ số sinh tồn ổn định có thể gia tăng 30% tỷ lệ phục hồi hoàn toàn chức năng vận động...</p>
-                            <a href="#" class="text-primary fw-bold text-decoration-none small">Đọc tiếp <i class="bi bi-arrow-right"></i></a>
+                            <a href="javascript:void(0)" class="text-primary fw-bold text-decoration-none small">Đọc tiếp <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </div>
                 </div>
@@ -877,7 +877,7 @@
                             <span class="text-success small fw-bold mb-2">Công nghệ</span>
                             <h5 class="fw-bold mb-3">Ứng dụng cảm biến góc MPU6050 trong đo tầm vận động (ROM)</h5>
                             <p class="text-muted small mb-4 flex-grow-1">Thay vì dùng thước đo góc truyền thống, cảm biến quay gia tốc MPU6050 giúp ghi lại chính xác từng độ gập duỗi ngón tay và truyền về nền tảng thước đo loại Elite...</p>
-                            <a href="#" class="text-primary fw-bold text-decoration-none small">Đọc tiếp <i class="bi bi-arrow-right"></i></a>
+                            <a href="javascript:void(0)" class="text-primary fw-bold text-decoration-none small">Đọc tiếp <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </div>
                 </div>
@@ -888,14 +888,14 @@
                             <span class="text-warning small fw-bold mb-2">Dinh dưỡng</span>
                             <h5 class="fw-bold mb-3">Thực đơn chuẩn Y khoa dành cho bệnh nhân đột quỵ tại nhà</h5>
                             <p class="text-muted small mb-4 flex-grow-1">Một chế độ ăn ít muối, giàu Omega-3, hạn chế mỡ động vật và tăng cường chất xơ không chỉ ngăn ngừa tái phát mà còn thúc đẩy quá trình tái tạo nơ-ron thần kinh...</p>
-                            <a href="#" class="text-primary fw-bold text-decoration-none small">Đọc tiếp <i class="bi bi-arrow-right"></i></a>
+                            <a href="javascript:void(0)" class="text-primary fw-bold text-decoration-none small">Đọc tiếp <i class="bi bi-arrow-right"></i></a>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="text-center mt-4 d-block d-md-none">
-                <a href="#" class="btn btn-outline-primary rounded-pill w-100">Xem tất cả bài viết</a>
+                <a href="javascript:void(0)" class="btn btn-outline-primary rounded-pill w-100">Xem tất cả bài viết</a>
             </div>
         </div>
     </div>
@@ -984,8 +984,8 @@
                             <span class="badge bg-primary mb-3 px-3 py-2">Leader / CEO</span>
                             <p class="text-muted small mb-4">Chuyên ngành Kinh tế. Phụ trách định hướng chiến lược, nghiên cứu thị trường Telehealth và quản lý dòng tài chính của dự án. Người truyền cảm hứng cho toàn đội.</p>
                             <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
-                                <a href="#" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-envelope-fill"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-envelope-fill"></i></a>
                             </div>
                         </div>
                     </div>
@@ -1002,7 +1002,7 @@
                             <span class="badge bg-info text-dark mb-3 px-3 py-2">Operations Manager</span>
                             <p class="text-muted small mb-4">Chuyên ngành Kinh tế. Tối ưu hóa chuỗi cung ứng linh kiện (ESP32, MPU6050), quản lý quy trình sản xuất phần cứng và đảm bảo tiến độ bàn giao sản phẩm.</p>
                             <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
                             </div>
                         </div>
                     </div>
@@ -1019,7 +1019,7 @@
                             <span class="badge bg-warning text-dark mb-3 px-3 py-2">Marketing Lead</span>
                             <p class="text-muted small mb-4">Chuyên ngành Kinh tế. Đảm nhận vai trò truyền thông, xây dựng thương hiệu STEP và kết nối với mạng lưới các bác sĩ, chuyên gia vật lý trị liệu.</p>
                             <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
                             </div>
                         </div>
                     </div>
@@ -1036,8 +1036,8 @@
                             <span class="badge bg-dark mb-3 px-3 py-2">CTO / Lead Developer</span>
                             <p class="text-muted small mb-4">Chuyên ngành Kỹ thuật phần mềm. Kiến trúc sư trưởng của hệ thống Blazor, xây dựng hạ tầng SignalR Real-time và kiến trúc Clean Architecture cho Backend.</p>
                             <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-github"></i></a>
-                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-github"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
                             </div>
                         </div>
                     </div>
@@ -1054,7 +1054,7 @@
                             <span class="badge bg-secondary mb-3 px-3 py-2">Hardware &amp; Firmware Engineer</span>
                             <p class="text-muted small mb-4">Chuyên ngành Kỹ thuật phần mềm. Lập trình vi điều khiển C/C++, phát triển Firmware cho ESP32, xử lý tín hiệu cảm biến MPU6050 và giao thức MQTT.</p>
                             <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-github"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-github"></i></a>
                             </div>
                         </div>
                     </div>
@@ -1071,13 +1071,155 @@
                             <span class="badge bg-danger mb-3 px-3 py-2">UI/UX Designer</span>
                             <p class="text-muted small mb-4">Chuyên ngành Thiết kế đồ họa. Đảm nhận việc thiết kế giao diện (Figma), tạo hình Gamification, 3D Models và nhận diện thương hiệu cho STEP.</p>
                             <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-sm btn-light text-danger rounded-circle"><i class="bi bi-dribbble"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-danger rounded-circle"><i class="bi bi-dribbble"></i></a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
+        </div>
+    </div>
+
+    <!-- Shopping Guide -->
+    <div id="shopping-guide" class="py-5 bg-white">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
+                    <i class="bi bi-cart-check me-1"></i> Trải nghiệm mua sắm
+                </span>
+                <h2 class="fw-bold">Hướng dẫn mua hàng</h2>
+                <p class="text-muted">4 bước đơn giản để sở hữu hệ thống phục hồi chức năng STEP.</p>
+            </div>
+            
+            <div class="row g-4 position-relative">
+                <div class="d-none d-lg-block position-absolute" style="top: 30px; left: 10%; right: 10%; height: 2px; background: #e2e8f0; z-index: 0;"></div>
+                
+                <div class="col-md-6 col-lg-3 text-center position-relative z-1">
+                    <div class="bg-primary text-white rounded-circle shadow-sm d-inline-flex justify-content-center align-items-center mb-3 fw-bold" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                        1
+                    </div>
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                        <i class="bi bi-person-badge text-primary fs-2 mb-3"></i>
+                        <h6 class="fw-bold">Đăng nhập/Đăng ký</h6>
+                        <p class="text-muted small mb-0">Tạo tài khoản bệnh nhân để lưu trữ và bảo mật dữ liệu phục hồi của bạn trên hệ thống.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3 text-center position-relative z-1">
+                    <div class="bg-info text-white rounded-circle shadow-sm d-inline-flex justify-content-center align-items-center mb-3 fw-bold" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                        2
+                    </div>
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                        <i class="bi bi-cart-plus text-info fs-2 mb-3"></i>
+                        <h6 class="fw-bold">Chọn sản phẩm</h6>
+                        <p class="text-muted small mb-0">Tham khảo cấu hình thiết bị Smart Glove phù hợp và thêm vào giỏ hàng của bạn.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3 text-center position-relative z-1">
+                    <div class="bg-success text-white rounded-circle shadow-sm d-inline-flex justify-content-center align-items-center mb-3 fw-bold" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                        3
+                    </div>
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                        <i class="bi bi-credit-card text-success fs-2 mb-3"></i>
+                        <h6 class="fw-bold">Thanh toán An toàn</h6>
+                        <p class="text-muted small mb-0">Điền thông tin địa chỉ giao hàng và hoàn tất quy trình thanh toán một cách bảo mật.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3 text-center position-relative z-1">
+                    <div class="bg-warning text-dark rounded-circle shadow-sm d-inline-flex justify-content-center align-items-center mb-3 fw-bold" style="width: 60px; height: 60px; font-size: 1.5rem;">
+                        4
+                    </div>
+                    <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift">
+                        <i class="bi bi-qr-code-scan text-warning fs-2 mb-3"></i>
+                        <h6 class="fw-bold">Nhận hàng & Kích hoạt</h6>
+                        <p class="text-muted small mb-0">Nhận thiết bị tại nhà, nhập mã Serial trên hệ thống để kích hoạt bảo hành và tập luyện.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policies (Warranty & Privacy) -->
+    <div class="py-5" style="background-color: #f8fafc;">
+        <div class="container py-4">
+            <div class="row g-5">
+                <!-- Warranty Policy -->
+                <div class="col-lg-6" id="warranty-policy">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4 p-md-5 hover-lift bg-white">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-shield-check fs-3"></i>
+                            </div>
+                            <h3 class="fw-bold mb-0">Chính sách Bảo hành</h3>
+                        </div>
+                        <div class="text-muted">
+                            <p class="mb-3">STEP cam kết bảo hành chính hãng <strong>12 tháng</strong> đối với tất cả các thiết bị Smart Glove tính từ thời điểm kích hoạt mã Serial thành công trên hệ thống.</p>
+                            
+                            <h6 class="fw-bold text-dark mt-4 mb-2"><i class="bi bi-check2-circle text-success me-2"></i>Điều kiện áp dụng:</h6>
+                            <ul class="list-unstyled mb-4">
+                                <li class="mb-2"><i class="bi bi-dot text-primary"></i>Thiết bị gặp sự cố kỹ thuật, lỗi cảm biến hoặc bo mạch từ nhà sản xuất.</li>
+                                <li class="mb-2"><i class="bi bi-dot text-primary"></i>Tem bảo hành còn nguyên vẹn, mã Serial trùng khớp với tài khoản.</li>
+                            </ul>
+                            
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-x-circle text-danger me-2"></i>Trường hợp từ chối bảo hành:</h6>
+                            <ul class="list-unstyled mb-4">
+                                <li class="mb-2"><i class="bi bi-dot text-danger"></i>Thiết bị bị rơi vỡ, biến dạng vật lý, hoặc vô nước.</li>
+                                <li class="mb-2"><i class="bi bi-dot text-danger"></i>Tự ý tháo mở thiết bị hoặc sửa chữa bên thứ ba.</li>
+                            </ul>
+                            
+                            <div class="p-3 bg-light rounded-3 d-flex align-items-center">
+                                <i class="bi bi-telephone-fill text-primary fs-4 me-3"></i>
+                                <div>
+                                    <div class="small fw-semibold text-dark">Hotline Hỗ trợ Kỹ thuật & Bảo hành</div>
+                                    <div class="fw-bold text-primary fs-5">0787 775 716</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Policy -->
+                <div class="col-lg-6" id="privacy-policy">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-4 p-md-5 hover-lift bg-white">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px;">
+                                <i class="bi bi-lock-fill fs-3"></i>
+                            </div>
+                            <h3 class="fw-bold mb-0">Chính sách Bảo mật</h3>
+                        </div>
+                        <div class="text-muted">
+                            <p class="mb-3">STEP coi trọng và cam kết bảo vệ sự riêng tư, cũng như dữ liệu sức khỏe của người dùng ở mức cao nhất theo chuẩn y tế quốc tế.</p>
+                            
+                            <div class="d-flex mb-3">
+                                <i class="bi bi-cloud-check text-info fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Mã hóa Dữ liệu Y tế</h6>
+                                    <p class="small mb-0">Mọi chỉ số EMG, ROM và tiến độ phục hồi của bạn đều được mã hóa ẩn danh trên máy chủ đám mây (Cloud) để tránh rò rỉ thông tin cá nhân.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex mb-3">
+                                <i class="bi bi-eye-slash text-danger fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Không chia sẻ bên thứ ba</h6>
+                                    <p class="small mb-0">Dữ liệu tuyệt đối không bị bán hay trao đổi cho mục đích quảng cáo. Chỉ có Bác sĩ chuyên khoa do chính bạn cấp quyền mới có thể xem chi tiết hồ sơ bệnh án.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex mb-4">
+                                <i class="bi bi-trash text-warning fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-1">Quyền xóa dữ liệu</h6>
+                                    <p class="small mb-0">Bạn có toàn quyền quản lý tài khoản của mình. Bất kỳ lúc nào, bạn cũng có thể yêu cầu xóa toàn bộ lịch sử tập luyện và tài khoản ra khỏi hệ thống vĩnh viễn.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1111,8 +1253,8 @@
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;" @onclick="CloseDetailsModal">
         <div class="modal-dialog modal-lg modal-dialog-centered" @onclick:stopPropagation="true">
             <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-                <div class="modal-header border-0 pb-0 position-absolute top-0 end-0 z-1">
-                    <button type="button" class="btn-close bg-white rounded-circle p-2 m-2 shadow-sm" @onclick="CloseDetailsModal"></button>
+                <div class="modal-header border-0 pb-0 position-absolute top-0 end-0" style="z-index: 1060;">
+                    <button type="button" class="btn-close bg-white rounded-circle p-2 m-2 shadow-sm" style="cursor: pointer;" @onclick="CloseDetailsModal"></button>
                 </div>
                 <div class="modal-body p-0">
                     <div class="row g-0">
@@ -1190,6 +1332,7 @@
         position: absolute;
         inset: 0;
         background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
     }
 
     .hero-badge {
@@ -1338,4 +1481,9 @@
         selectedProduct = null;
     }
 
+    private async Task ScrollTo(string elementId)
+    {
+        await JSRuntime.InvokeVoidAsync("eval", $"document.getElementById('{elementId}')?.scrollIntoView({{behavior: 'smooth'}})");
+    }
 }
+

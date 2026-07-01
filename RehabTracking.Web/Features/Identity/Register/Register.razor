@@ -197,7 +197,7 @@
         }
         catch (Exception ex)
         {
-            errorMessage = "Đã xảy ra lỗi trong quá trình đăng ký. Vui lòng thử lại.";
+            errorMessage = RehabTracking.Web.Constants.AppMessages.ErrorOccurred;
             Console.WriteLine(ex);
         }
         finally
@@ -226,20 +226,20 @@
 
     public class RegisterModel
     {
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập họ và tên.")]
-        [System.ComponentModel.DataAnnotations.StringLength(100, ErrorMessage = "Họ tên không được vượt quá 100 ký tự.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredFullName)]
+        [System.ComponentModel.DataAnnotations.StringLength(100, ErrorMessage = RehabTracking.Web.Constants.AppMessages.FullNameMaxLength)]
         public string FullName { get; set; } = string.Empty;
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập email.")]
-        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredEmail)]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = RehabTracking.Web.Constants.AppMessages.InvalidEmail)]
         public string Email { get; set; } = string.Empty;
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
-        [System.ComponentModel.DataAnnotations.StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredPassword)]
+        [System.ComponentModel.DataAnnotations.StringLength(100, MinimumLength = 6, ErrorMessage = RehabTracking.Web.Constants.AppMessages.PasswordMinLength6)]
         public string Password { get; set; } = string.Empty;
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng xác nhận mật khẩu.")]
-        [System.ComponentModel.DataAnnotations.Compare(nameof(Password), ErrorMessage = "Mật khẩu xác nhận không khớp.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredConfirmPassword)]
+        [System.ComponentModel.DataAnnotations.Compare(nameof(Password), ErrorMessage = RehabTracking.Web.Constants.AppMessages.PasswordsDoNotMatch)]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 }

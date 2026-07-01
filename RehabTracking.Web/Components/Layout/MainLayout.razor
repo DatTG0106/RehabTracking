@@ -1,4 +1,7 @@
 @inherits LayoutComponentBase
+@using Radzen.Blazor
+
+<RadzenComponents @rendermode="InteractiveServer" />
 
 <div class="page">
     <NavMenu/>
@@ -21,13 +24,13 @@
                             Nền tảng phục hồi chức năng thông minh hàng đầu, giải pháp theo dõi và tập luyện chuyên khoa toàn diện. Chúng tôi kết nối bệnh nhân và bác sĩ qua công nghệ cảm biến y sinh hiện đại.
                         </p>
                         <div class="d-flex gap-3">
-                            <a href="#" class="btn btn-outline-light rounded-circle d-flex justify-content-center align-items-center p-0 border-secondary" style="width: 40px; height: 40px; transition: all 0.3s;">
+                            <a href="javascript:void(0)" class="btn btn-outline-light rounded-circle d-flex justify-content-center align-items-center p-0 border-secondary" style="width: 40px; height: 40px; transition: all 0.3s;">
                                 <i class="bi bi-facebook"></i>
                             </a>
-                            <a href="#" class="btn btn-outline-light rounded-circle d-flex justify-content-center align-items-center p-0 border-secondary" style="width: 40px; height: 40px; transition: all 0.3s;">
+                            <a href="javascript:void(0)" class="btn btn-outline-light rounded-circle d-flex justify-content-center align-items-center p-0 border-secondary" style="width: 40px; height: 40px; transition: all 0.3s;">
                                 <i class="bi bi-youtube"></i>
                             </a>
-                            <a href="#" class="btn btn-outline-light rounded-circle d-flex justify-content-center align-items-center p-0 border-secondary" style="width: 40px; height: 40px; transition: all 0.3s;">
+                            <a href="javascript:void(0)" class="btn btn-outline-light rounded-circle d-flex justify-content-center align-items-center p-0 border-secondary" style="width: 40px; height: 40px; transition: all 0.3s;">
                                 <i class="bi bi-linkedin"></i>
                             </a>
                         </div>
@@ -38,18 +41,18 @@
                         <ul class="list-unstyled d-flex flex-column gap-3">
                             <li><a href="#about-us" class="text-muted text-decoration-none footer-link">Đội ngũ sáng lập</a></li>
                             <li><a href="#features" class="text-muted text-decoration-none footer-link">Công nghệ</a></li>
-                            <li><a href="#" class="text-muted text-decoration-none footer-link">Tuyển dụng</a></li>
-                            <li><a href="#" class="text-muted text-decoration-none footer-link">Tin tức Y tế</a></li>
+                            <li><a href="javascript:void(0)" class="text-muted text-decoration-none footer-link">Tuyển dụng</a></li>
+                            <li><a href="javascript:void(0)" class="text-muted text-decoration-none footer-link">Tin tức Y tế</a></li>
                         </ul>
                     </div>
                     
                     <div class="col-sm-6 col-lg-2">
                         <h5 class="fw-bold text-white mb-4">Hỗ trợ</h5>
                         <ul class="list-unstyled d-flex flex-column gap-3">
-                            <li><a href="#" class="text-muted text-decoration-none footer-link">Hướng dẫn mua hàng</a></li>
-                            <li><a href="#" class="text-muted text-decoration-none footer-link">Chính sách bảo hành</a></li>
-                            <li><a href="#" class="text-muted text-decoration-none footer-link">Câu hỏi thường gặp (FAQ)</a></li>
-                            <li><a href="#" class="text-muted text-decoration-none footer-link">Chính sách bảo mật</a></li>
+                            <li><a href="/#shopping-guide" class="text-muted text-decoration-none footer-link" onclick="setTimeout(() => document.getElementById('shopping-guide')?.scrollIntoView({behavior:'smooth'}), 100)">Hướng dẫn mua hàng</a></li>
+                            <li><a href="/#warranty-policy" class="text-muted text-decoration-none footer-link" onclick="setTimeout(() => document.getElementById('warranty-policy')?.scrollIntoView({behavior:'smooth'}), 100)">Chính sách bảo hành</a></li>
+                            <li><a href="/#faq" class="text-muted text-decoration-none footer-link" onclick="setTimeout(() => document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}), 100)">Câu hỏi thường gặp (FAQ)</a></li>
+                            <li><a href="/#privacy-policy" class="text-muted text-decoration-none footer-link" onclick="setTimeout(() => document.getElementById('privacy-policy')?.scrollIntoView({behavior:'smooth'}), 100)">Chính sách bảo mật</a></li>
                         </ul>
                     </div>
                     
@@ -101,3 +104,4 @@
         <a class="dismiss btn btn-sm btn-outline-light rounded-circle" style="pointer-events: auto;"><i class="bi bi-x" style="pointer-events: none;"></i></a>
     </div>
 </div>
+

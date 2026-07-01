@@ -304,7 +304,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error fetching orders: {ex.Message}");
-            globalErrorMessage = "Không thể tải danh sách đơn hàng. Vui lòng thử lại.";
+            globalErrorMessage = RehabTracking.Web.Constants.AppMessages.ErrorOccurred;
             orders = new List<Order>();
         }
         finally
@@ -334,7 +334,7 @@
 
         if (deviceSerialNumber.Trim().Length < 6)
         {
-            errorMessage = "Mã Serial hoặc địa chỉ MAC phải chứa ít nhất 6 ký tự.";
+            errorMessage = RehabTracking.Web.Constants.AppMessages.InvalidSerialLength;
             return;
         }
 
@@ -364,7 +364,7 @@
         }
         catch (Exception ex)
         {
-            errorMessage = ex.Message.Length < 200 ? ex.Message : "Lỗi hệ thống. Vui lòng thử lại.";
+            errorMessage = ex.Message.Length < 200 ? ex.Message : RehabTracking.Web.Constants.AppMessages.ErrorOccurred;
         }
         finally
         {

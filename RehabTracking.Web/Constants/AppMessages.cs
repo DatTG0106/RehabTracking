@@ -36,6 +36,38 @@ namespace RehabTracking.Web.Constants
         public const string PasswordMinLength = "Mật khẩu phải có ít nhất {0} ký tự.";
         public const string PasswordsDoNotMatch = "Mật khẩu xác nhận không khớp.";
         public const string InvalidCredentials = "Sai thông tin đăng nhập.";
+        public const string AccountLocked = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin để biết thêm chi tiết.";
+        public const string RequireLoginToCheckout = "Vui lòng đăng nhập để tiếp tục thanh toán.";
+        
+        // Register Messages
+        public const string RegisterSuccess = "Đăng ký thành công! Vui lòng đăng nhập.";
+        public const string EmailAlreadyExists = "Email này đã được đăng ký. Vui lòng dùng email khác hoặc đăng nhập.";
+        
+        // Treatment Plan Messages
+        public const string PlanUpdateSuccess = "Phác đồ điều trị đã được cập nhật thành công!";
+        public const string PlanUpdateFailed = "Không thể cập nhật phác đồ. Vui lòng thử lại.";
+        public const string PlanUpdateError = "Lỗi hệ thống khi lưu phác đồ. Vui lòng thử lại.";
+
+        // New Validation Messages
+        public const string RequiredFullName = "Vui lòng nhập họ và tên.";
+        public const string FullNameMaxLength = "Họ tên không được vượt quá 100 ký tự.";
+        public const string RequiredEmail = "Vui lòng nhập email.";
+        public const string RequiredPassword = "Vui lòng nhập mật khẩu.";
+        public const string PasswordMinLength6 = "Mật khẩu phải có ít nhất 6 ký tự.";
+        public const string RequiredConfirmPassword = "Vui lòng xác nhận mật khẩu.";
+
+        public const string RangeRepetitions = "Số lần lặp mục tiêu phải từ 5 đến 100.";
+        public const string RangeDuration = "Thời lượng mục tiêu phải từ 5 đến 300 phút.";
+        public const string NoteMaxLength = "Ghi chú không được vượt quá 500 ký tự.";
+
+        public const string RequiredLastName = "Vui lòng nhập họ.";
+        public const string LastNameMaxLength = "Họ không được vượt quá 50 ký tự.";
+        public const string RequiredFirstName = "Vui lòng nhập tên.";
+        public const string FirstNameMaxLength = "Tên không được vượt quá 50 ký tự.";
+        public const string RequiredPhone = "Vui lòng nhập số điện thoại.";
+        public const string InvalidPhone = "Số điện thoại không hợp lệ (VD: 0912345678).";
+        public const string RequiredAddress = "Vui lòng nhập địa chỉ giao hàng.";
+        public const string AddressLength = "Địa chỉ phải có từ 10 đến 200 ký tự.";
         
         // Backend Exceptions
         public const string OrderNotFound = "Đơn hàng #{0} không tồn tại.";
@@ -43,5 +75,6 @@ namespace RehabTracking.Web.Constants
         public const string SerialExists = "Mã Serial này đã tồn tại trong hệ thống. Vui lòng nhập mã khác.";
         public const string ProductNotFound = "Sản phẩm không tồn tại (ID: {0})";
         public const string OutOfStock = "Sản phẩm '{0}' không đủ số lượng trong kho (Còn lại: {1}).";
+        public const string InvalidSerialLength = "Mã Serial hoặc địa chỉ MAC phải chứa ít nhất 6 ký tự.";
     }
 }

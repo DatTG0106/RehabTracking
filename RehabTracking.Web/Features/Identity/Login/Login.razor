@@ -31,7 +31,7 @@
                         {
                             <div class="alert alert-success border-0 rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
                                 <i class="bi bi-check-circle-fill flex-shrink-0"></i>
-                                <span>Đăng ký thành công! Vui lòng đăng nhập.</span>
+                                <span>@RehabTracking.Web.Constants.AppMessages.RegisterSuccess</span>
                             </div>
                         }
 
@@ -92,21 +92,21 @@
                         </p>
                         <div class="row g-2">
                             <div class="col-6">
-                                <button class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("doctor@test.com", "123456")'>
+                                <button type="button" class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("doctor@test.com", "123456")'>
                                     <i class="bi bi-person-badge text-primary me-1"></i>
                                     <span class="fw-semibold small">Bác sĩ</span><br/>
                                     <span class="text-muted" style="font-size:0.7rem;">doctor@test.com</span>
                                 </button>
                             </div>
                             <div class="col-6">
-                                <button class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("patient@test.com", "123456")'>
+                                <button type="button" class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("patient@test.com", "123456")'>
                                     <i class="bi bi-person-heart text-success me-1"></i>
                                     <span class="fw-semibold small">Bệnh nhân</span><br/>
                                     <span class="text-muted" style="font-size:0.7rem;">patient@test.com</span>
                                 </button>
                             </div>
                             <div class="col-12">
-                                <button class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("admin@test.com", "123456")'>
+                                <button type="button" class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("admin@test.com", "123456")'>
                                     <i class="bi bi-speedometer2 text-danger me-1"></i>
                                     <span class="fw-semibold small">Admin / Nhân viên kho</span>
                                     <span class="text-muted ms-1" style="font-size:0.7rem;">admin@test.com</span>
@@ -160,9 +160,16 @@
         var uri = new Uri(Navigation.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
 
-        if (query.TryGetValue("error", out var error) && error == "InvalidCredentials")
+        if (query.TryGetValue("error", out var error))
         {
-            errorMessage = "Email hoặc mật khẩu không đúng. Vui lòng thử lại.";
+            if (error == "InvalidCredentials")
+            {
+                errorMessage = RehabTracking.Web.Constants.AppMessages.InvalidCredentials;
+            }
+            else if (error == "AccountLocked")
+            {
+                errorMessage = RehabTracking.Web.Constants.AppMessages.AccountLocked;
+            }
         }
         if (query.TryGetValue("registered", out var reg) && reg == "true")
         {

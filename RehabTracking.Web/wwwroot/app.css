@@ -119,6 +119,21 @@ html {
     border: 1px solid rgba(79, 70, 229, 0.1);
 }
 
+.card {
+    transition: var(--transition);
+}
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl) !important;
+}
+.hover-lift {
+    transition: var(--transition);
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg) !important;
+}
+
 /* Glowing Telemetry Card */
 .glow-card {
     border-radius: var(--radius-lg);
@@ -169,6 +184,16 @@ html {
 /* ============================================================
    Button System
    ============================================================ */
+.btn {
+    transition: var(--transition);
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
 .btn-modern {
     border-radius: 9999px;
     padding: 0.5rem 1.5rem;
@@ -178,15 +203,13 @@ html {
 }
 
 .btn-modern-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
     color: white !important;
     border: none;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
 }
 
 .btn-modern-primary:hover {
-    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
-    transform: translateY(-1px);
     color: white !important;
 }
 
@@ -381,6 +404,21 @@ main {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ============================================================

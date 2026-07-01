@@ -22,7 +22,7 @@
         <div class="@(mobileMenuOpen ? "d-block" : "collapse") navbar-collapse" id="navbarContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item" @onclick="CloseMobileMenu">
-                    <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                    <NavLink class="nav-link" href="/#products">
                         <i class="bi bi-shop me-1"></i> Sản phẩm
                     </NavLink>
                 </li>
@@ -52,6 +52,11 @@
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
                         <NavLink class="nav-link" href="admin-dashboard">
                             <i class="bi bi-speedometer2 me-1"></i> Quản lý Đơn hàng
+                        </NavLink>
+                    </li>
+                    <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
+                        <NavLink class="nav-link" href="admin/accounts">
+                            <i class="bi bi-people-fill me-1"></i> Quản lý Tài khoản
                         </NavLink>
                     </li>
                 </AuthorizeView>
@@ -141,6 +146,9 @@
                                         <div class="px-2 py-1">
                                             <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/admin-dashboard")'>
                                                 <i class="bi bi-speedometer2 text-warning me-2"></i> Quản lý Đơn hàng
+                                            </button>
+                                            <button class="dropdown-item-btn w-100 text-start mt-1" @onclick='() => GoTo("/admin/accounts")'>
+                                                <i class="bi bi-people-fill text-info me-2"></i> Quản lý Tài khoản
                                             </button>
                                         </div>
                                         <hr class="my-1 mx-2" />

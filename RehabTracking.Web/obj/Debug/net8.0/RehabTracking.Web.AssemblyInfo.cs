@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RehabTracking.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+115a08e3d5b1a046677785f0523b84b34227cb06")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2d0e8a9d6e81a9974fa733d87167bec1df43722e")]
 [assembly: System.Reflection.AssemblyProductAttribute("RehabTracking.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RehabTracking.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

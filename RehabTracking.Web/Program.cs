@@ -2,6 +2,7 @@ using RehabTracking.Web.Components;
 using Microsoft.EntityFrameworkCore;       // Khai báo thư viện EF Core
 using RehabTracking.Web.Entities;          // Khai báo thư mục chứa Models và DbContext sinh ra từ DB
 using Radzen;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +28,15 @@ builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.C
     {
         options.LoginPath = "/login";
         options.AccessDeniedPath = "/login"; // Or /access-denied
+        options.ExpireTimeSpan = TimeSpan.FromHours(1);
     });
+
+if (builder.Environment.IsDevelopment())
+{
+    // Đảm bảo mỗi lần chạy lại ở mode dev thì session/cookie cũ sẽ bị vô hiệu hóa
+    builder.Services.AddDataProtection()
+        .UseEphemeralDataProtectionProvider();
+}
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();

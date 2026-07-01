@@ -229,6 +229,7 @@ public partial class RehabTrackingContext : DbContext
             entity.Property(e => e.FullName).HasMaxLength(100);
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

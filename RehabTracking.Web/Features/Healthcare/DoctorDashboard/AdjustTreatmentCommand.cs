@@ -9,13 +9,13 @@ public class AdjustTreatmentCommand : IRequest<bool>
     public int PlanId { get; set; }
     public int PatientId { get; set; }
 
-    [System.ComponentModel.DataAnnotations.Range(5, 100, ErrorMessage = "Số lần lặp mục tiêu phải từ 5 đến 100.")]
+    [System.ComponentModel.DataAnnotations.Range(5, 100, ErrorMessage = RehabTracking.Web.Constants.AppMessages.RangeRepetitions)]
     public int TargetRepetitions { get; set; }
 
-    [System.ComponentModel.DataAnnotations.Range(5, 300, ErrorMessage = "Thời lượng mục tiêu phải từ 5 đến 300 phút.")]
+    [System.ComponentModel.DataAnnotations.Range(5, 300, ErrorMessage = RehabTracking.Web.Constants.AppMessages.RangeDuration)]
     public int TargetDuration { get; set; }
 
-    [System.ComponentModel.DataAnnotations.StringLength(500, ErrorMessage = "Ghi chú không được vượt quá 500 ký tự.")]
+    [System.ComponentModel.DataAnnotations.StringLength(500, ErrorMessage = RehabTracking.Web.Constants.AppMessages.NoteMaxLength)]
     public string Description { get; set; } = string.Empty;
 }
 

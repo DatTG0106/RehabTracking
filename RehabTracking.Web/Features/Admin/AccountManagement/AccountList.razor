@@ -1,0 +1,376 @@
+@page "/admin/accounts"
+@using MediatR
+@using RehabTracking.Web.Features.Admin.AccountManagement
+@using Radzen
+@using Radzen.Blazor
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+@inject IMediator Mediator
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+
+<PageTitle>Quản lý Tài khoản</PageTitle>
+
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2rem;">
+                Quản lý Tài khoản <span class="text-primary">Hệ thống</span>
+            </h3>
+            <p class="text-muted mb-0">Xem, tìm kiếm, lọc và thiết lập trạng thái tài khoản hệ thống.</p>
+        </div>
+        <button class="btn btn-modern-primary btn-lg rounded-pill px-4 shadow-sm fw-semibold" @onclick="ShowCreateDoctorDialog">
+            <i class="bi bi-person-plus-fill me-2"></i>Tạo Tài khoản Bác sĩ
+        </button>
+    </div>
+
+    @if (stats != null)
+    {
+        <!-- Summary Cards -->
+        <div class="row mb-4 g-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="modern-card p-4 h-100" style="background: linear-gradient(135deg, rgba(79,70,229,0.1), rgba(79,70,229,0.02)); border: 1px solid rgba(79,70,229,0.2);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted fw-semibold text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.05em;">Tổng Tài Khoản</h6>
+                            <h2 class="fw-bold text-dark mb-0" style="font-size: 2.5rem;">@stats.TotalUsers</h2>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center" style="width: 56px; height: 56px;">
+                            <i class="bi bi-people fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6">
+                <div class="modern-card p-4 h-100" style="background: linear-gradient(135deg, rgba(14,165,233,0.1), rgba(14,165,233,0.02)); border: 1px solid rgba(14,165,233,0.2);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted fw-semibold text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.05em;">Bác Sĩ</h6>
+                            <h2 class="fw-bold text-info mb-0" style="font-size: 2.5rem;">@stats.TotalDoctors</h2>
+                        </div>
+                        <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex justify-content-center align-items-center" style="width: 56px; height: 56px;">
+                            <i class="bi bi-heart-pulse fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="modern-card p-4 h-100" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02)); border: 1px solid rgba(16,185,129,0.2);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted fw-semibold text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.05em;">Bệnh Nhân</h6>
+                            <h2 class="fw-bold text-success mb-0" style="font-size: 2.5rem;">@stats.TotalPatients</h2>
+                        </div>
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center" style="width: 56px; height: 56px;">
+                            <i class="bi bi-person-wheelchair fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="modern-card p-4 h-100" style="background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.02)); border: 1px solid rgba(239,68,68,0.2);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted fw-semibold text-uppercase mb-2" style="font-size: 0.8rem; letter-spacing: 0.05em;">Bị Khóa</h6>
+                            <h2 class="fw-bold text-danger mb-0" style="font-size: 2.5rem;">@stats.TotalLocked</h2>
+                        </div>
+                        <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex justify-content-center align-items-center" style="width: 56px; height: 56px;">
+                            <i class="bi bi-lock-fill fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- DataGrid Card -->
+    <div class="modern-card overflow-hidden">
+        <div class="p-4 bg-white border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="bi bi-list-ul text-primary me-2"></i>Danh sách Người dùng Hệ thống
+            </h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">Tổng số: @users.Count</span>
+        </div>
+
+        <div class="p-0 admin-grid-container">
+            <RadzenDataGrid @ref="grid" AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" 
+                            FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="10" AllowPaging="true" 
+                            PagerHorizontalAlign="HorizontalAlign.Center" ShowPagingSummary="true"
+                            Data="@users" TItem="UserDto" ColumnWidth="150px" LogicalFilterOperator="LogicalFilterOperator.Or" 
+                            class="border-0 modern-grid">
+                <Columns>
+                    <RadzenDataGridColumn TItem="UserDto" Property="UserId" Title="ID" Width="80px" TextAlign="TextAlign.Center">
+                        <Template Context="user">
+                            <span class="fw-semibold text-muted">#@user.UserId</span>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    
+                    <RadzenDataGridColumn TItem="UserDto" Property="FullName" Title="Họ Tên">
+                        <Template Context="user">
+                            <div class="d-flex align-items-center py-1">
+                                <div class="bg-light rounded-circle d-flex justify-content-center align-items-center text-secondary fw-bold shadow-sm me-3" style="width: 40px; height: 40px;">
+                                    @(user.FullName.Length > 0 ? user.FullName.Substring(0, 1).ToUpper() : "U")
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark">@user.FullName</h6>
+                                    <span class="text-muted small">@user.Email</span>
+                                </div>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    
+                    <RadzenDataGridColumn TItem="UserDto" Property="RoleName" Title="Quyền" Width="140px">
+                        <Template Context="user">
+                            @if (user.RoleName == "Admin")
+                            {
+                                <span class="badge badge-soft-danger rounded-pill px-3 py-2"><i class="bi bi-shield-lock-fill me-1"></i> Admin</span>
+                            }
+                            else if (user.RoleName == "Doctor")
+                            {
+                                <span class="badge badge-soft-info rounded-pill px-3 py-2"><i class="bi bi-heart-pulse-fill me-1"></i> Bác sĩ</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-soft-success rounded-pill px-3 py-2"><i class="bi bi-person-fill me-1"></i> Bệnh nhân</span>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="UserDto" Property="IsActive" Title="Trạng thái" Width="160px">
+                        <Template Context="user">
+                            @if (user.IsActive)
+                            {
+                                <span class="d-flex align-items-center gap-2">
+                                    <span class="status-dot bg-success"></span>
+                                    <span class="text-success fw-medium">Hoạt động</span>
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="d-flex align-items-center gap-2">
+                                    <span class="status-dot bg-danger"></span>
+                                    <span class="text-danger fw-medium">Đã Khóa</span>
+                                </span>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                    <RadzenDataGridColumn TItem="UserDto" Property="CreatedAt" Title="Ngày Tạo" FormatString="{0:dd/MM/yyyy}" Width="140px" />
+
+                    <RadzenDataGridColumn TItem="UserDto" Title="Thao tác" Sortable="false" Filterable="false" Width="180px" TextAlign="TextAlign.Center">
+                        <Template Context="user">
+                            @if (user.RoleName != "Admin")
+                            {
+                                <div class="d-flex justify-content-center gap-2">
+                                    @if (user.IsActive)
+                                    {
+                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Khóa tài khoản" @onclick="() => ToggleStatus(user)" @onclick:stopPropagation="true">
+                                            <i class="bi bi-lock-fill"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-success btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Mở khóa tài khoản" @onclick="() => ToggleStatus(user)" @onclick:stopPropagation="true">
+                                            <i class="bi bi-unlock-fill"></i>
+                                        </button>
+                                    }
+
+                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="Cấp lại mật khẩu" @onclick="() => ResetPassword(user)" @onclick:stopPropagation="true">
+                                        <i class="bi bi-key-fill"></i>
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted small fst-italic">Bảo vệ</span>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling for the Modern DataGrid */
+    .modern-grid .rz-grid-table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .modern-grid .rz-datatable-thead th {
+        background-color: #f8fafc !important;
+        border-bottom: 2px solid #e2e8f0 !important;
+        padding: 1rem !important;
+        color: #64748b !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+    .modern-grid .rz-datatable-data td {
+        padding: 1rem !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        vertical-align: middle;
+    }
+    .modern-grid .rz-datatable-data tr:hover td {
+        background-color: #f8fafc !important;
+    }
+    .modern-grid .rz-paginator {
+        background-color: white !important;
+        border-top: 1px solid #e2e8f0 !important;
+        padding: 1rem !important;
+        color: #64748b;
+    }
+    
+    /* Status dots */
+    .status-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+
+    /* Override dialog style */
+    .rz-dialog-wrapper .rz-dialog {
+        border-radius: 1.5rem !important;
+        overflow: hidden;
+        border: none !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    }
+    .rz-dialog-titlebar {
+        background-color: white !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        padding: 1.5rem !important;
+    }
+    .rz-dialog-title {
+        font-weight: 700 !important;
+        color: #1e293b !important;
+    }
+</style>
+
+@code {
+    private RadzenDataGrid<UserDto> grid = null!;
+    private List<UserDto> users = new();
+    private AccountStatsDto? stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        users = await Mediator.Send(new GetUsersQuery());
+        stats = await Mediator.Send(new GetAccountStatsQuery());
+    }
+
+    private async Task ToggleStatus(UserDto user)
+    {
+        bool? confirm = await DialogService.Confirm(
+            $"Bạn có chắc chắn muốn {(user.IsActive ? "KHÓA" : "MỞ KHÓA")} tài khoản {user.FullName}?", 
+            "Xác nhận thao tác", 
+            new ConfirmOptions() { OkButtonText = "Đồng ý", CancelButtonText = "Hủy" });
+            
+        if (confirm == true)
+        {
+            var result = await Mediator.Send(new ToggleAccountStatus.Command(user.UserId));
+            if (result.IsSuccess)
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Thành công", Detail = result.Message, Duration = 4000 });
+                await LoadData();
+                await grid.Reload();
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Lỗi", Detail = result.Message, Duration = 4000 });
+            }
+        }
+    }
+
+    private async Task ResetPassword(UserDto user)
+    {
+        bool? confirm = await DialogService.Confirm(
+            $"Bạn có muốn đặt lại mật khẩu cho {user.FullName} về mặc định (Doctor@123)?", 
+            "Cấp lại mật khẩu", 
+            new ConfirmOptions() { OkButtonText = "Đặt lại", CancelButtonText = "Hủy" });
+            
+        if (confirm == true)
+        {
+            var result = await Mediator.Send(new ResetPassword.Command(user.UserId, "Doctor@123"));
+            if (result.IsSuccess)
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Thành công", Detail = result.Message, Duration = 4000 });
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Lỗi", Detail = result.Message, Duration = 4000 });
+            }
+        }
+    }
+
+    private async Task ShowCreateDoctorDialog()
+    {
+        var result = await DialogService.OpenAsync("Tạo Tài Khoản Bác Sĩ", ds =>
+        @<div class="px-2 py-3">
+            <div class="mb-4">
+                <label class="form-label fw-bold text-dark small text-uppercase">Họ Tên</label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-person"></i></span>
+                    <input type="text" @bind="newDoctorName" class="form-control bg-light border-0" placeholder="Nhập họ tên bác sĩ..." />
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold text-dark small text-uppercase">Email</label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-envelope"></i></span>
+                    <input type="email" @bind="newDoctorEmail" class="form-control bg-light border-0" placeholder="doctor@example.com" />
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold text-dark small text-uppercase">Mật khẩu mặc định</label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-key"></i></span>
+                    <input type="text" value="Doctor@123" disabled class="form-control bg-light border-0 text-muted" />
+                </div>
+                <div class="text-muted small mt-2"><i class="bi bi-info-circle me-1"></i>Mật khẩu này được tạo tự động cho Bác sĩ.</div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <button class="btn btn-light rounded-pill px-4 fw-medium" @onclick="() => ds.Close(false)">Hủy</button>
+                <button class="btn btn-modern-primary rounded-pill px-4 shadow-sm fw-bold" @onclick="() => ds.Close(true)">
+                    <i class="bi bi-person-plus-fill me-2"></i>Tạo Tài Khoản
+                </button>
+            </div>
+        </div>
+        , new DialogOptions() { Width = "500px", Resizable = false, Draggable = false });
+
+        if (result == true && !string.IsNullOrWhiteSpace(newDoctorName) && !string.IsNullOrWhiteSpace(newDoctorEmail))
+        {
+            var response = await Mediator.Send(new CreateDoctorAccount.Command(newDoctorName, newDoctorEmail, "Doctor@123"));
+            
+            if (response.IsSuccess)
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Thành công", Detail = response.Message, Duration = 4000 });
+                newDoctorName = "";
+                newDoctorEmail = "";
+                await LoadData();
+                await grid.Reload();
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Lỗi", Detail = response.Message, Duration = 4000 });
+            }
+        }
+    }
+
+    private string newDoctorName = "";
+    private string newDoctorEmail = "";
+}

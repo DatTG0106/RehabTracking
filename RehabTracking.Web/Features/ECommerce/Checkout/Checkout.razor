@@ -258,7 +258,7 @@
     {
         if (currentUserId == 0)
         {
-            errorMessage = "Vui lòng đăng nhập để tiếp tục thanh toán.";
+            errorMessage = RehabTracking.Web.Constants.AppMessages.RequireLoginToCheckout;
             return;
         }
 
@@ -303,20 +303,20 @@
 
     public class CheckoutModel
     {
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập họ.")]
-        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = "Họ không được vượt quá 50 ký tự.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredLastName)]
+        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = RehabTracking.Web.Constants.AppMessages.LastNameMaxLength)]
         public string FirstName { get; set; } = string.Empty;
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập tên.")]
-        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = "Tên không được vượt quá 50 ký tự.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredFirstName)]
+        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = RehabTracking.Web.Constants.AppMessages.FirstNameMaxLength)]
         public string LastName { get; set; } = string.Empty;
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập số điện thoại.")]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = "Số điện thoại không hợp lệ (VD: 0912345678).")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredPhone)]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = RehabTracking.Web.Constants.AppMessages.InvalidPhone)]
         public string Phone { get; set; } = string.Empty;
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập địa chỉ giao hàng.")]
-        [System.ComponentModel.DataAnnotations.StringLength(200, MinimumLength = 10, ErrorMessage = "Địa chỉ phải có từ 10 đến 200 ký tự.")]
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredAddress)]
+        [System.ComponentModel.DataAnnotations.StringLength(200, MinimumLength = 10, ErrorMessage = RehabTracking.Web.Constants.AppMessages.AddressLength)]
         public string Address { get; set; } = string.Empty;
 
         public string PaymentMethod { get; set; } = "COD";

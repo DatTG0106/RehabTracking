@@ -190,7 +190,7 @@
                                     <th class="ps-4 text-uppercase font-weight-semibold small">Ngày</th>
                                     <th class="text-uppercase font-weight-semibold small">Thời lượng</th>
                                     <th class="text-uppercase font-weight-semibold small">Số Reps</th>
-                                    <th class="text-uppercase font-weight-semibold small">Max ROM</th>
+                                    <th class="text-uppercase font-weight-semibold small" title="Tầm vận động khớp tối đa đạt được trong buổi tập (Đơn vị: Độ)">Max ROM <i class="bi bi-info-circle text-muted ms-1"></i></th>
                                     <th class="pe-4 text-uppercase font-weight-semibold small">Trạng thái</th>
                                 </tr>
                             </thead>
@@ -276,7 +276,6 @@ tiêu</div>
                         </div>
                         <h5 class="modal-title fw-bold mb-0">Điều chỉnh Phác đồ Điều trị</h5>
                     </div>
-                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
                 </div>
                 <div class="modal-body px-4 py-4">
                     <EditForm Model="adjustModel" OnValidSubmit="SaveTreatmentPlan">
@@ -446,7 +445,7 @@ tiêu</div>
             {
                 // FIX: Close modal only on SUCCESS, not in finally block
                 showModal = false;
-                successMessage = "Phác đồ điều trị đã được cập nhật thành công!";
+                successMessage = RehabTracking.Web.Constants.AppMessages.PlanUpdateSuccess;
                 isSuccessAlert = true; // FIX: Set boolean flag
                 // Update local state to reflect changes immediately
                 var existingPlan = selectedPatient?.TreatmentPlans?.FirstOrDefault();
@@ -460,13 +459,13 @@ tiêu</div>
             else
             {
                 // FIX: Do NOT close modal on failure - show error instead
-                successMessage = "Không thể cập nhật phác đồ. Vui lòng thử lại.";
+                successMessage = RehabTracking.Web.Constants.AppMessages.PlanUpdateFailed;
                 isSuccessAlert = false; // FIX: Set boolean flag
             }
         }
         catch (Exception ex)
         {
-            successMessage = "Lỗi hệ thống khi lưu phác đồ. Vui lòng thử lại.";
+            successMessage = RehabTracking.Web.Constants.AppMessages.PlanUpdateError;
             isSuccessAlert = false; // FIX: Set boolean flag
             Console.WriteLine($"Error saving plan: {ex.Message}");
         }

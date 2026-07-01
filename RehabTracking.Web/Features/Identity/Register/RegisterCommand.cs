@@ -49,7 +49,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result>
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
         if (existingUser != null)
         {
-            return new Result(false, "Email này đã được đăng ký. Vui lòng dùng email khác hoặc đăng nhập.");
+            return new Result(false, RehabTracking.Web.Constants.AppMessages.EmailAlreadyExists);
         }
 
         // Check if Patient role exists, if not create it
@@ -72,6 +72,6 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result>
         _context.Users.Add(newUser);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new Result(true, "Đăng ký thành công! Vui lòng đăng nhập.");
+        return new Result(true, RehabTracking.Web.Constants.AppMessages.RegisterSuccess);
     }
 }

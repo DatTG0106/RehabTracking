@@ -77,6 +77,11 @@ public class AuthController : ControllerBase
 
         if (user != null)
         {
+            if (!user.IsActive)
+            {
+                return Redirect("/login?error=AccountLocked");
+            }
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.FullName ?? user.Email),
