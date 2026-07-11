@@ -81,5 +81,21 @@ namespace RehabTracking.Web.Constants
         public const string ConfirmResetPassword = "Bạn có muốn đặt lại mật khẩu cho {0} về mặc định ({1})?";
         public const string ActionSuccess = "Thành công";
         public const string ActionError = "Lỗi";
+
+        // Doctor Account Creation
+        public const string DoctorNameRequired = "Vui lòng nhập họ tên bác sĩ.";
+        public const string DoctorEmailRequired = "Vui lòng nhập địa chỉ email.";
+        public const string DoctorEmailInvalid = "Địa chỉ email không đúng định dạng.";
+        public const string DoctorNameTooShort = "Họ tên phải có ít nhất 3 ký tự.";
+        public const string DoctorCreationValidationFailed = "Vui lòng kiểm tra lại thông tin trước khi tạo tài khoản.";
+
+        // Cart / Access
+        public const string CartNotAvailable = "Chức năng giỏ hàng chỉ dành cho bệnh nhân.";
+        public const string AccessDeniedRole = "Bạn không có quyền truy cập trang này.";
+
+        // Workout / Session
+        public const string WorkoutPageTitle = "Bài tập hôm nay";
+        public const string ExerciseCompleted = "Xuất sắc! Bạn đã hoàn thành bài tập.";
+        public const string ExerciseInProgress = "Đang tập luyện...";
     }
 }

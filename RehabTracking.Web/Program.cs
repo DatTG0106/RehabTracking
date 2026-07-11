@@ -1,6 +1,7 @@
 using RehabTracking.Web.Components;
 using Microsoft.EntityFrameworkCore;       // Khai báo thư viện EF Core
 using RehabTracking.Web.Entities;          // Khai báo thư mục chứa Models và DbContext sinh ra từ DB
+using RehabTracking.Web.Infrastructure;    // DbInitializer
 using Radzen;
 using Microsoft.AspNetCore.DataProtection;
 
@@ -46,6 +47,15 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var app = builder.Build();
+
+// ================================================================
+// 3. SEED DỮ LIỆU MẪU (chỉ chạy trong môi trường Development)
+//    An toàn: mỗi phương thức kiểm tra AnyAsync() trước khi insert
+// ================================================================
+if (app.Environment.IsDevelopment())
+{
+    await DbInitializer.SeedAsync(app.Services);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

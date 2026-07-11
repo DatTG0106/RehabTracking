@@ -13,8 +13,19 @@
     <!-- Hero Section -->
     <div class="row mb-5 align-items-center">
         <div class="col-lg-8">
-            <h1 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2.5rem;">Trung Tâm Xử Lý Đơn Hàng</h1>
-            <p class="text-muted fs-5">Quản lý và xuất kho thiết bị STEP Smart Glove. Đảm bảo bảo mật toàn bộ dữ liệu y khoa của bệnh nhân.</p>
+            <h1 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2.2rem;">Trung Tâm Xử Lý Đơn Hàng</h1>
+            <p class="text-muted fs-5 mb-0">Quản lý và xuất kho thiết bị STEP Smart Glove. Đảm bảo bảo mật toàn bộ dữ liệu y khoa của bệnh nhân.</p>
+            <div class="d-flex gap-2 mt-3 flex-wrap">
+                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;">
+                    <i class="bi bi-clock-history me-1"></i>Chờ xử lý: @(orders?.Count(o => o.Status == "Pending") ?? 0)
+                </span>
+                <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;">
+                    <i class="bi bi-box-seam me-1"></i>Trong kho: @(orders?.Count(o => o.Status == "Processing") ?? 0)
+                </span>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;">
+                    <i class="bi bi-check2-circle me-1"></i>Đã giao hôm nay: @shippedTodayCount
+                </span>
+            </div>
         </div>
         <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
             <div class="d-inline-flex gap-3">
@@ -158,8 +169,24 @@
                                             </td>
                                             <td class="fw-bold" style="color: var(--primary-color);">@order.TotalAmount.ToString("N0")₫</td>
                                             <td>
-                                                <span class="badge badge-soft-warning px-3 py-2 rounded-pill">
-                                                    <i class="bi bi-clock-history me-1"></i> @order.Status
+                                                @{
+                                                    var statusVn = order.Status switch
+                                                    {
+                                                        "Pending" => "Chờ xử lý",
+                                                        "Processing" => "Trong kho",
+                                                        "Shipped" => "Đã giao",
+                                                        _ => order.Status ?? "Không rõ"
+                                                    };
+                                                    var (badgeClass, iconClass) = order.Status switch
+                                                    {
+                                                        "Pending" => ("badge-soft-warning", "bi-clock-history"),
+                                                        "Processing" => ("badge-soft-info", "bi-box-seam"),
+                                                        "Shipped" => ("badge-soft-success", "bi-check2-circle"),
+                                                        _ => ("badge-soft-secondary", "bi-question-circle")
+                                                    };
+                                                }
+                                                <span class="badge @badgeClass px-3 py-2 rounded-pill">
+                                                    <i class="bi @iconClass me-1"></i> @statusVn
                                                 </span>
                                             </td>
                                             <td class="pe-4 text-end">

@@ -1,0 +1,783 @@
+@page "/patient/workout"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using MediatR
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Features.Healthcare.PatientDashboard
+@using System.Text.Json
+@attribute [Authorize(Roles = "Patient")]
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@implements IDisposable
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedSessionStorage ProtectedSessionStore
+
+<PageTitle>Bài tập hôm nay – STEP</PageTitle>
+
+<style>
+    .wp-page { min-height: 100vh; background: linear-gradient(160deg, #f8fafc 0%, #eef2ff 100%); }
+
+    /* Exercise step card */
+    .ex-card { background: white; border-radius: 1.25rem; border: 2px solid #e2e8f0; transition: all 0.25s ease; overflow: hidden; }
+    .ex-card.active { border-color: #4f46e5; box-shadow: 0 0 0 4px rgba(79,70,229,0.1), 0 8px 32px rgba(79,70,229,0.1); }
+    .ex-card.done { border-color: #10b981; background: linear-gradient(135deg, #f0fdf4 0%, white 60%); }
+    .ex-card.locked { opacity: 0.55; }
+    .ex-card-header { padding: 1.25rem 1.5rem; }
+    .ex-card-body { padding: 0 1.5rem 1.5rem; }
+
+    /* Timer ring */
+    .timer-ring { position: relative; width: 130px; height: 130px; flex-shrink: 0; }
+    .timer-ring svg { transform: rotate(-90deg); }
+    .timer-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .timer-num { font-size: 2rem; font-weight: 900; line-height: 1; letter-spacing: -0.02em; }
+    .timer-sub { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-top: 2px; }
+
+    /* Set pills */
+    .set-pill { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; font-size: 0.8rem; font-weight: 700; transition: all 0.2s; }
+    .set-pill.done { background: #10b981; color: white; }
+    .set-pill.current { background: #4f46e5; color: white; box-shadow: 0 0 0 3px rgba(79,70,229,0.25); }
+    .set-pill.pending { background: #f1f5f9; color: #94a3b8; border: 1.5px solid #e2e8f0; }
+
+    /* Buttons */
+    .btn-go { background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none; color: white; font-weight: 700; border-radius: 50px; padding: 0.7rem 2rem; transition: all 0.2s; }
+    .btn-go:hover { opacity: 0.9; transform: translateY(-1px); color: white; }
+    .btn-pause { background: #f59e0b; border: none; color: white; font-weight: 700; border-radius: 50px; padding: 0.7rem 1.75rem; transition: all 0.2s; }
+    .btn-pause:hover { opacity: 0.9; color: white; }
+    .btn-finish { background: #10b981; border: none; color: white; font-weight: 700; border-radius: 50px; padding: 0.7rem 1.75rem; transition: all 0.2s; }
+    .btn-finish:hover { opacity: 0.9; color: white; }
+    .btn-outline-start { border: 2px solid #4f46e5; background: white; color: #4f46e5; font-weight: 700; border-radius: 50px; padding: 0.6rem 1.5rem; transition: all 0.2s; }
+    .btn-outline-start:hover { background: #4f46e5; color: white; }
+
+    /* Progress bar */
+    .overall-bar { height: 10px; border-radius: 5px; background: #e2e8f0; overflow: hidden; }
+    .overall-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, #4f46e5, #10b981); transition: width 0.6s ease; }
+
+    /* Rest overlay */
+    .rest-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.75); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; animation: fadeIn 0.2s ease; }
+    .rest-modal { background: white; border-radius: 2rem; padding: 3rem 2.5rem; text-align: center; max-width: 380px; width: 90%; box-shadow: 0 32px 64px rgba(0,0,0,0.25); animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    .rest-num { font-size: 5.5rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; background: linear-gradient(135deg,#f59e0b,#ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .rest-bar { height: 8px; border-radius: 4px; background: #f1f5f9; overflow: hidden; }
+    .rest-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg,#f59e0b,#4f46e5); transition: width 1s linear; }
+
+    /* Completed banner */
+    .done-banner { background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 1.5rem; padding: 2.5rem; text-align: center; box-shadow: 0 8px 32px rgba(16,185,129,0.3); }
+
+    /* Video embed */
+    .vid-wrap { border-radius: 0.85rem; overflow: hidden; background: #0f172a; position: relative; aspect-ratio: 16/9; }
+    .vid-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+
+    /* Notes box */
+    .notes-box { background: linear-gradient(135deg,#fffbeb,#fef9c3); border: 1px solid #fde68a; border-radius: 0.85rem; padding: 0.85rem 1rem; }
+
+    /* Schedule reminder badge */
+    .schedule-badge { background: linear-gradient(135deg,#eef2ff,#f0f4ff); border: 1px solid #c7d2fe; border-radius: 1rem; padding: 0.85rem 1.25rem; }
+
+    /* Animations */
+    @@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+    @@keyframes popIn { from { transform:scale(0.8); opacity:0 } to { transform:scale(1); opacity:1 } }
+    @@keyframes pulse-ring { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .live-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; animation: pulse-ring 1.2s infinite; }
+</style>
+
+<div class="wp-page py-4">
+    <div class="container-fluid px-4" style="max-width:920px;">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h2 class="fw-bold mb-1" style="color:#1e293b;font-size:1.8rem;letter-spacing:-0.01em;">
+                    <i class="bi bi-dumbbell me-2" style="color:#4f46e5;"></i>Bài tập hôm nay
+                </h2>
+                <p class="text-muted mb-0">
+                    Thực hiện theo hướng dẫn · Bác sĩ theo dõi tiến trình của bạn
+                    <span class="ms-2"><span class="live-dot"></span></span>
+                </p>
+            </div>
+            <a href="/patient-dashboard" class="btn btn-light rounded-pill px-4 fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i><span>Dashboard</span>
+            </a>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="d-flex justify-content-center align-items-center" style="min-height:60vh;">
+                <div class="text-center">
+                    <div class="spinner-border text-primary mb-3" style="width:3.5rem;height:3.5rem;" role="status"></div>
+                    <p class="text-muted fw-semibold">Đang tải lộ trình bài tập...</p>
+                </div>
+            </div>
+        }
+        else if (!exercises.Any())
+        {
+            <!-- No plan state -->
+            <div class="d-flex justify-content-center">
+                <div class="text-center p-5 bg-white rounded-4 shadow-sm" style="max-width:480px;">
+                    <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-4"
+                         style="width:90px;height:90px;background:rgba(79,70,229,0.08);">
+                        <i class="bi bi-clipboard2-x" style="font-size:3rem;color:#cbd5e1;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Chưa có lộ trình bài tập</h4>
+                    <p class="text-muted mb-4">Bác sĩ của bạn chưa thiết kế lộ trình bài tập cụ thể. Vui lòng liên hệ bác sĩ để được hướng dẫn.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="/patient-dashboard" class="btn btn-primary rounded-pill px-4 fw-semibold">
+                            <i class="bi bi-arrow-left me-2"></i>Về Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Schedule reminder (if available) -->
+            @if (workoutSchedule != null && workoutSchedule.DaysOfWeek.Any())
+            {
+                var dayNames = new[] { "CN", "T2", "T3", "T4", "T5", "T6", "T7" };
+                var daysStr = string.Join(", ", workoutSchedule.DaysOfWeek.Select(d => dayNames[Math.Clamp(d, 0, 6)]));
+                <div class="schedule-badge mb-4 d-flex align-items-center gap-3">
+                    <i class="bi bi-calendar-heart text-primary fs-4 flex-shrink-0"></i>
+                    <div>
+                        <div class="fw-semibold text-dark" style="font-size:0.9rem;">Lịch tập của bạn</div>
+                        <div class="text-muted small">
+                            <i class="bi bi-clock me-1"></i>@workoutSchedule.ReminderTime
+                            · <i class="bi bi-calendar3 me-1"></i>@daysStr
+                            @if (!string.IsNullOrWhiteSpace(workoutSchedule.Note))
+                            {
+                                <span> · <i class="bi bi-info-circle me-1"></i>@workoutSchedule.Note</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Overall Progress -->
+            <div class="p-4 mb-4 bg-white rounded-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-dark">Tiến độ buổi tập</span>
+                    <span class="fw-bold" style="color:#4f46e5;">@completedCount / @exercises.Count bài</span>
+                </div>
+                <div class="overall-bar">
+                    <div class="overall-fill" style="width:@(exercises.Count > 0 ? completedCount * 100 / exercises.Count : 0)%;"></div>
+                </div>
+                <div class="d-flex flex-wrap gap-3 mt-3">
+                    <span class="text-muted small"><i class="bi bi-collection me-1 text-primary"></i><strong>@exercises.Count</strong> bài tập</span>
+                    <span class="text-muted small"><i class="bi bi-arrow-repeat me-1 text-success"></i><strong>@exercises.Sum(e => e.Sets * e.Reps)</strong> tổng reps</span>
+                    <span class="text-muted small"><i class="bi bi-clock me-1 text-warning"></i>~<strong>@EstimateDurationMinutes()</strong> phút</span>
+                    @if (completedCount > 0)
+                    {
+                        <span class="text-muted small"><i class="bi bi-check-circle me-1 text-success"></i><strong>@completedCount</strong> hoàn thành</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Completion banner -->
+            @if (allCompleted)
+            {
+                <div class="done-banner mb-4">
+                    <div style="font-size:3.5rem;" class="mb-2">🏆</div>
+                    <h3 class="fw-bold mb-2">Tuyệt vời! Hoàn thành buổi tập!</h3>
+                    <p class="mb-4" style="opacity:0.9;">Bạn đã hoàn thành tất cả @exercises.Count bài tập hôm nay. Kết quả đã được ghi nhận!</p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <button class="btn btn-light rounded-pill px-4 fw-semibold" @onclick="ResetWorkout">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i>Tập lại
+                        </button>
+                        <a href="/patient-dashboard" class="btn btn-light rounded-pill px-4 fw-semibold">
+                            <i class="bi bi-house me-2"></i>Về Dashboard
+                        </a>
+                    </div>
+                </div>
+            }
+
+            <!-- Exercise Cards -->
+            @for (int idx = 0; idx < exercises.Count; idx++)
+            {
+                var i = idx;
+                var ex = exercises[i];
+                bool isActive = activeExerciseIndex == i;
+                bool isDone = completedExercises.Contains(i);
+                // FIX: isLocked — only lock if neither the first, nor active, nor can be activated
+                bool isLocked = !isDone && !isActive && activeExerciseIndex >= 0 && i > activeExerciseIndex + 1;
+
+                string cardClass = isDone ? "done" : isActive ? "active" : isLocked ? "locked" : "";
+
+                <div class="ex-card @cardClass mb-3">
+                    <!-- Card header (always visible) -->
+                    <div class="ex-card-header d-flex align-items-center gap-3">
+                        <!-- Step indicator -->
+                        <div class="d-flex justify-content-center align-items-center rounded-circle fw-bold flex-shrink-0"
+                             style="width:44px;height:44px;font-size:1rem;
+                             background:@(isDone ? "#10b981" : isActive ? "linear-gradient(135deg,#4f46e5,#7c3aed)" : "#f1f5f9");
+                             color:@(isDone || isActive ? "white" : "#94a3b8");">
+                            @if (isDone) { <i class="bi bi-check-lg"></i> }
+                            else { <span>@(i + 1)</span> }
+                        </div>
+
+                        <div class="flex-grow-1 min-width-0">
+                            <h5 class="fw-bold mb-0 text-dark text-truncate">@ex.Name</h5>
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                <span class="badge rounded-pill" style="background:#eef2ff;color:#4f46e5;font-size:0.72rem;">@ex.Sets hiệp × @ex.Reps reps</span>
+                                @if (ex.DurationSeconds > 0)
+                                {
+                                    <span class="badge rounded-pill" style="background:#f0fdf4;color:#059669;font-size:0.72rem;">⏱ @ex.DurationSeconds s/rep</span>
+                                }
+                                @if (ex.RestSeconds > 0)
+                                {
+                                    <span class="badge rounded-pill" style="background:#fff7ed;color:#c2410c;font-size:0.72rem;">💤 @ex.RestSeconds s nghỉ</span>
+                                }
+                                @if (!string.IsNullOrEmpty(ex.VideoUrl) && GetYoutubeEmbedId(ex.VideoUrl) != null)
+                                {
+                                    <span class="badge rounded-pill bg-danger text-white" style="font-size:0.72rem;"><i class="bi bi-youtube me-1"></i>Video</span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Right side status -->
+                        <div class="flex-shrink-0">
+                            @if (isDone)
+                            {
+                                <span class="badge rounded-pill px-3 py-2 fw-bold" style="background:#dcfce7;color:#15803d;">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Hoàn thành
+                                </span>
+                            }
+                            else if (isLocked)
+                            {
+                                <span class="badge rounded-pill px-3 py-2" style="background:#f1f5f9;color:#94a3b8;">
+                                    <i class="bi bi-lock me-1"></i>Chờ
+                                </span>
+                            }
+                            else if (!isActive)
+                            {
+                                <button class="btn-outline-start btn" @onclick="() => ActivateExercise(i)">
+                                    <i class="bi bi-play-circle me-1"></i>Bắt đầu
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Active exercise body -->
+                    @if (isActive)
+                    {
+                        <div class="ex-card-body">
+                            <div class="d-flex align-items-center gap-2 mb-4" style="border-top:1px solid #f1f5f9;padding-top:1.25rem;">
+                                <span class="live-dot"></span>
+                                <span class="fw-semibold text-success small">Đang thực hiện</span>
+                            </div>
+
+                            <div class="d-flex align-items-start gap-4 mb-4 flex-wrap">
+                                <!-- Circular Timer -->
+                                <div class="timer-ring">
+                                    <svg width="130" height="130" viewBox="0 0 130 130">
+                                        <!-- Background circle -->
+                                        <circle cx="65" cy="65" r="55" fill="none" stroke="#f1f5f9" stroke-width="9" />
+                                        <!-- Progress circle -->
+                                        <circle cx="65" cy="65" r="55" fill="none"
+                                                stroke="@(isResting ? "#f59e0b" : "#4f46e5")"
+                                                stroke-width="9"
+                                                stroke-linecap="round"
+                                                stroke-dasharray="@GetCircumference()"
+                                                stroke-dashoffset="@GetTimerDashOffset()" />
+                                    </svg>
+                                    <div class="timer-text">
+                                        <span class="timer-num" style="color:@(isResting ? "#f59e0b" : "#4f46e5");">
+                                            @currentCountdown
+                                        </span>
+                                        <span class="timer-sub">@(isResting ? "NGHỈ" : "GIÂY")</span>
+                                    </div>
+                                </div>
+
+                                <!-- Set tracker -->
+                                <div class="flex-grow-1">
+                                    <div class="text-muted fw-semibold text-uppercase mb-2" style="font-size:0.72rem;letter-spacing:0.07em;">
+                                        Tiến độ hiệp
+                                    </div>
+                                    <div class="d-flex gap-2 flex-wrap mb-3">
+                                        @for (int s = 0; s < ex.Sets; s++)
+                                        {
+                                            bool setDone = s < currentSet - 1;
+                                            bool setCurrent = s == currentSet - 1;
+                                            <span class="set-pill @(setDone ? "done" : setCurrent ? "current" : "pending")">
+                                                @(setDone ? "✓" : (s + 1).ToString())
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="fw-semibold mb-1" style="font-size:0.9rem;">
+                                        Hiệp <span style="color:#4f46e5;">@currentSet</span> / @ex.Sets
+                                        · <span style="color:#10b981;">@ex.Reps reps</span>
+                                    </div>
+                                    <div class="text-muted small">
+                                        @if (isResting)
+                                        {
+                                            <span class="text-warning fw-semibold">⏸ Đang nghỉ giữa hiệp...</span>
+                                        }
+                                        else if (isTimerRunning)
+                                        {
+                                            <span class="text-primary fw-semibold">▶ Đang tập...</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Nhấn Bắt đầu để đếm giờ</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Doctor notes -->
+                            @if (!string.IsNullOrWhiteSpace(ex.Notes))
+                            {
+                                <div class="notes-box mb-4 d-flex align-items-start gap-2">
+                                    <i class="bi bi-lightbulb-fill text-warning mt-1 flex-shrink-0"></i>
+                                    <div>
+                                        <div class="fw-semibold text-dark small mb-1">Hướng dẫn từ bác sĩ:</div>
+                                        <div class="text-dark small">@ex.Notes</div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Control buttons -->
+                            <div class="d-flex gap-2 flex-wrap">
+                                @if (!isTimerRunning && !isResting)
+                                {
+                                    <button class="btn btn-go" @onclick="StartTimer">
+                                        <i class="bi bi-play-fill me-2"></i>
+                                        @(currentSet == 1 && currentCountdown == ex.DurationSeconds ? "Bắt đầu" : "Tiếp tục")
+                                    </button>
+                                }
+
+                                @if (isTimerRunning)
+                                {
+                                    <button class="btn btn-pause" @onclick="PauseTimer">
+                                        <i class="bi bi-pause-fill me-2"></i>Tạm dừng
+                                    </button>
+                                }
+
+                                <button class="btn btn-finish" @onclick="() => CompleteExercise(i)">
+                                    <i class="bi bi-check-lg me-2"></i>Hoàn thành bài
+                                </button>
+
+                                @if (!isTimerRunning && !isResting && currentSet > 1)
+                                {
+                                    <button class="btn btn-outline-primary rounded-pill fw-semibold px-3" @onclick="NextSet">
+                                        <i class="bi bi-skip-forward me-1"></i>Hiệp tiếp
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- YouTube Video (always show if has video & not locked) -->
+                    @if (!isLocked && !string.IsNullOrEmpty(ex.VideoUrl) && GetYoutubeEmbedId(ex.VideoUrl) is string vid)
+                    {
+                        <div class="px-4 pb-4 @(isActive ? "" : "pt-0")">
+                            @if (!isActive)
+                            {
+                                <div style="border-top:1px solid #f1f5f9;" class="mb-3 pt-3"></div>
+                            }
+                            <div class="text-muted fw-semibold text-uppercase mb-2" style="font-size:0.72rem;letter-spacing:0.06em;">
+                                <i class="bi bi-youtube text-danger me-1"></i>Video hướng dẫn
+                            </div>
+                            <div class="vid-wrap" style="@(isDone ? "opacity:0.7;" : "")">
+                                <iframe src="https://www.youtube.com/embed/@vid?rel=0&modestbranding=1"
+                                        frameborder="0" allowfullscreen loading="lazy" title="Video hướng dẫn @ex.Name"></iframe>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Show notes for non-active cards too -->
+                    @if (!isActive && !isLocked && !string.IsNullOrWhiteSpace(ex.Notes))
+                    {
+                        <div class="px-4 pb-4">
+                            <div class="notes-box d-flex align-items-start gap-2">
+                                <i class="bi bi-lightbulb-fill text-warning mt-1 flex-shrink-0"></i>
+                                <div class="text-dark small">@ex.Notes</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<!-- Rest overlay -->
+@if (showRestOverlay)
+{
+    <div class="rest-overlay" @onclick="SkipRest">
+        <div class="rest-modal" @onclick:stopPropagation="true">
+            <div style="font-size:2.5rem;" class="mb-1">💪</div>
+            <h4 class="fw-bold mb-1">Nghỉ giữa hiệp</h4>
+            <p class="text-muted mb-4 small">Hít thở đều, chuẩn bị cho hiệp tiếp theo</p>
+            <div class="rest-num mb-3">@restCountdown</div>
+            <div class="rest-bar mb-4">
+                <div class="rest-fill" style="width:@(currentRestTotal > 0 ? (currentRestTotal - restCountdown) * 100 / currentRestTotal : 100)%;"></div>
+            </div>
+            <div class="d-flex gap-2 justify-content-center">
+                <button class="btn btn-primary rounded-pill px-4 fw-bold" @onclick="SkipRest">
+                    <i class="bi bi-skip-forward me-2"></i>Bỏ qua nghỉ
+                </button>
+            </div>
+            <div class="text-muted small mt-3">Nhấp ra ngoài hoặc bỏ qua để tiếp tục ngay</div>
+        </div>
+    </div>
+}
+
+@code {
+    // ── State ──────────────────────────────────────────────────────
+    private List<ExerciseRoutineItem> exercises = new();
+    private WorkoutSchedule? workoutSchedule;
+    private HashSet<int> completedExercises = new();
+    private int activeExerciseIndex = 0;
+    private bool isLoading = true;
+
+    // Timer
+    private int currentCountdown = 0;
+    private int currentSet = 1;
+    private bool isTimerRunning = false;
+    private bool isResting = false;
+    private bool showRestOverlay = false;
+    private int restCountdown = 0;
+    private int currentRestTotal = 30;
+
+    private CancellationTokenSource? _timerCts;
+    private CancellationTokenSource? _restCts;
+
+    // Computed
+    private int completedCount => completedExercises.Count;
+    private bool allCompleted => exercises.Any() && completedExercises.Count == exercises.Count;
+
+    // ── Init ───────────────────────────────────────────────────────
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdString = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int.TryParse(userIdString, out int userId);
+
+        try
+        {
+            var result = await Mediator.Send(new GetPatientProgressQuery { PatientId = userId });
+            LoadExercisesFromPlan(result.TreatmentPlan);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[WorkoutPage] Load error: {ex.Message}");
+        }
+
+
+        isLoading = false;
+        if (exercises.Any())
+            ResetForExercise(0);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var result = await ProtectedSessionStore.GetAsync<List<int>>("CompletedExercises");
+                if (result.Success && result.Value != null)
+                {
+                    completedExercises = new HashSet<int>(result.Value);
+                    
+                    var activeResult = await ProtectedSessionStore.GetAsync<int>("ActiveExerciseIndex");
+                    if (activeResult.Success)
+                    {
+                        activeExerciseIndex = activeResult.Value;
+                        if (activeExerciseIndex >= 0 && activeExerciseIndex < exercises.Count && !completedExercises.Contains(activeExerciseIndex))
+                        {
+                            ResetForExercise(activeExerciseIndex);
+                        }
+                    }
+                    StateHasChanged();
+                }
+            }
+            catch { /* Ignore JS Interop errors or storage errors */ }
+        }
+    }
+
+    private void LoadExercisesFromPlan(TreatmentPlan? plan)
+    {
+        if (plan?.Description == null) return;
+        try
+        {
+            var planData = JsonSerializer.Deserialize<TreatmentPlanData>(plan.Description,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (planData != null)
+            {
+                exercises = planData.ExerciseRoutine ?? new();
+                workoutSchedule = planData.Schedule;
+            }
+        }
+        catch (Exception ex) { Console.WriteLine($"[WorkoutPage] JSON parse: {ex.Message}"); }
+    }
+
+
+    // ── Exercise control ───────────────────────────────────────────
+    private void ActivateExercise(int index)
+    {
+        if (index < 0 || index >= exercises.Count) return;
+        StopAllTimers();
+        activeExerciseIndex = index;
+        ResetForExercise(index);
+        StateHasChanged();
+    }
+
+    private void ResetForExercise(int index)
+    {
+        if (index < 0 || index >= exercises.Count) return;
+        currentSet = 1;
+        currentCountdown = exercises[index].DurationSeconds;
+        isTimerRunning = false;
+        isResting = false;
+        showRestOverlay = false;
+    }
+
+    // ── Timer ──────────────────────────────────────────────────────
+    private void StartTimer()
+    {
+        if (isTimerRunning || isResting) return;
+        // FIX: Dispose old CTS before creating new
+        _timerCts?.Cancel();
+        _timerCts?.Dispose();
+        _timerCts = new CancellationTokenSource();
+        isTimerRunning = true;
+        _ = RunCountdownAsync(_timerCts.Token);
+    }
+
+    private void PauseTimer()
+    {
+        _timerCts?.Cancel();
+        isTimerRunning = false;
+    }
+
+    private async Task RunCountdownAsync(CancellationToken token)
+    {
+        // FIX: Capture exercise snapshot to avoid index changing mid-countdown
+        if (activeExerciseIndex < 0 || activeExerciseIndex >= exercises.Count) return;
+        var ex = exercises[activeExerciseIndex];
+        var capturedIndex = activeExerciseIndex;
+
+        try
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            while (!token.IsCancellationRequested && await timer.WaitForNextTickAsync(token))
+            {
+                // Safety: if user switched exercise, stop
+                if (activeExerciseIndex != capturedIndex) break;
+
+                if (currentCountdown > 0)
+                {
+                    currentCountdown--;
+                    await InvokeAsync(StateHasChanged);
+                }
+                else
+                {
+                    // Set completed
+                    isTimerRunning = false;
+
+                    if (currentSet < ex.Sets && ex.RestSeconds > 0)
+                    {
+                        // Start rest period
+                        await InvokeAsync(() => StartRest(ex.RestSeconds));
+                    }
+                    else if (currentSet < ex.Sets && ex.RestSeconds == 0)
+                    {
+                        // No rest — go directly to next set
+                        await InvokeAsync(() => { currentSet++; currentCountdown = ex.DurationSeconds; StateHasChanged(); });
+                    }
+                    else
+                    {
+                        // All sets done
+                        await InvokeAsync(() => CompleteExercise(capturedIndex));
+                    }
+                    break;
+                }
+            }
+        }
+        catch (OperationCanceledException) { /* Normal cancellation */ }
+    }
+
+    private void StartRest(int seconds)
+    {
+        isResting = true;
+        showRestOverlay = true;
+        restCountdown = seconds;
+        currentRestTotal = seconds;
+
+        _restCts?.Cancel();
+        _restCts?.Dispose();
+        _restCts = new CancellationTokenSource();
+        _ = RunRestCountdownAsync(_restCts.Token);
+    }
+
+    private async Task RunRestCountdownAsync(CancellationToken token)
+    {
+        try
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            while (!token.IsCancellationRequested && await timer.WaitForNextTickAsync(token))
+            {
+                if (restCountdown > 0)
+                {
+                    restCountdown--;
+                    await InvokeAsync(StateHasChanged);
+                }
+                else
+                {
+                    await InvokeAsync(BeginNextSet);
+                    break;
+                }
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void BeginNextSet()
+    {
+        _restCts?.Cancel();
+        _restCts?.Dispose();
+        _restCts = null;
+        currentSet++;
+        showRestOverlay = false;
+        isResting = false;
+        if (activeExerciseIndex >= 0 && activeExerciseIndex < exercises.Count)
+            currentCountdown = exercises[activeExerciseIndex].DurationSeconds;
+        isTimerRunning = false;
+        StateHasChanged();
+    }
+
+    private void NextSet()
+    {
+        if (activeExerciseIndex >= 0 && activeExerciseIndex < exercises.Count
+            && currentSet < exercises[activeExerciseIndex].Sets)
+            BeginNextSet();
+    }
+
+    private void SkipRest()
+    {
+        _restCts?.Cancel();
+        BeginNextSet();
+    }
+
+    // ── Complete ───────────────────────────────────────────────────
+    private async Task CompleteExercise(int index)
+    {
+        StopAllTimers();
+        completedExercises.Add(index);
+
+        // FIX: Find next uncompleted exercise
+        var nextIdx = -1;
+        for (int n = 0; n < exercises.Count; n++)
+        {
+            if (!completedExercises.Contains(n))
+            {
+                nextIdx = n;
+                break;
+            }
+        }
+
+        activeExerciseIndex = nextIdx;
+        if (nextIdx >= 0)
+            ResetForExercise(nextIdx);
+
+        StateHasChanged();
+        
+        try 
+        {
+            await ProtectedSessionStore.SetAsync("CompletedExercises", completedExercises.ToList());
+            await ProtectedSessionStore.SetAsync("ActiveExerciseIndex", activeExerciseIndex);
+        } catch { }
+    }
+
+    private async Task ResetWorkout()
+    {
+        StopAllTimers();
+        completedExercises.Clear();
+        activeExerciseIndex = 0;
+        ResetForExercise(0);
+        StateHasChanged();
+        
+        try 
+        {
+            await ProtectedSessionStore.DeleteAsync("CompletedExercises");
+            await ProtectedSessionStore.DeleteAsync("ActiveExerciseIndex");
+        } catch { }
+    }
+
+    // ── Timer helpers ──────────────────────────────────────────────
+    private static double Circumference => 2 * Math.PI * 55;
+
+    private string GetCircumference() =>
+        Circumference.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+
+    private string GetTimerDashOffset()
+    {
+        // FIX: Correct direction — offset = circumference * remaining/total (fills as time decreases)
+        if (activeExerciseIndex < 0 || activeExerciseIndex >= exercises.Count)
+            return GetCircumference();
+        var ex = exercises[activeExerciseIndex];
+        var total = Math.Max(ex.DurationSeconds, 1);
+        var remaining = Math.Max(currentCountdown, 0);
+        // Dashoffset = circumference when 0%, 0 when 100%
+        var offset = Circumference * remaining / total;
+        return offset.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private void StopAllTimers()
+    {
+        _timerCts?.Cancel();
+        _timerCts?.Dispose();
+        _timerCts = null;
+        _restCts?.Cancel();
+        _restCts?.Dispose();
+        _restCts = null;
+        isTimerRunning = false;
+        isResting = false;
+        showRestOverlay = false;
+    }
+
+    private int EstimateDurationMinutes()
+    {
+        // (sets × duration + (sets-1) × rest) per exercise, plus 30s transition
+        var secs = exercises.Sum(e => e.Sets * e.DurationSeconds + Math.Max(e.Sets - 1, 0) * e.RestSeconds + 30);
+        return Math.Max(secs / 60, 1);
+    }
+
+    // ── YouTube helper ─────────────────────────────────────────────
+    private static string? GetYoutubeEmbedId(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        try
+        {
+            url = url.Trim();
+            if (url.Contains("youtu.be/"))
+                return url.Split("youtu.be/").Last().Split('?', '#').First();
+            if (url.Contains("youtube.com/watch"))
+            {
+                var uri = new Uri(url);
+                var q = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                return q["v"];
+            }
+            if (url.Contains("youtube.com/embed/"))
+                return url.Split("embed/").Last().Split('?', '#').First();
+            if (url.Contains("youtube.com/shorts/"))
+                return url.Split("shorts/").Last().Split('?', '#').First();
+        }
+        catch { }
+        return null;
+    }
+
+    // ── Dispose ────────────────────────────────────────────────────
+    public void Dispose() => StopAllTimers();
+
+    // Local DTO for JSON parsing
+    private class TreatmentPlanData
+    {
+        public List<ExerciseRoutineItem> ExerciseRoutine { get; set; } = new();
+        public WorkoutSchedule? Schedule { get; set; }
+        public DateTime LastUpdated { get; set; }
+        public string? DoctorNotes { get; set; }
+    }
+}

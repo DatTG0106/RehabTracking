@@ -26,7 +26,6 @@
       <Folder Include="Features\ECommerce\" />
       <Folder Include="Features\Healthcare\" />
       <Folder Include="Features\Identity\" />
-      <Folder Include="Infrastructure\" />
     </ItemGroup>
 
 

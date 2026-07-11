@@ -34,6 +34,11 @@
                         </NavLink>
                     </li>
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
+                        <NavLink class="nav-link" href="patient/workout">
+                            <i class="bi bi-dumbbell me-1"></i> Bài tập hôm nay
+                        </NavLink>
+                    </li>
+                    <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
                         <NavLink class="nav-link" href="activate-device">
                             <i class="bi bi-watch me-1"></i> Kích hoạt thiết bị
                         </NavLink>
@@ -44,6 +49,11 @@
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
                         <NavLink class="nav-link" href="doctor-dashboard">
                             <i class="bi bi-heart-pulse me-1"></i> Dashboard Bác sĩ
+                        </NavLink>
+                    </li>
+                    <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
+                        <NavLink class="nav-link" href="doctor/exercise-plans">
+                            <i class="bi bi-journal-medical me-1"></i> Lộ trình Bài tập
                         </NavLink>
                     </li>
                 </AuthorizeView>
@@ -63,7 +73,8 @@
             </ul>
 
             <ul class="navbar-nav align-items-lg-center gap-1">
-                <!-- Cart Icon with count badge -->
+                <!-- Cart Icon – only visible to Patients -->
+                <AuthorizeView Roles="Patient">
                 <li class="nav-item">
                     <NavLink class="nav-link position-relative px-2" href="cart" aria-label="Giỏ hàng">
                         <i class="bi bi-cart3 fs-5"></i>
@@ -76,6 +87,24 @@
                         }
                     </NavLink>
                 </li>
+                </AuthorizeView>
+                <!-- Cart for guests (unauthenticated) -->
+                <AuthorizeView>
+                    <NotAuthorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link position-relative px-2" href="cart" aria-label="Giỏ hàng">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                @if (cartCount > 0)
+                                {
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                          style="font-size:0.65rem; padding: 0.3em 0.5em; min-width:18px;">
+                                        @(cartCount > 99 ? "99+" : cartCount.ToString())
+                                    </span>
+                                }
+                            </NavLink>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
 
                 <AuthorizeView>
                     <Authorized>
@@ -126,8 +155,14 @@
                                             <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/patient-dashboard")'>
                                                 <i class="bi bi-person-heart text-success me-2"></i> Dashboard của tôi
                                             </button>
+                                            <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/patient/workout")'>
+                                                <i class="bi bi-dumbbell text-primary me-2"></i> Bài tập hôm nay
+                                            </button>
+                                            <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/patient/profile")'>
+                                                <i class="bi bi-person-badge text-info me-2"></i> Hồ sơ cá nhân
+                                            </button>
                                             <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/activate-device")'>
-                                                <i class="bi bi-watch text-primary me-2"></i> Kích hoạt thiết bị
+                                                <i class="bi bi-watch text-warning me-2"></i> Kích hoạt thiết bị
                                             </button>
                                         </div>
                                         <hr class="my-1 mx-2" />
@@ -137,6 +172,9 @@
                                         <div class="px-2 py-1">
                                             <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/doctor-dashboard")'>
                                                 <i class="bi bi-heart-pulse text-danger me-2"></i> Dashboard Bác sĩ
+                                            </button>
+                                            <button class="dropdown-item-btn w-100 text-start mt-1" @onclick='() => GoTo("/doctor/exercise-plans")'>
+                                                <i class="bi bi-journal-medical text-info me-2"></i> Lộ trình Bài tập
                                             </button>
                                         </div>
                                         <hr class="my-1 mx-2" />

@@ -317,61 +317,112 @@
 
     private async Task ShowCreateDoctorDialog()
     {
+        // FIX B2: Reset fields mỗi lần mở dialog để tránh dữ liệu cũ còn lại
+        newDoctorName = "";
+        newDoctorEmail = "";
+        newDoctorDialogError = "";
+
         var result = await DialogService.OpenAsync("Tạo Tài Khoản Bác Sĩ", ds =>
         @<div class="px-2 py-3">
+            @if (!string.IsNullOrEmpty(newDoctorDialogError))
+            {
+                <div class="alert alert-danger border-0 rounded-3 d-flex align-items-center gap-2 mb-3 py-2">
+                    <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                    <span class="small">@newDoctorDialogError</span>
+                </div>
+            }
             <div class="mb-4">
-                <label class="form-label fw-bold text-dark small text-uppercase">Họ Tên</label>
+                <label class="form-label fw-bold text-dark small text-uppercase">Họ Tên <span class="text-danger">*</span></label>
                 <div class="input-group input-group-lg">
                     <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-person"></i></span>
-                    <input type="text" @bind="newDoctorName" class="form-control bg-light border-0" placeholder="Nhập họ tên bác sĩ..." />
+                    <input type="text" @bind="newDoctorName" @bind:event="oninput"
+                           class="form-control bg-light border-0"
+                           placeholder="Nhập họ tên bác sĩ..."
+                           maxlength="100" />
                 </div>
+                <div class="text-muted small mt-1">Tối thiểu 3 ký tự.</div>
             </div>
-            
+
             <div class="mb-4">
-                <label class="form-label fw-bold text-dark small text-uppercase">Email</label>
+                <label class="form-label fw-bold text-dark small text-uppercase">Email <span class="text-danger">*</span></label>
                 <div class="input-group input-group-lg">
                     <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-envelope"></i></span>
-                    <input type="email" @bind="newDoctorEmail" class="form-control bg-light border-0" placeholder="doctor@example.com" />
+                    <input type="email" @bind="newDoctorEmail" @bind:event="oninput"
+                           class="form-control bg-light border-0"
+                           placeholder="doctor@example.com"
+                           maxlength="200" />
                 </div>
             </div>
-            
+
             <div class="mb-4">
                 <label class="form-label fw-bold text-dark small text-uppercase">Mật khẩu mặc định</label>
                 <div class="input-group input-group-lg">
                     <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-key"></i></span>
                     <input type="text" value="Doctor@123" disabled class="form-control bg-light border-0 text-muted" />
                 </div>
-                <div class="text-muted small mt-2"><i class="bi bi-info-circle me-1"></i>Mật khẩu này được tạo tự động cho Bác sĩ.</div>
+                <div class="text-muted small mt-2"><i class="bi bi-info-circle me-1"></i>Mật khẩu này được tạo tự động. Bác sĩ nên đổi sau lần đăng nhập đầu tiên.</div>
             </div>
-            
+
             <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                 <button class="btn btn-light rounded-pill px-4 fw-medium" @onclick="() => ds.Close(false)">Hủy</button>
-                <button class="btn btn-modern-primary rounded-pill px-4 shadow-sm fw-bold" @onclick="() => ds.Close(true)">
+                <button class="btn btn-modern-primary rounded-pill px-4 shadow-sm fw-bold" @onclick="() => SubmitCreateDoctor(ds)">
                     <i class="bi bi-person-plus-fill me-2"></i>Tạo Tài Khoản
                 </button>
             </div>
         </div>
-        , new DialogOptions() { Width = "500px", Resizable = false, Draggable = false });
+        , new DialogOptions() { Width = "520px", Resizable = false, Draggable = false });
+    }
 
-        if (result == true && !string.IsNullOrWhiteSpace(newDoctorName) && !string.IsNullOrWhiteSpace(newDoctorEmail))
+    // FIX B1: Validate trước khi đóng dialog và gọi API
+    private async Task SubmitCreateDoctor(dynamic ds)
+    {
+        newDoctorDialogError = "";
+
+        // Validate họ tên
+        if (string.IsNullOrWhiteSpace(newDoctorName))
         {
-            var response = await Mediator.Send(new CreateDoctorAccount.Command(newDoctorName, newDoctorEmail, "Doctor@123"));
-            
-            if (response.IsSuccess)
-            {
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = RehabTracking.Web.Constants.AppMessages.ActionSuccess, Detail = response.Message, Duration = 4000 });
-                newDoctorName = "";
-                newDoctorEmail = "";
-                await LoadData();
-                await grid.Reload();
-            }
-            else
-            {
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = RehabTracking.Web.Constants.AppMessages.ActionError, Detail = response.Message, Duration = 4000 });
-            }
+            newDoctorDialogError = RehabTracking.Web.Constants.AppMessages.DoctorNameRequired;
+            return;
+        }
+        if (newDoctorName.Trim().Length < 3)
+        {
+            newDoctorDialogError = RehabTracking.Web.Constants.AppMessages.DoctorNameTooShort;
+            return;
+        }
+
+        // Validate email
+        if (string.IsNullOrWhiteSpace(newDoctorEmail))
+        {
+            newDoctorDialogError = RehabTracking.Web.Constants.AppMessages.DoctorEmailRequired;
+            return;
+        }
+        var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^\s@]+@[^\s@]+\.[^\s@]+$");
+        if (!emailRegex.IsMatch(newDoctorEmail.Trim()))
+        {
+            newDoctorDialogError = RehabTracking.Web.Constants.AppMessages.DoctorEmailInvalid;
+            return;
+        }
+
+        // Validation passed – close dialog and create
+        ds.Close(true);
+
+        var response = await Mediator.Send(new CreateDoctorAccount.Command(newDoctorName.Trim(), newDoctorEmail.Trim(), "Doctor@123"));
+        if (response.IsSuccess)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = RehabTracking.Web.Constants.AppMessages.ActionSuccess, Detail = response.Message, Duration = 4000 });
+            newDoctorName = "";
+            newDoctorEmail = "";
+            newDoctorDialogError = "";
+            await LoadData();
+            await grid.Reload();
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = RehabTracking.Web.Constants.AppMessages.ActionError, Detail = response.Message, Duration = 5000 });
         }
     }
 
     private string newDoctorName = "";
     private string newDoctorEmail = "";
+    private string newDoctorDialogError = "";
 }

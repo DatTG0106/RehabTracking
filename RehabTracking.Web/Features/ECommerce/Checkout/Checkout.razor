@@ -239,6 +239,15 @@
             return;
         }
 
+        // BUG FIX: Block Doctor/Admin from accessing checkout
+        var role = authState.User.FindFirst(ClaimTypes.Role)?.Value
+            ?? authState.User.FindFirst("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+        if (role == "Doctor" || role == "Admin")
+        {
+            errorMessage = AppMessages.CartNotAvailable;
+            return;
+        }
+
         if (CartState.Items.Count == 0)
         {
             Navigation.NavigateTo("/cart");

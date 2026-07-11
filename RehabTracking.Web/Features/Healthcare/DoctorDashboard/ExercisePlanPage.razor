@@ -1,0 +1,876 @@
+@page "/doctor/exercise-plans"
+@using Microsoft.AspNetCore.Authorization
+@using MediatR
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Features.Healthcare.DoctorDashboard
+@using System.Text.Json
+@attribute [Authorize(Roles = "Doctor")]
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Lộ trình Bài tập – Bác sĩ | STEP</PageTitle>
+
+<style>
+    .ep-page { min-height: 100vh; background: linear-gradient(160deg, #f8fafc 0%, #eef2ff 100%); }
+    .ep-sidebar { background: white; border-radius: 1.5rem; box-shadow: 0 4px 24px rgba(79,70,229,0.08); overflow: hidden; }
+    .ep-sidebar-header { background: linear-gradient(135deg, #4f46e5, #7c3aed); padding: 1.25rem 1.25rem 1rem; }
+    .patient-item { padding: 0.85rem 1rem; cursor: pointer; transition: all 0.18s; border-left: 3px solid transparent; }
+    .patient-item:hover { background: #f5f3ff; border-left-color: #a5b4fc; }
+    .patient-item.active { background: #eef2ff; border-left-color: #4f46e5; }
+    .ep-main-card { background: white; border-radius: 1.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.06); overflow: hidden; }
+    .ep-card-header { background: linear-gradient(135deg, #f8fafc, #f0f4ff); padding: 1.5rem; border-bottom: 1px solid #e2e8f0; }
+    .exercise-item { background: #fafbff; border: 1.5px solid #e2e8f0; border-radius: 1rem; transition: all 0.2s; }
+    .exercise-item:hover { border-color: #a5b4fc; box-shadow: 0 4px 20px rgba(79,70,229,0.08); }
+    .exercise-item-header { padding: 1rem 1.25rem; border-bottom: 1px solid #e2e8f0; cursor: pointer; user-select: none; }
+    .exercise-item-body { padding: 1.25rem; }
+    .exercise-num { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,#4f46e5,#7c3aed); color: white; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .ep-input { border-radius: 0.65rem; border: 1.5px solid #e2e8f0; padding: 0.55rem 0.85rem; width: 100%; transition: all 0.2s; font-size: 0.9rem; background: white; }
+    .ep-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); outline: none; }
+    .ep-input.is-invalid { border-color: #ef4444; background: #fff5f5; }
+    .ep-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #64748b; margin-bottom: 0.35rem; display: block; }
+    .ep-invalid-msg { font-size: 0.75rem; color: #dc2626; margin-top: 0.25rem; }
+    .video-thumb { border-radius: 0.75rem; overflow: hidden; background: #0f172a; position: relative; }
+    .day-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 42px; height: 42px; padding: 0 0.5rem; border-radius: 0.65rem; border: 2px solid #e2e8f0; cursor: pointer; font-weight: 700; font-size: 0.82rem; transition: all 0.15s; user-select: none; color: #64748b; }
+    .day-chip.selected { background: #4f46e5; border-color: #4f46e5; color: white; box-shadow: 0 3px 10px rgba(79,70,229,0.3); }
+    .day-chip:hover:not(.selected) { border-color: #4f46e5; color: #4f46e5; background: #eef2ff; }
+    .add-btn { border: 2px dashed #c7d2fe; background: #f5f3ff; color: #4f46e5; border-radius: 0.85rem; padding: 0.9rem; width: 100%; transition: all 0.2s; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .add-btn:hover { background: #eef2ff; border-color: #4f46e5; transform: translateY(-1px); }
+    .btn-save { background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none; color: white; font-weight: 700; border-radius: 50px; padding: 0.7rem 2rem; transition: all 0.2s; }
+    .btn-save:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,70,229,0.35); color: white; }
+    .btn-save:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
+    .btn-email { border: 2px solid #4f46e5; background: white; color: #4f46e5; font-weight: 700; border-radius: 50px; padding: 0.7rem 2rem; transition: all 0.2s; }
+    .btn-email:hover { background: #4f46e5; color: white; transform: translateY(-1px); }
+    .btn-email:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
+    .ep-alert { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem; border-radius: 1rem; font-weight: 500; }
+    .ep-alert.success { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border: 1px solid #86efac; color: #15803d; }
+    .ep-alert.danger { background: linear-gradient(135deg,#fef2f2,#fee2e2); border: 1px solid #fca5a5; color: #b91c1c; }
+    .ep-alert.warning { background: linear-gradient(135deg,#fffbeb,#fef9c3); border: 1px solid #fde047; color: #92400e; }
+    .schedule-box { background: linear-gradient(135deg,#f5f3ff,#fdf4ff); border: 1px solid #e0e7ff; border-radius: 1.25rem; padding: 1.75rem; }
+    .stat-pill { background: white; border-radius: 0.75rem; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; text-align: center; }
+    .stat-pill .val { font-size: 1.5rem; font-weight: 800; color: #4f46e5; }
+    .stat-pill .lbl { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
+    .ep-divider { height: 1px; background: linear-gradient(90deg, transparent, #e2e8f0, transparent); margin: 1.5rem 0; }
+    .ep-collapsed-badge { font-size: 0.72rem; padding: 0.25rem 0.6rem; border-radius: 20px; }
+    .ep-reorder-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+    .ep-reorder-btn:hover { border-color: #4f46e5; color: #4f46e5; background: #eef2ff; }
+</style>
+
+<div class="ep-page py-4">
+    <div class="container-fluid px-4">
+
+        <!-- Page Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h2 class="fw-bold mb-1" style="color:#1e293b; font-size:1.8rem; letter-spacing:-0.01em;">
+                    <i class="bi bi-journal-medical me-2" style="color:#4f46e5;"></i>Lộ trình Bài tập
+                </h2>
+                <p class="text-muted mb-0">Thiết kế bài tập cụ thể cho từng bệnh nhân · Gửi nhắc hẹn qua email</p>
+            </div>
+            <a href="/doctor-dashboard" class="btn btn-light rounded-pill px-4 fw-semibold d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left"></i><span>Về Dashboard</span>
+            </a>
+        </div>
+
+        <div class="row g-4">
+
+            <!-- Sidebar -->
+            <div class="col-xl-3 col-lg-4">
+                <div class="ep-sidebar" style="position:sticky;top:1rem;">
+                    <div class="ep-sidebar-header">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="text-white fw-bold small text-uppercase" style="letter-spacing:0.06em;">Bệnh nhân</span>
+                            <span class="badge bg-white text-primary rounded-pill fw-bold">@patients.Count</span>
+                        </div>
+                        <div class="mt-2 position-relative">
+                            <i class="bi bi-search position-absolute" style="top:50%;left:0.75rem;transform:translateY(-50%);color:rgba(255,255,255,0.6);font-size:0.85rem;"></i>
+                            <input type="search" class="form-control rounded-pill border-0 ps-4"
+                                   style="background:rgba(255,255,255,0.18);color:white;font-size:0.88rem;padding:0.45rem 1rem 0.45rem 2rem;"
+                                   placeholder="Tìm bệnh nhân..."
+                                   @bind="searchQuery" @bind:event="oninput" />
+                        </div>
+                    </div>
+
+                    @if (isLoadingPatients)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status" style="width:1.5rem;height:1.5rem;"></div>
+                            <div class="text-muted small mt-2">Đang tải...</div>
+                        </div>
+                    }
+                    else if (!patients.Any())
+                    {
+                        <div class="text-center text-muted py-5 px-3">
+                            <i class="bi bi-person-x d-block mb-2" style="font-size:2.5rem;opacity:0.25;"></i>
+                            <div class="small">Chưa có bệnh nhân nào được phân công.</div>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (filteredPatients.Count == 0)
+                        {
+                            <div class="text-center text-muted py-4 px-3 small">
+                                <i class="bi bi-search d-block mb-1"></i>
+                                Không tìm thấy "@searchQuery"
+                            </div>
+                        }
+                        <div style="max-height:calc(100vh - 300px);overflow-y:auto;">
+                            @foreach (var patient in filteredPatients)
+                            {
+                                bool isActive = selectedPatient?.PatientId == patient.PatientId;
+                                var exerciseCount = GetPatientExerciseCount(patient);
+                                <div class="patient-item @(isActive ? "active" : "")" @onclick="() => SelectPatient(patient)">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold"
+                                             style="width:40px;height:40px;flex-shrink:0;font-size:1rem;background:@(isActive ? "linear-gradient(135deg,#4f46e5,#7c3aed)" : "rgba(79,70,229,0.1)");color:@(isActive ? "white" : "#4f46e5");">
+                                            @(patient.User?.FullName?.Substring(0, 1).ToUpper() ?? "?")
+                                        </div>
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <div class="fw-semibold text-dark text-truncate" style="font-size:0.9rem;">@patient.User?.FullName</div>
+                                            <div class="text-muted text-truncate" style="font-size:0.75rem;">
+                                                @(patient.MedicalHistory != null && patient.MedicalHistory.Length > 28
+                                                    ? patient.MedicalHistory.Substring(0, 28) + "…"
+                                                    : patient.MedicalHistory ?? "Chưa có chẩn đoán")
+                                            </div>
+                                        </div>
+                                        @if (exerciseCount > 0)
+                                        {
+                                            <span class="badge rounded-pill bg-success bg-opacity-10 text-success fw-bold" style="font-size:0.7rem;">@exerciseCount bài</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Main Panel -->
+            <div class="col-xl-9 col-lg-8">
+                @if (selectedPatient == null)
+                {
+                    <!-- Empty State -->
+                    <div class="d-flex align-items-center justify-content-center" style="min-height:65vh;">
+                        <div class="text-center" style="max-width:420px;">
+                            <div class="d-inline-flex justify-content-center align-items-center rounded-circle mb-4"
+                                 style="width:100px;height:100px;background:linear-gradient(135deg,rgba(79,70,229,0.1),rgba(124,58,237,0.1));">
+                                <i class="bi bi-journal-plus" style="font-size:3rem;color:#4f46e5;"></i>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2">Chọn bệnh nhân để thiết kế lộ trình</h4>
+                            <p class="text-muted mb-4">Nhấp vào tên bệnh nhân bên trái để bắt đầu tạo lộ trình bài tập có video hướng dẫn và lịch nhắc hẹn.</p>
+                            <div class="row g-3">
+                                <div class="col-4">
+                                    <div class="p-3 rounded-3 text-center" style="background:#f0f4ff;">
+                                        <i class="bi bi-camera-video text-primary fs-4 d-block mb-1"></i>
+                                        <div class="small fw-semibold text-dark">Video mẫu</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-3 rounded-3 text-center" style="background:#f0fdf4;">
+                                        <i class="bi bi-stopwatch text-success fs-4 d-block mb-1"></i>
+                                        <div class="small fw-semibold text-dark">Bấm giờ</div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-3 rounded-3 text-center" style="background:#fff7ed;">
+                                        <i class="bi bi-envelope-arrow-up text-warning fs-4 d-block mb-1"></i>
+                                        <div class="small fw-semibold text-dark">Nhắc email</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Patient Header Card -->
+                    <div class="ep-main-card mb-4">
+                        <div class="ep-card-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold text-white flex-shrink-0"
+                                     style="width:54px;height:54px;background:linear-gradient(135deg,#4f46e5,#7c3aed);font-size:1.4rem;">
+                                    @(selectedPatient.User?.FullName?.Substring(0, 1).ToUpper() ?? "?")
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-1 text-dark">@selectedPatient.User?.FullName</h5>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <span class="badge rounded-pill px-3 py-1 fw-semibold" style="background:#fff7ed;color:#c2410c;">
+                                            <i class="bi bi-file-medical me-1"></i>@(selectedPatient.MedicalHistory ?? "Chưa có chẩn đoán")
+                                        </span>
+                                        @if (selectedPatient.User?.PhoneNumber != null)
+                                        {
+                                            <span class="badge rounded-pill px-3 py-1 fw-semibold" style="background:#f0fdf4;color:#15803d;">
+                                                <i class="bi bi-telephone me-1"></i>@selectedPatient.User.PhoneNumber
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Stats -->
+                            <div class="d-flex gap-3">
+                                <div class="stat-pill">
+                                    <div class="val">@exercises.Count</div>
+                                    <div class="lbl">Bài tập</div>
+                                </div>
+                                <div class="stat-pill">
+                                    <div class="val">@exercises.Sum(e => e.Sets * e.Reps)</div>
+                                    <div class="lbl">Tổng reps</div>
+                                </div>
+                                <div class="stat-pill">
+                                    <div class="val">@schedule.DaysOfWeek.Count</div>
+                                    <div class="lbl">Ngày/tuần</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alert -->
+                    @if (!string.IsNullOrEmpty(alertMessage))
+                    {
+                        <div class="ep-alert @(alertSuccess ? "success" : "danger") mb-4">
+                            <i class="bi @(alertSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill") fs-5 flex-shrink-0"></i>
+                            <span class="flex-grow-1">@alertMessage</span>
+                            <button class="btn btn-sm btn-close" @onclick="() => alertMessage = string.Empty"></button>
+                        </div>
+                    }
+
+                    <!-- Validation Summary -->
+                    @if (validationErrors.Any())
+                    {
+                        <div class="ep-alert warning mb-4">
+                            <i class="bi bi-exclamation-circle-fill fs-5 flex-shrink-0"></i>
+                            <div>
+                                <div class="fw-bold mb-1">Vui lòng sửa các lỗi sau trước khi lưu:</div>
+                                <ul class="mb-0 ps-3">
+                                    @foreach (var err in validationErrors)
+                                    {
+                                        <li class="small">@err</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Exercise List -->
+                    <div class="ep-main-card mb-4">
+                        <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="bi bi-list-ol me-2 text-primary"></i>Danh sách bài tập
+                                </h5>
+                                <div class="text-muted small mt-1">Kéo thả để sắp xếp · Mỗi bài có video hướng dẫn</div>
+                            </div>
+                            <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold">@exercises.Count bài</span>
+                        </div>
+
+                        <div class="p-4">
+                            @if (!exercises.Any())
+                            {
+                                <div class="text-center py-5 text-muted">
+                                    <i class="bi bi-plus-circle d-block mb-3" style="font-size:3rem;opacity:0.2;"></i>
+                                    <div class="fw-semibold">Chưa có bài tập nào</div>
+                                    <div class="small mt-1">Nhấn "Thêm bài tập" để bắt đầu thiết kế lộ trình</div>
+                                </div>
+                            }
+
+                            <div class="d-flex flex-column gap-3">
+                                @for (int idx = 0; idx < exercises.Count; idx++)
+                                {
+                                    var i = idx;
+                                    var ex = exercises[i];
+                                    bool isExpanded = expandedExercise == i;
+                                    bool hasNameError = !string.IsNullOrWhiteSpace(submitAttempted.ToString()) && string.IsNullOrWhiteSpace(ex.Name);
+
+                                    <div class="exercise-item">
+                                        <!-- Collapsed header -->
+                                        <div class="exercise-item-header d-flex align-items-center gap-3" @onclick="() => ToggleExpand(i)">
+                                            <div class="exercise-num">@(i + 1)</div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-semibold text-dark" style="font-size:0.95rem;">
+                                                    @(string.IsNullOrWhiteSpace(ex.Name) ? $"Bài tập {i + 1} (chưa đặt tên)" : ex.Name)
+                                                </div>
+                                                @if (!isExpanded)
+                                                {
+                                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                                        <span class="ep-collapsed-badge badge rounded-pill" style="background:#eef2ff;color:#4f46e5;">@ex.Sets sets × @ex.Reps reps</span>
+                                                        <span class="ep-collapsed-badge badge rounded-pill" style="background:#f0fdf4;color:#059669;">Giữ @ex.DurationSeconds s</span>
+                                                        @if (!string.IsNullOrEmpty(ex.VideoUrl) && GetYoutubeEmbedId(ex.VideoUrl) != null)
+                                                        {
+                                                            <span class="ep-collapsed-badge badge rounded-pill bg-danger text-white">
+                                                                <i class="bi bi-youtube me-1"></i>Video
+                                                            </span>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <!-- Move up/down -->
+                                                @if (i > 0)
+                                                {
+                                                    <button class="ep-reorder-btn" title="Di chuyển lên"
+                                                            @onclick:stopPropagation="true"
+                                                            @onclick="() => MoveExercise(i, -1)">
+                                                        <i class="bi bi-arrow-up" style="font-size:0.75rem;"></i>
+                                                    </button>
+                                                }
+                                                @if (i < exercises.Count - 1)
+                                                {
+                                                    <button class="ep-reorder-btn" title="Di chuyển xuống"
+                                                            @onclick:stopPropagation="true"
+                                                            @onclick="() => MoveExercise(i, 1)">
+                                                        <i class="bi bi-arrow-down" style="font-size:0.75rem;"></i>
+                                                    </button>
+                                                }
+                                                <button class="btn btn-sm btn-outline-danger rounded-pill px-2" style="font-size:0.78rem;"
+                                                        title="Xóa bài tập"
+                                                        @onclick:stopPropagation="true"
+                                                        @onclick="() => RemoveExercise(i)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <i class="bi @(isExpanded ? "bi-chevron-up" : "bi-chevron-down") text-muted"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Expanded body -->
+                                        @if (isExpanded)
+                                        {
+                                            <div class="exercise-item-body">
+                                                <!-- Exercise Name -->
+                                                <div class="mb-3">
+                                                    <label class="ep-label">Tên bài tập <span class="text-danger">*</span></label>
+                                                    <input type="text" class="ep-input @(hasNameError ? "is-invalid" : "")"
+                                                           placeholder="VD: Gập duỗi gối, Nâng chân thẳng..."
+                                                           value="@ex.Name"
+                                                           @onchange="e => { ex.Name = e.Value?.ToString() ?? string.Empty; ValidateExercise(); }" />
+                                                    @if (hasNameError)
+                                                    {
+                                                        <div class="ep-invalid-msg"><i class="bi bi-exclamation-circle me-1"></i>Tên bài tập không được để trống.</div>
+                                                    }
+                                                </div>
+
+                                                <!-- Sets / Reps / Duration / Rest -->
+                                                <div class="row g-3 mb-3">
+                                                    <div class="col-6 col-md-3">
+                                                        <label class="ep-label">Sets (hiệp) <span class="text-danger">*</span></label>
+                                                        <input type="number" class="ep-input text-center" min="1" max="20"
+                                                               value="@ex.Sets"
+                                                               @onchange="e => ex.Sets = Math.Max(1, int.TryParse(e.Value?.ToString(), out var v) ? v : 3)" />
+                                                        <div class="text-muted mt-1" style="font-size:0.72rem;">1 – 20</div>
+                                                    </div>
+                                                    <div class="col-6 col-md-3">
+                                                        <label class="ep-label">Reps (lần) <span class="text-danger">*</span></label>
+                                                        <input type="number" class="ep-input text-center" min="1" max="100"
+                                                               value="@ex.Reps"
+                                                               @onchange="e => ex.Reps = Math.Max(1, int.TryParse(e.Value?.ToString(), out var v) ? v : 10)" />
+                                                        <div class="text-muted mt-1" style="font-size:0.72rem;">1 – 100</div>
+                                                    </div>
+                                                    <div class="col-6 col-md-3">
+                                                        <label class="ep-label">Giữ tư thế (giây)</label>
+                                                        <input type="number" class="ep-input text-center" min="1" max="300"
+                                                               value="@ex.DurationSeconds"
+                                                               @onchange="e => ex.DurationSeconds = Math.Max(1, int.TryParse(e.Value?.ToString(), out var v) ? v : 5)" />
+                                                        <div class="text-muted mt-1" style="font-size:0.72rem;">Thời gian mỗi rep</div>
+                                                    </div>
+                                                    <div class="col-6 col-md-3">
+                                                        <label class="ep-label">Nghỉ giữa sets (s)</label>
+                                                        <input type="number" class="ep-input text-center" min="0" max="300"
+                                                               value="@ex.RestSeconds"
+                                                               @onchange="e => ex.RestSeconds = Math.Max(0, int.TryParse(e.Value?.ToString(), out var v) ? v : 30)" />
+                                                        <div class="text-muted mt-1" style="font-size:0.72rem;">0 = không nghỉ</div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Video URL -->
+                                                <div class="mb-3">
+                                                    <label class="ep-label">
+                                                        <i class="bi bi-youtube text-danger me-1"></i>Video hướng dẫn (YouTube URL)
+                                                    </label>
+                                                    <div class="d-flex gap-2 align-items-center">
+                                                        <input type="url" class="ep-input"
+                                                               placeholder="https://www.youtube.com/watch?v=... hoặc https://youtu.be/..."
+                                                               value="@ex.VideoUrl"
+                                                               @onchange="e => { ex.VideoUrl = e.Value?.ToString()?.Trim(); StateHasChanged(); }" />
+                                                        @if (!string.IsNullOrEmpty(ex.VideoUrl))
+                                                        {
+                                                            @if (GetYoutubeEmbedId(ex.VideoUrl) != null)
+                                                            {
+                                                                <span class="badge bg-success rounded-pill px-3 py-2 flex-shrink-0">
+                                                                    <i class="bi bi-check-circle me-1"></i>Hợp lệ
+                                                                </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 flex-shrink-0">
+                                                                    <i class="bi bi-exclamation-triangle me-1"></i>Không nhận dạng được
+                                                                </span>
+                                                            }
+                                                        }
+                                                    </div>
+                                                    <div class="text-muted mt-1" style="font-size:0.75rem;">
+                                                        Hỗ trợ: youtube.com/watch?v=... · youtu.be/... · youtube.com/embed/...
+                                                    </div>
+
+                                                    @if (!string.IsNullOrEmpty(ex.VideoUrl) && GetYoutubeEmbedId(ex.VideoUrl) is string vid)
+                                                    {
+                                                        <div class="mt-3 video-thumb" style="max-width:360px;height:200px;">
+                                                            <iframe width="100%" height="100%"
+                                                                    src="https://www.youtube.com/embed/@vid"
+                                                                    frameborder="0" allowfullscreen loading="lazy">
+                                                            </iframe>
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                <!-- Notes -->
+                                                <div>
+                                                    <label class="ep-label"><i class="bi bi-chat-left-text me-1"></i>Ghi chú / Hướng dẫn cho bệnh nhân</label>
+                                                    <textarea class="ep-input" rows="2"
+                                                              placeholder="Lưu ý tư thế, cách thở, cảnh báo đau... VD: Giữ thẳng lưng, gập chậm và kiểm soát."
+                                                              value="@ex.Notes"
+                                                              @onchange="e => ex.Notes = e.Value?.ToString()"></textarea>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                <!-- Add exercise button -->
+                                <button class="add-btn" @onclick="AddExercise">
+                                    <i class="bi bi-plus-circle fs-5"></i>
+                                    <span>Thêm bài tập mới</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Workout Schedule -->
+                    <div class="ep-main-card mb-4">
+                        <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-0">
+                                    <i class="bi bi-calendar-week me-2 text-primary"></i>Lịch tập & Nhắc hẹn
+                                </h5>
+                                <div class="text-muted small mt-1">Thiết lập ngày và giờ tập · Gửi email nhắc nhở tự động</div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="schedule-box">
+                                <!-- Days of week -->
+                                <div class="mb-4">
+                                    <label class="ep-label mb-2">Ngày tập trong tuần</label>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        @foreach (var day in dayOptions)
+                                        {
+                                            bool sel = schedule.DaysOfWeek.Contains(day.Value);
+                                            <span class="day-chip @(sel ? "selected" : "")" @onclick="() => ToggleDay(day.Value)">
+                                                @day.Label
+                                            </span>
+                                        }
+                                    </div>
+                                    @if (!schedule.DaysOfWeek.Any())
+                                    {
+                                        <div class="ep-invalid-msg mt-2"><i class="bi bi-exclamation-circle me-1"></i>Chọn ít nhất 1 ngày tập.</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted small mt-2">
+                                            <i class="bi bi-info-circle me-1 text-primary"></i>
+                                            Tập <strong>@schedule.DaysOfWeek.Count ngày</strong>/tuần · @schedule.DaysOfWeek.Count * 52 buổi/năm ước tính
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="ep-divider"></div>
+
+                                <!-- Time & Note -->
+                                <div class="row g-3 align-items-start">
+                                    <div class="col-md-4">
+                                        <label class="ep-label">Giờ nhắc tập</label>
+                                        <div class="position-relative">
+                                            <i class="bi bi-alarm position-absolute" style="left:0.85rem;top:50%;transform:translateY(-50%);color:#94a3b8;"></i>
+                                            <input type="text" class="ep-input ps-5"
+                                                   placeholder="08:00"
+                                                   value="@schedule.ReminderTime"
+                                                   @onchange="OnReminderTimeChanged" />
+                                        </div>
+                                        <div class="text-muted mt-1" style="font-size:0.73rem;">Định dạng HH:MM (vd: 08:00, 17:30)</div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="ep-label">Ghi chú lịch</label>
+                                        <input type="text" class="ep-input"
+                                               placeholder="VD: Tập sau khi ăn sáng 30 phút, tránh tập lúc đói..."
+                                               value="@schedule.Note"
+                                               @onchange="e => schedule.Note = e.Value?.ToString()" />
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(schedule.Note))
+                                {
+                                    <div class="mt-3 p-3 rounded-3 d-flex align-items-start gap-2"
+                                         style="background:rgba(255,255,255,0.7);border:1px solid #e0e7ff;">
+                                        <i class="bi bi-chat-quote-fill text-primary mt-1 flex-shrink-0"></i>
+                                        <span class="small text-dark fst-italic">@schedule.Note</span>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Email preview hint -->
+                            <div class="d-flex align-items-center gap-2 mt-3 p-3 rounded-3" style="background:#fffbeb;border:1px solid #fde68a;">
+                                <i class="bi bi-envelope-heart text-warning fs-5"></i>
+                                <div class="small text-dark">
+                                    <strong>Email nhắc hẹn</strong> sẽ được gửi tới
+                                    <strong>@(selectedPatient.User?.Email ?? selectedPatient.User?.FullName ?? "bệnh nhân")</strong>
+                                    với toàn bộ lộ trình và lịch tập.
+                                    @if (string.IsNullOrWhiteSpace(selectedPatient.User?.Email))
+                                    {
+                                        <span class="text-danger ms-1"><i class="bi bi-exclamation-triangle me-1"></i>Bệnh nhân chưa có email!</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-wrap gap-3 justify-content-end pb-4">
+                        <button class="btn-email btn" @onclick="SendReminder" disabled="@isSendingEmail">
+                            @if (isSendingEmail)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                <span>Đang gửi...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-envelope-arrow-up me-2"></i>
+                                <span>Gửi nhắc hẹn Email</span>
+                            }
+                        </button>
+                        <button class="btn-save btn" @onclick="SavePlan" disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                <span>Đang lưu...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-floppy me-2"></i>
+                                <span>Lưu lộ trình</span>
+                            }
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // ── State ──────────────────────────────────────────────────────
+    private List<PatientProfile> patients = new();
+    private PatientProfile? selectedPatient;
+    private List<ExerciseRoutineItem> exercises = new();
+    private WorkoutSchedule schedule = new() { DaysOfWeek = new List<int> { 1, 3, 5 }, ReminderTime = "08:00" };
+
+    private string searchQuery = string.Empty;
+    private bool isLoadingPatients = true;
+    private bool isSaving = false;
+    private bool isSendingEmail = false;
+    private string alertMessage = string.Empty;
+    private bool alertSuccess = false;
+    private List<string> validationErrors = new();
+    private int? expandedExercise = null;
+    private bool submitAttempted = false;
+
+    // ── Computed ───────────────────────────────────────────────────
+    private List<PatientProfile> filteredPatients => string.IsNullOrWhiteSpace(searchQuery)
+        ? patients
+        : patients.Where(p => p.User?.FullName?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true).ToList();
+
+    private record DayOption(int Value, string Label);
+    private readonly List<DayOption> dayOptions = new()
+    {
+        new(1,"T2"), new(2,"T3"), new(3,"T4"), new(4,"T5"), new(5,"T6"), new(6,"T7"), new(0,"CN")
+    };
+
+    // ── Init ───────────────────────────────────────────────────────
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            patients = await Mediator.Send(new GetPatientsQuery { DoctorId = 0 });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ExercisePlanPage] Error loading patients: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingPatients = false;
+        }
+    }
+
+    // ── Patient selection ──────────────────────────────────────────
+    private void SelectPatient(PatientProfile patient)
+    {
+        selectedPatient = patient;
+        alertMessage = string.Empty;
+        validationErrors.Clear();
+        submitAttempted = false;
+        expandedExercise = null;
+
+        // Try load existing plan
+        var existingPlan = patient.TreatmentPlans?.FirstOrDefault(p => p.IsActive == true);
+        if (existingPlan?.Description != null)
+        {
+            try
+            {
+                var planData = JsonSerializer.Deserialize<TreatmentPlanData>(existingPlan.Description,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (planData != null)
+                {
+                    exercises = planData.ExerciseRoutine ?? new();
+                    schedule = planData.Schedule ?? new WorkoutSchedule { DaysOfWeek = new List<int> { 1, 3, 5 }, ReminderTime = "08:00" };
+                    if (exercises.Any()) expandedExercise = 0;
+                    return;
+                }
+            }
+            catch (Exception ex) { Console.WriteLine($"[ExercisePlanPage] JSON parse error: {ex.Message}"); }
+        }
+
+        // Default empty
+        exercises = new();
+        schedule = new WorkoutSchedule { DaysOfWeek = new List<int> { 1, 3, 5 }, ReminderTime = "08:00" };
+    }
+
+    private int GetPatientExerciseCount(PatientProfile patient)
+    {
+        var plan = patient.TreatmentPlans?.FirstOrDefault(p => p.IsActive == true);
+        if (plan?.Description == null) return 0;
+        try
+        {
+            var data = JsonSerializer.Deserialize<TreatmentPlanData>(plan.Description,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return data?.ExerciseRoutine?.Count ?? 0;
+        }
+        catch { return 0; }
+    }
+
+    // ── Exercise management ────────────────────────────────────────
+    private void AddExercise()
+    {
+        exercises.Add(new ExerciseRoutineItem
+        {
+            Name = string.Empty,
+            Sets = 3,
+            Reps = 10,
+            DurationSeconds = 5,
+            RestSeconds = 30
+        });
+        expandedExercise = exercises.Count - 1;
+        validationErrors.Clear();
+    }
+
+    private void RemoveExercise(int index)
+    {
+        if (index >= 0 && index < exercises.Count)
+        {
+            exercises.RemoveAt(index);
+            if (expandedExercise == index)
+                expandedExercise = exercises.Any() ? Math.Min(index, exercises.Count - 1) : null;
+            else if (expandedExercise > index)
+                expandedExercise--;
+            ValidateExercise();
+        }
+    }
+
+    private void MoveExercise(int index, int direction)
+    {
+        int newIndex = index + direction;
+        if (newIndex < 0 || newIndex >= exercises.Count) return;
+        (exercises[index], exercises[newIndex]) = (exercises[newIndex], exercises[index]);
+        if (expandedExercise == index) expandedExercise = newIndex;
+        else if (expandedExercise == newIndex) expandedExercise = index;
+    }
+
+    private void ToggleExpand(int index)
+    {
+        expandedExercise = expandedExercise == index ? null : index;
+    }
+
+    private void ToggleDay(int day)
+    {
+        if (schedule.DaysOfWeek.Contains(day))
+            schedule.DaysOfWeek.Remove(day);
+        else
+            schedule.DaysOfWeek.Add(day);
+    }
+
+    private void OnReminderTimeChanged(ChangeEventArgs e)
+    {
+        schedule.ReminderTime = e.Value?.ToString() ?? "08:00";
+    }
+
+    // ── Validation ─────────────────────────────────────────────────
+    private bool ValidateForm()
+    {
+        validationErrors.Clear();
+        submitAttempted = true;
+
+        if (!exercises.Any())
+            validationErrors.Add("Cần có ít nhất 1 bài tập.");
+
+        for (int i = 0; i < exercises.Count; i++)
+        {
+            var ex = exercises[i];
+            if (string.IsNullOrWhiteSpace(ex.Name))
+                validationErrors.Add($"Bài {i + 1}: Tên bài tập không được để trống.");
+            if (ex.Sets < 1 || ex.Sets > 20)
+                validationErrors.Add($"Bài {i + 1} ({ex.Name}): Sets phải từ 1 đến 20.");
+            if (ex.Reps < 1 || ex.Reps > 100)
+                validationErrors.Add($"Bài {i + 1} ({ex.Name}): Reps phải từ 1 đến 100.");
+        }
+
+        // Expand first errored exercise
+        for (int i = 0; i < exercises.Count; i++)
+        {
+            if (string.IsNullOrWhiteSpace(exercises[i].Name))
+            {
+                expandedExercise = i;
+                break;
+            }
+        }
+
+        return validationErrors.Count == 0;
+    }
+
+    private void ValidateExercise()
+    {
+        if (submitAttempted) ValidateForm();
+    }
+
+    // ── Save ───────────────────────────────────────────────────────
+    private async Task SavePlan()
+    {
+        if (selectedPatient == null) return;
+        if (!ValidateForm()) return;
+
+        isSaving = true;
+        alertMessage = string.Empty;
+
+        try
+        {
+            var result = await Mediator.Send(new SaveExercisePlanCommand
+            {
+                PatientId = selectedPatient.PatientId,
+                Exercises = exercises,
+                Schedule = schedule
+            });
+
+            if (result)
+            {
+                alertMessage = $"Đã lưu lộ trình {exercises.Count} bài tập cho {selectedPatient.User?.FullName}. Bệnh nhân sẽ thấy bài tập khi đăng nhập.";
+                alertSuccess = true;
+                validationErrors.Clear();
+                // Update local patient's treatment plan in memory for exercise count display
+                if (selectedPatient.TreatmentPlans == null)
+                    selectedPatient.TreatmentPlans = new List<TreatmentPlan>();
+                var existing = selectedPatient.TreatmentPlans.FirstOrDefault(p => p.IsActive == true);
+                var planData = new TreatmentPlanData { ExerciseRoutine = exercises, Schedule = schedule, LastUpdated = DateTime.UtcNow };
+                var json = JsonSerializer.Serialize(planData);
+                if (existing != null) existing.Description = json;
+                else selectedPatient.TreatmentPlans.Add(new TreatmentPlan { IsActive = true, Description = json });
+            }
+            else
+            {
+                alertMessage = "Có lỗi khi lưu lộ trình. Vui lòng thử lại.";
+                alertSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            alertMessage = $"Lỗi hệ thống: {ex.Message}";
+            alertSuccess = false;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    // ── Send reminder ──────────────────────────────────────────────
+    private async Task SendReminder()
+    {
+        if (selectedPatient == null) return;
+
+        if (!exercises.Any())
+        {
+            alertMessage = "Cần có ít nhất 1 bài tập trước khi gửi email nhắc hẹn.";
+            alertSuccess = false;
+            return;
+        }
+
+        if (!schedule.DaysOfWeek.Any())
+        {
+            alertMessage = "Vui lòng chọn ít nhất một ngày tập trong tuần để gửi lịch.";
+            alertSuccess = false;
+            return;
+        }
+
+        isSendingEmail = true;
+        alertMessage = string.Empty;
+
+        try
+        {
+            var result = await Mediator.Send(new SendScheduleReminderCommand
+            {
+                PatientId = selectedPatient.PatientId,
+                Exercises = exercises,
+                Schedule = schedule
+            });
+
+            alertMessage = result.Message;
+            alertSuccess = result.Success;
+        }
+        catch (Exception ex)
+        {
+            alertMessage = $"Lỗi gửi email: {ex.Message}";
+            alertSuccess = false;
+        }
+        finally
+        {
+            isSendingEmail = false;
+        }
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────
+    private static string? GetYoutubeEmbedId(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        try
+        {
+            url = url.Trim();
+            if (url.Contains("youtu.be/"))
+                return url.Split("youtu.be/").Last().Split('?', '#').First();
+            if (url.Contains("youtube.com/watch"))
+            {
+                var uri = new Uri(url);
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                return query["v"];
+            }
+            if (url.Contains("youtube.com/embed/"))
+                return url.Split("embed/").Last().Split('?', '#').First();
+            if (url.Contains("youtube.com/shorts/"))
+                return url.Split("shorts/").Last().Split('?', '#').First();
+        }
+        catch { }
+        return null;
+    }
+
+    // Local type for JSON deserialization
+    private class TreatmentPlanData
+    {
+        public List<ExerciseRoutineItem> ExerciseRoutine { get; set; } = new();
+        public WorkoutSchedule? Schedule { get; set; }
+        public DateTime LastUpdated { get; set; }
+        public string? DoctorNotes { get; set; }
+    }
+}

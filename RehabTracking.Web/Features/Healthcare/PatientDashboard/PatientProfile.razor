@@ -1,0 +1,469 @@
+@page "/patient/profile"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using MediatR
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Features.Healthcare.PatientDashboard
+@using RehabTracking.Web.Constants
+@using System.Text.Json
+@attribute [Authorize(Roles = "Patient")]
+@inject IMediator Mediator
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Hồ sơ cá nhân - STEP</PageTitle>
+
+<style>
+    .profile-hero {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .profile-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+    .profile-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        right: 15%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+    .avatar-circle {
+        width: 90px;
+        height: 90px;
+        background: rgba(255,255,255,0.2);
+        border: 3px solid rgba(255,255,255,0.4);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: white;
+        flex-shrink: 0;
+    }
+    .stat-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+    }
+    .stat-card:hover {
+        border-color: #a5b4fc;
+        box-shadow: 0 4px 20px rgba(79,70,229,0.1);
+        transform: translateY(-2px);
+    }
+    .info-row {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        min-width: 140px;
+    }
+    .badge-achievement {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border: 1px solid #f59e0b;
+        border-radius: 2rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #92400e;
+    }
+</style>
+
+<div class="container py-4" style="max-width: 960px;">
+
+    <!-- Back Button -->
+    <div class="d-flex align-items-center mb-4">
+        <a href="/patient-dashboard" class="btn btn-light btn-sm rounded-pill me-3">
+            <i class="bi bi-arrow-left me-1"></i>Dashboard
+        </a>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/patient-dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active">Hồ sơ cá nhân</li>
+            </ol>
+        </nav>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="min-height:50vh;">
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;" role="status"></div>
+                <p class="text-muted fw-medium">@AppMessages.LoadingData</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Hero Profile Card -->
+        <div class="profile-hero mb-4">
+            <div class="d-flex align-items-center gap-4 position-relative" style="z-index:1;">
+                <div class="avatar-circle">@GetInitial(patientName)</div>
+                <div>
+                    <h2 class="fw-bold mb-1" style="font-size:1.8rem;">@patientName</h2>
+                    <div class="d-flex gap-2 flex-wrap mt-2">
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-semibold">
+                            <i class="bi bi-person-heart me-1"></i>Bệnh nhân
+                        </span>
+                        @if (hasPatientProfile)
+                        {
+                            <span class="badge bg-success bg-opacity-75 rounded-pill px-3 py-2 fw-semibold">
+                                <i class="bi bi-watch me-1"></i>Thiết bị đã kích hoạt
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning bg-opacity-75 rounded-pill px-3 py-2 fw-semibold text-dark">
+                                <i class="bi bi-watch me-1"></i>Chưa kích hoạt thiết bị
+                            </span>
+                        }
+                    </div>
+                </div>
+                <div class="ms-auto text-end d-none d-md-block">
+                    <div class="text-white opacity-75 small">Thành viên từ</div>
+                    <div class="fw-bold">2024</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column: Stats -->
+            <div class="col-lg-4">
+                <!-- Performance Stats -->
+                <div class="modern-card p-4 mb-4">
+                    <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:0.78rem;letter-spacing:0.05em;">
+                        <i class="bi bi-bar-chart-fill text-primary me-2"></i>Thống kê tổng hợp
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="stat-card text-center">
+                                <div class="fw-bold text-primary" style="font-size:2rem;">@sessions.Count</div>
+                                <div class="text-muted small">Tổng buổi tập</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card text-center">
+                                <div class="fw-bold text-success" style="font-size:2rem;">@sessions.Sum(s => s.DurationMinutes)</div>
+                                <div class="text-muted small">Phút đã tập</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card text-center">
+                                <div class="fw-bold text-info" style="font-size:2rem;">@sessions.Sum(s => s.RepetitionsCount)</div>
+                                <div class="text-muted small">Tổng reps</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card text-center">
+                                <div class="fw-bold text-warning" style="font-size:2rem;">@recoveryScore<span style="font-size:1rem;">%</span></div>
+                                <div class="text-muted small">Phục hồi</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="modern-card p-4">
+                    <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:0.78rem;letter-spacing:0.05em;">
+                        <i class="bi bi-trophy-fill text-warning me-2"></i>Thành tích
+                    </h6>
+                    <div class="d-flex flex-column gap-2">
+                        @if (sessions.Count >= 1)
+                        {
+                            <div class="badge-achievement">
+                                <i class="bi bi-star-fill"></i>Buổi tập đầu tiên
+                            </div>
+                        }
+                        @if (sessions.Count >= 7)
+                        {
+                            <div class="badge-achievement">
+                                <i class="bi bi-fire"></i>7 ngày liên tiếp
+                            </div>
+                        }
+                        @if (sessions.Count >= 30)
+                        {
+                            <div class="badge-achievement">
+                                <i class="bi bi-gem"></i>30 buổi tập
+                            </div>
+                        }
+                        @if (sessions.Any(s => s.RepetitionsCount >= 20))
+                        {
+                            <div class="badge-achievement">
+                                <i class="bi bi-lightning-charge-fill"></i>Siêu 20 reps
+                            </div>
+                        }
+                        @if (hasPatientProfile)
+                        {
+                            <div class="badge-achievement">
+                                <i class="bi bi-watch"></i>Đã kích hoạt thiết bị
+                            </div>
+                        }
+                        @if (!sessions.Any() && !hasPatientProfile)
+                        {
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-trophy fs-1 opacity-20 d-block mb-2"></i>
+                                <p class="small">Bắt đầu tập luyện để mở khóa thành tích!</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Info & Plan -->
+            <div class="col-lg-8">
+                <!-- Account Info -->
+                <div class="modern-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-muted text-uppercase mb-0" style="font-size:0.78rem;letter-spacing:0.05em;">
+                            <i class="bi bi-person-fill text-primary me-2"></i>Thông tin tài khoản
+                        </h6>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Họ tên</span>
+                        <span class="fw-semibold text-dark">@patientName</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Vai trò</span>
+                        <span class="badge badge-soft-success rounded-pill px-3 py-2">
+                            <i class="bi bi-person-heart me-1"></i>Bệnh nhân
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Trạng thái thiết bị</span>
+                        @if (hasPatientProfile)
+                        {
+                            <span class="badge badge-soft-success rounded-pill px-3 py-2">
+                                <i class="bi bi-watch me-1"></i>Đã kích hoạt
+                            </span>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge badge-soft-warning rounded-pill px-3 py-2">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Chưa kích hoạt
+                                </span>
+                                <a href="/activate-device" class="btn btn-sm btn-modern-primary rounded-pill px-3">
+                                    Kích hoạt ngay
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Treatment Plan -->
+                <div class="modern-card p-4 mb-4">
+                    <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:0.78rem;letter-spacing:0.05em;">
+                        <i class="bi bi-clipboard2-pulse text-primary me-2"></i>Phác đồ điều trị hiện tại
+                    </h6>
+                    @if (treatmentPlan != null)
+                    {
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <div class="p-3 bg-light rounded-4 d-flex align-items-center gap-3">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center" style="width:40px;height:40px;">
+                                        <i class="bi bi-arrow-repeat fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">@treatmentPlan.TargetRepetitions lần</div>
+                                        <div class="text-muted small">Mục tiêu số lần lặp</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="p-3 bg-light rounded-4 d-flex align-items-center gap-3">
+                                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center" style="width:40px;height:40px;">
+                                        <i class="bi bi-clock fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">@treatmentPlan.TargetDuration phút</div>
+                                        <div class="text-muted small">Mục tiêu thời gian</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(parsedDoctorNotes))
+                        {
+                            <div class="p-3 rounded-4" style="background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04)); border: 1px solid rgba(245,158,11,0.2);">
+                                <div class="d-flex align-items-start gap-2">
+                                    <i class="bi bi-chat-quote-fill fs-4 flex-shrink-0" style="color:#f59e0b;"></i>
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1 small text-uppercase">Lời nhắn từ Bác sĩ</h6>
+                                        <p class="mb-0 small text-muted fst-italic">"@parsedDoctorNotes"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-clipboard2 fs-1 opacity-25 mb-3 d-block"></i>
+                            <p class="small">@AppMessages.NoTreatmentPlan</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Recent Sessions -->
+                <div class="modern-card overflow-hidden">
+                    <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold text-muted text-uppercase mb-0" style="font-size:0.78rem;letter-spacing:0.05em;">
+                            <i class="bi bi-clock-history text-primary me-2"></i>5 buổi tập gần đây
+                        </h6>
+                        <a href="/patient-dashboard" class="btn btn-sm btn-light rounded-pill px-3">Xem tất cả</a>
+                    </div>
+                    @if (sessions.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-muted">
+                                    <tr>
+                                        <th class="ps-4 text-uppercase small">Ngày</th>
+                                        <th class="text-uppercase small">Thời lượng</th>
+                                        <th class="text-uppercase small">Reps</th>
+                                        <th class="pe-4 text-uppercase small">Kết quả</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var session in sessions.Take(5))
+                                    {
+                                        <tr>
+                                            <td class="ps-4 fw-medium text-dark">@session.StartTime.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                            <td class="text-muted">@session.DurationMinutes phút</td>
+                                            <td class="fw-bold" style="color:var(--secondary-color);">@session.RepetitionsCount</td>
+                                            <td class="pe-4">
+                                                @if (session.RepetitionsCount >= (treatmentPlan?.TargetRepetitions ?? 10))
+                                                {
+                                                    <span class="badge badge-soft-success rounded-pill px-3 py-2">
+                                                        <i class="bi bi-check-circle-fill me-1"></i>Hoàn thành
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge badge-soft-warning rounded-pill px-3 py-2">
+                                                        <i class="bi bi-exclamation-circle me-1"></i>Cần cải thiện
+                                                    </span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-calendar-x fs-1 opacity-25 mb-2 d-block"></i>
+                            <p class="small">@AppMessages.NoHistory</p>
+                            <a href="/patient/workout" class="btn btn-sm btn-modern-primary rounded-pill px-4">Bắt đầu tập ngay</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private bool hasPatientProfile = false;
+    private int patientId = 0;
+    private string patientName = "Bạn";
+    private List<ExerciseSession> sessions = new();
+    private TreatmentPlan? treatmentPlan;
+    private string? parsedDoctorNotes;
+    private int recoveryScore = 0;
+
+    private class TreatmentPlanData
+    {
+        public string? DoctorNotes { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            patientId = userId;
+        }
+
+        patientName = user.Identity?.Name ?? "Bạn";
+
+        try
+        {
+            var result = await Mediator.Send(new GetPatientProgressQuery { PatientId = patientId });
+            sessions = result.Sessions;
+            treatmentPlan = result.TreatmentPlan;
+            hasPatientProfile = result.HasPatientProfile;
+
+            if (!string.IsNullOrWhiteSpace(treatmentPlan?.Description))
+            {
+                try
+                {
+                    var planData = JsonSerializer.Deserialize<TreatmentPlanData>(treatmentPlan.Description, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    parsedDoctorNotes = planData?.DoctorNotes;
+                }
+                catch
+                {
+                    parsedDoctorNotes = treatmentPlan.Description;
+                }
+            }
+
+            // Calculate recovery score
+            if (sessions.Any())
+            {
+                var targetReps = treatmentPlan?.TargetRepetitions ?? 30;
+                var recentSessions = sessions.OrderByDescending(s => s.StartTime).Take(7).ToList();
+                var avgReps = recentSessions.Average(s => s.RepetitionsCount);
+                recoveryScore = (int)Math.Min((avgReps / Math.Max(targetReps, 1)) * 100, 100);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading profile: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private static string GetInitial(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "P";
+        return name.Trim().Substring(0, 1).ToUpper();
+    }
+}

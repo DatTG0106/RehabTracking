@@ -70,7 +70,39 @@ public class AdjustTreatmentCommandHandler : IRequestHandler<AdjustTreatmentComm
 
         plan.TargetRepetitions = request.TargetRepetitions;
         plan.TargetDuration = request.TargetDuration;
-        plan.Description = request.Description;
+        
+        // Update DoctorNotes inside the JSON Description
+        try
+        {
+            RehabTracking.Web.Features.Healthcare.DoctorDashboard.TreatmentPlanData planData;
+            if (!string.IsNullOrWhiteSpace(plan.Description) && plan.Description.Trim().StartsWith("{"))
+            {
+                planData = System.Text.Json.JsonSerializer.Deserialize<RehabTracking.Web.Features.Healthcare.DoctorDashboard.TreatmentPlanData>(
+                    plan.Description, 
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new RehabTracking.Web.Features.Healthcare.DoctorDashboard.TreatmentPlanData();
+            }
+            else
+            {
+                planData = new RehabTracking.Web.Features.Healthcare.DoctorDashboard.TreatmentPlanData();
+                if (!string.IsNullOrWhiteSpace(plan.Description))
+                {
+                    planData.DoctorNotes = plan.Description; // Preserve old plain text note if any
+                }
+            }
+            
+            planData.DoctorNotes = request.Description;
+            plan.Description = System.Text.Json.JsonSerializer.Serialize(
+                planData, 
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+        }
+        catch
+        {
+            // If failed to parse, overwrite with new JSON object
+            var planData = new RehabTracking.Web.Features.Healthcare.DoctorDashboard.TreatmentPlanData { DoctorNotes = request.Description };
+            plan.Description = System.Text.Json.JsonSerializer.Serialize(
+                planData, 
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase });
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
         return true;
