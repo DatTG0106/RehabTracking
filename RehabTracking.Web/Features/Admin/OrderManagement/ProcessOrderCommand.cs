@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RehabTracking.Web.Entities;
 using RehabTracking.Web.Constants;
 
-namespace RehabTracking.Web.Features.Healthcare.AdminDashboard;
+namespace RehabTracking.Web.Features.Admin.OrderManagement;
 
 public class ProcessOrderCommand : IRequest<bool>
 {

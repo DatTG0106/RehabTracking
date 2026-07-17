@@ -112,7 +112,7 @@ public class AuthController : ControllerBase
             else
             {
                 if (finalRole == "Doctor") redirectUrl = "/doctor-dashboard";
-                else if (finalRole == "Admin") redirectUrl = "/admin-dashboard";
+                else if (finalRole == "Admin") redirectUrl = "/admin/orders";
                 else if (finalRole == "Patient") redirectUrl = "/patient-dashboard";
             }
 

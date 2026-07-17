@@ -11,7 +11,7 @@
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>Dashboard Bác sĩ - STEP</PageTitle>
+<PageTitle>Bảng điều khiển Bác sĩ - STEP</PageTitle>
 
 <div class="container-fluid py-4">
     <div class="row mb-4">
@@ -145,7 +145,17 @@
         
         <!-- Main Content Area -->
         <div class="col-xl-9 col-lg-8">
-            @if (selectedPatient != null)
+            @if (_isSelectingPatient)
+            {
+                <!-- Loading overlay while switching patients -->
+                <div class="modern-card p-5 text-center">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                    <p class="text-muted mt-3 mb-0">Đang tải thông tin bệnh nhân...</p>
+                </div>
+            }
+            else @if (selectedPatient != null)
             {
                 <div class="row g-4 mb-4">
                     <!-- Profile Summary Card -->
@@ -176,7 +186,20 @@
                             <div class="row mt-4">
                                 <div class="col-6">
                                     <p class="text-muted small text-uppercase mb-1 fw-semibold">Liên hệ</p>
-                                    <p class="fw-medium">@selectedPatient.User?.PhoneNumber</p>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fw-medium">@selectedPatient.User?.PhoneNumber</span>
+                                        <div class="d-inline-flex gap-1 ms-2">
+                                            <a href="javascript:void(0)" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center animate-hover" style="width:26px; height:26px;" title="Chat trực tuyến">
+                                                <i class="bi bi-chat-text-fill" style="font-size: 0.75rem;"></i>
+                                            </a>
+                                            <a href="https://zalo.me/@(selectedPatient.User?.PhoneNumber)" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center animate-hover bg-white border" style="width:26px; height:26px;" title="Zalo Bệnh nhân">
+                                                <img src="https://page.widget.zalo.me/static/images/2.0/Logo.svg" style="width:14px; height:14px;" alt="Zalo" />
+                                            </a>
+                                            <a href="https://www.facebook.com/profile.php?id=61590138553379" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center animate-hover" style="width:26px; height:26px;" title="Facebook Bệnh nhân">
+                                                <i class="bi bi-facebook" style="font-size: 0.75rem;"></i>
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-6">
                                     <p class="text-muted small text-uppercase mb-1 fw-semibold">Tuổi / Giới tính</p>
@@ -195,8 +218,8 @@
                                     <span class="live-indicator"></span>
                                     <span class="text-success fw-bold small text-uppercase" style="letter-spacing: 1px;">Live</span>
                                 </div>
-                                <h2 class="fw-bold text-dark mb-0" style="font-size: 4rem; color: var(--primary-color) !important;">@(liveData.Last().EMGValue.ToString("0.0"))</h2>
-                                <p class="text-muted fw-semibold mt-2">Tín hiệu EMG trực tiếp (µV)</p>
+                                <h2 class="fw-bold text-dark mb-0" style="font-size: 4rem; color: var(--primary-color) !important;">@(liveData.Last().ROMValue.ToString("0"))°</h2>
+                                <p class="text-muted fw-semibold mt-2">Góc gập cổ tay trực tiếp (ROM)</p>
                             }
                             else
                             {
@@ -213,17 +236,17 @@
                 <!-- Live Chart -->
                 <div class="modern-card p-4 mb-4">
                     <h5 class="fw-bold text-dark mb-4">
-                        <i class="bi bi-activity text-primary me-2"></i> Dữ liệu EMG Thời gian thực
+                        <i class="bi bi-activity text-primary me-2"></i> Góc gập cổ tay thời gian thực (ROM)
                     </h5>
                     @if (liveData.Any())
                     {
                         <div style="height: 300px;">
                             <RadzenChart>
-                                <RadzenLineSeries Smooth="true" Data="@liveData" CategoryProperty="Time" Title="EMG (µV)" ValueProperty="EMGValue" Stroke="var(--primary-color)">
+                                <RadzenLineSeries Smooth="true" Data="@liveData" CategoryProperty="Time" Title="Góc gập (°)" ValueProperty="ROMValue" Stroke="var(--primary-color)">
                                     <RadzenMarkers MarkerType="MarkerType.Circle" Fill="var(--primary-color)" />
                                 </RadzenLineSeries>
                                 <RadzenCategoryAxis FormatString="{0:HH:mm:ss}" />
-                                <RadzenValueAxis>
+                                <RadzenValueAxis Min="0" Max="180">
                                     <RadzenGridLines Visible="true" Stroke="rgba(0,0,0,0.05)" />
                                 </RadzenValueAxis>
                             </RadzenChart>
@@ -257,7 +280,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (selectedPatient.ExerciseSessions != null)
+                                @if (selectedPatient.ExerciseSessions != null && selectedPatient.ExerciseSessions.Any())
                                 {
                                     foreach (var session in selectedPatient.ExerciseSessions.OrderByDescending(s => s.StartTime).Take(5))
                                     {
@@ -279,6 +302,15 @@
                                         </tr>
                                     }
                                 }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 text-muted">
+                                            <i class="bi bi-calendar-x fs-1 opacity-30 d-block mb-2"></i>
+                                            <p class="mb-0 small">Bệnh nhân này chưa có buổi tập nào. Dữ liệu sẽ xuất hiện sau khi bệnh nhân bắt đầu tập luyện.</p>
+                                        </td>
+                                    </tr>
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -294,23 +326,29 @@
                     <p class="text-muted mx-auto mb-4" style="max-width: 400px;">
                         Chọn một bệnh nhân từ danh sách bên trái để xem hồ sơ bệnh án, dữ liệu trực tiếp và lịch sử điều trị.
                     </p>
+                    @if (!string.IsNullOrEmpty(promptMessage))
+                    {
+                        <div class="alert alert-warning mb-3 px-3 py-2 small rounded-pill fade-in">
+                            <i class="bi bi-info-circle me-1"></i> @promptMessage
+                        </div>
+                    }
                     <div class="row g-3 w-100" style="max-width: 500px;">
                         <div class="col-4">
-                            <div class="p-3 bg-light rounded-4 text-center">
+                            <div class="p-3 bg-light rounded-4 text-center cursor-pointer animate-hover" @onclick="PromptSelectPatient" style="cursor: pointer;">
                                 <i class="bi bi-activity text-primary fs-3 mb-2 d-block"></i>
-                                <div class="small fw-semibold">EMG Live</div>
-                                <div class="text-muted" style="font-size:0.75rem;">Xem tín hiệu cơ</div>
+                                <div class="small fw-semibold">ROM Live</div>
+                                <div class="text-muted" style="font-size:0.75rem;">Xem góc gập khớp</div>
                             </div>
                         </div>
                         <div class="col-4">
-                            <div class="p-3 bg-light rounded-4 text-center">
+                            <div class="p-3 bg-light rounded-4 text-center cursor-pointer animate-hover" @onclick="PromptSelectPatient" style="cursor: pointer;">
                                 <i class="bi bi-sliders text-success fs-3 mb-2 d-block"></i>
                                 <div class="small fw-semibold">Phác đồ</div>
                                 <div class="text-muted" style="font-size:0.75rem;">Chỉnh mục tiêu</div>
                             </div>
                         </div>
                         <div class="col-4">
-                            <div class="p-3 bg-light rounded-4 text-center">
+                            <div class="p-3 bg-light rounded-4 text-center cursor-pointer animate-hover" @onclick="PromptSelectPatient" style="cursor: pointer;">
                                 <i class="bi bi-calendar3 text-info fs-3 mb-2 d-block"></i>
                                 <div class="small fw-semibold">Lịch sử</div>
                                 <div class="text-muted" style="font-size:0.75rem;">Xem tiến độ</div>
@@ -400,6 +438,12 @@
 
     private string successMessage = "";
     private bool isSuccessAlert = false; // FIX: Use boolean instead of emoji detection
+    private string promptMessage = "";
+
+    private void PromptSelectPatient()
+    {
+        promptMessage = "Vui lòng chọn một bệnh nhân từ danh sách bên trái để sử dụng tính năng này.";
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -421,7 +465,7 @@
 
         hubConnection.On<double, double>("ReceiveNewMetrics", (avgEMG, maxROM) =>
         {
-            liveData.Add(new ChartDataPoint { Time = DateTime.Now, EMGValue = avgEMG });
+            liveData.Add(new ChartDataPoint { Time = DateTime.Now, ROMValue = maxROM });
 
             if (liveData.Count > 20) liveData.RemoveAt(0);
 
@@ -431,9 +475,13 @@
         await hubConnection.StartAsync();
     }
 
+    private bool _isSelectingPatient = false;
+
     private async Task SelectPatient(PatientProfile patient)
     {
         selectedPatient = patient;
+        _isSelectingPatient = true;
+        StateHasChanged();
         
         // Xóa data cũ
         liveData.Clear();
@@ -444,6 +492,7 @@
             await hubConnection.SendAsync("JoinPatientGroup", patient.PatientId);
             currentListeningPatientId = patient.PatientId;
         }
+        _isSelectingPatient = false;
     }
 
     private void ShowTreatmentModal()
@@ -540,6 +589,6 @@
     public class ChartDataPoint
     {
         public DateTime Time { get; set; }
-        public double EMGValue { get; set; }
+        public double ROMValue { get; set; }
     }
 }

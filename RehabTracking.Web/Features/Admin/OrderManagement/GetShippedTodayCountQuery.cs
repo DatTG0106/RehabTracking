@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RehabTracking.Web.Entities;
 
-namespace RehabTracking.Web.Features.Healthcare.AdminDashboard;
+namespace RehabTracking.Web.Features.Admin.OrderManagement;
 
 /// <summary>
 /// Query đếm số đơn hàng đã giao (status = "Shipped") trong ngày hôm nay.

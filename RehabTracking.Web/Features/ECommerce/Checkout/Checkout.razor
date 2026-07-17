@@ -286,14 +286,13 @@
             };
 
             var orderId = await Mediator.Send(command);
-            CartState.ClearCart();
-
             if (checkoutModel.PaymentMethod == "VNPay")
             {
                 Navigation.NavigateTo($"/vnpay-mock?orderId={orderId}");
             }
             else
             {
+                CartState.ClearCart();
                 Navigation.NavigateTo("/checkout/success");
             }
         }
@@ -312,13 +311,14 @@
 
     public class CheckoutModel
     {
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredLastName)]
-        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = RehabTracking.Web.Constants.AppMessages.LastNameMaxLength)]
-        public string FirstName { get; set; } = string.Empty;
+        // Validation messages đã được fix để khớp với label trên form.
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập họ.")]
+        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = "Họ không được vượt quá 50 ký tự.")]
+        public string FirstName { get; set; } = string.Empty; // Displayed as "Họ" on form
 
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredFirstName)]
-        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = RehabTracking.Web.Constants.AppMessages.FirstNameMaxLength)]
-        public string LastName { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập tên.")]
+        [System.ComponentModel.DataAnnotations.StringLength(50, ErrorMessage = "Tên không được vượt quá 50 ký tự.")]
+        public string LastName { get; set; } = string.Empty; // Displayed as "Tên" on form
 
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = RehabTracking.Web.Constants.AppMessages.RequiredPhone)]
         [System.ComponentModel.DataAnnotations.RegularExpression(@"^(0|\+84)[0-9]{9}$", ErrorMessage = RehabTracking.Web.Constants.AppMessages.InvalidPhone)]

@@ -147,61 +147,113 @@ public class DbInitializer
     // ----------------------------------------------------------------
     private static async Task SeedProductsAsync(RehabTrackingContext db)
     {
-        if (await db.Products.AnyAsync()) return;
-
-        db.Products.AddRange(
-            new Product
+        var hasProducts = await db.Products.AnyAsync();
+        if (!hasProducts)
+        {
+            db.Products.AddRange(
+                new Product
+                {
+                    ProductId    = 1,
+                    ProductName  = "STEP Smart Band Pro",
+                    Description  = "Vòng đeo tay hỗ trợ phục hồi chức năng thông minh thế hệ mới tích hợp cảm biến ESP32S3 và MPU6050. Theo dõi tầm vận động (ROM) và số lần lặp theo thời gian thực. Kết nối Bluetooth 5.0, pin 8 giờ liên tục, chống nước IPX4.",
+                    Price        = 4_500_000,
+                    StockQuantity = 50,
+                    ProductType  = "Thiết bị y tế",
+                    ImageUrl     = "/images/glove-pro.jpg"
+                },
+                new Product
+                {
+                    ProductId    = 2,
+                    ProductName  = "STEP Smart Band Lite",
+                    Description  = "Phiên bản vòng đeo nhỏ gọn cho người mới bắt đầu tích hợp cảm biến ESP32S3 và MPU6050. Đầy đủ tính năng cơ bản: đo ROM, đếm reps, kết nối app STEP. Pin 6 giờ, thiết kế thoáng khí.",
+                    Price        = 2_900_000,
+                    StockQuantity = 80,
+                    ProductType  = "Thiết bị y tế",
+                    ImageUrl     = "/images/glove-lite.jpg"
+                },
+                new Product
+                {
+                    ProductId    = 3,
+                    ProductName  = "Đai đeo cổ tay thay thế STEP",
+                    Description  = "Đai đeo chất liệu vải co giãn cao cấp dùng cố định cảm biến STEP Smart Band. Thoáng mát, dễ giặt giũ, phù hợp cả hai dòng Pro và Lite.",
+                    Price        = 250_000,
+                    StockQuantity = 200,
+                    ProductType  = "Phụ kiện",
+                    ImageUrl     = "/images/wristband.jpg"
+                },
+                new Product
+                {
+                    ProductId    = 4,
+                    ProductName  = "Dây sạc USB-C STEP (1.5m)",
+                    Description  = "Cáp sạc chính hãng STEP, đầu nối từ tính, chống đứt gãy. Tương thích tất cả thiết bị STEP 2024 trở lên.",
+                    Price        = 150_000,
+                    StockQuantity = 300,
+                    ProductType  = "Phụ kiện",
+                    ImageUrl     = "/images/cable.jpg"
+                },
+                new Product
+                {
+                    ProductId    = 5,
+                    ProductName  = "Túi đựng thiết bị STEP",
+                    Description  = "Túi vải cao cấp chống va đập, đựng vừa thiết bị STEP + phụ kiện. Có ngăn riêng cho cáp sạc.",
+                    Price        = 200_000,
+                    StockQuantity = 150,
+                    ProductType  = "Phụ kiện",
+                    ImageUrl     = "/images/bag.jpg"
+                }
+            );
+            await SaveChangesWithIdentityInsertAsync(db, "[Products]");
+        }
+        else
+        {
+            // Tự động đồng bộ hóa DB cũ lên thiết kế Smart Band mới
+            var p1 = await db.Products.FindAsync(1);
+            if (p1 != null)
             {
-                ProductId    = 1,
-                ProductName  = "STEP Smart Glove Pro",
-                Description  = "Găng tay phục hồi chức năng thông minh thế hệ mới. Theo dõi EMG, ROM và số lần lặp theo thời gian thực. Kết nối Bluetooth 5.0, pin 8 giờ liên tục, chống nước IPX4.",
-                Price        = 4_500_000,
-                StockQuantity = 50,
-                ProductType  = "Thiết bị y tế",
-                ImageUrl     = "/images/glove-pro.jpg"
-            },
-            new Product
-            {
-                ProductId    = 2,
-                ProductName  = "STEP Smart Glove Lite",
-                Description  = "Phiên bản nhỏ gọn cho người mới bắt đầu. Đầy đủ tính năng cơ bản: đo ROM, đếm reps, kết nối app STEP. Pin 6 giờ, thiết kế thoáng khí.",
-                Price        = 2_900_000,
-                StockQuantity = 80,
-                ProductType  = "Thiết bị y tế",
-                ImageUrl     = "/images/glove-lite.jpg"
-            },
-            new Product
-            {
-                ProductId    = 3,
-                ProductName  = "Bộ điện cực EMG thay thế (10 miếng)",
-                Description  = "Điện cực cảm biến EMG dùng với thiết bị STEP. Vật liệu y tế an toàn, bám dính tốt, dùng được 15-20 lần mỗi miếng. Phù hợp cả hai dòng Pro và Lite.",
-                Price        = 350_000,
-                StockQuantity = 200,
-                ProductType  = "Phụ kiện",
-                ImageUrl     = "/images/electrodes.jpg"
-            },
-            new Product
-            {
-                ProductId    = 4,
-                ProductName  = "Dây sạc USB-C STEP (1.5m)",
-                Description  = "Cáp sạc chính hãng STEP, đầu nối từ tính, chống đứt gãy. Tương thích tất cả thiết bị STEP 2024 trở lên.",
-                Price        = 150_000,
-                StockQuantity = 300,
-                ProductType  = "Phụ kiện",
-                ImageUrl     = "/images/cable.jpg"
-            },
-            new Product
-            {
-                ProductId    = 5,
-                ProductName  = "Túi đựng thiết bị STEP",
-                Description  = "Túi vải cao cấp chống va đập, đựng vừa thiết bị STEP + phụ kiện. Có ngăn riêng cho cáp sạc và điện cực.",
-                Price        = 200_000,
-                StockQuantity = 150,
-                ProductType  = "Phụ kiện",
-                ImageUrl     = "/images/bag.jpg"
+                p1.ProductName = "STEP Smart Band Pro";
+                p1.Description = "Vòng đeo tay hỗ trợ phục hồi chức năng thông minh thế hệ mới tích hợp cảm biến ESP32S3 và MPU6050. Theo dõi tầm vận động (ROM) và số lần lặp theo thời gian thực. Kết nối Bluetooth 5.0, pin 8 giờ liên tục, chống nước IPX4.";
+                p1.Price = 4_500_000;
+                p1.ProductType = "Thiết bị y tế";
+                p1.ImageUrl = "/images/glove-pro.jpg";
             }
-        );
-        await SaveChangesWithIdentityInsertAsync(db, "[Products]");
+            var p2 = await db.Products.FindAsync(2);
+            if (p2 != null)
+            {
+                p2.ProductName = "STEP Smart Band Lite";
+                p2.Description = "Phiên bản vòng đeo nhỏ gọn cho người mới bắt đầu tích hợp cảm biến ESP32S3 và MPU6050. Đầy đủ tính năng cơ bản: đo ROM, đếm reps, kết nối app STEP. Pin 6 giờ, thiết kế thoáng khí.";
+                p2.Price = 2_900_000;
+                p2.ProductType = "Thiết bị y tế";
+                p2.ImageUrl = "/images/glove-lite.jpg";
+            }
+            var p3 = await db.Products.FindAsync(3);
+            if (p3 != null)
+            {
+                p3.ProductName = "Đai đeo cổ tay thay thế STEP";
+                p3.Description = "Đai đeo chất liệu vải co giãn cao cấp dùng cố định cảm biến STEP Smart Band. Thoáng mát, dễ giặt giũ, phù hợp cả hai dòng Pro và Lite.";
+                p3.Price = 250_000;
+                p3.ProductType = "Phụ kiện";
+                p3.ImageUrl = "/images/wristband.jpg";
+            }
+            var p4 = await db.Products.FindAsync(4);
+            if (p4 != null)
+            {
+                p4.ProductName = "Dây sạc USB-C STEP (1.5m)";
+                p4.Description = "Cáp sạc chính hãng STEP, đầu nối từ tính, chống đứt gãy. Tương thích tất cả thiết bị STEP 2024 trở lên.";
+                p4.Price = 150_000;
+                p4.ProductType = "Phụ kiện";
+                p4.ImageUrl = "/images/cable.jpg";
+            }
+            var p5 = await db.Products.FindAsync(5);
+            if (p5 != null)
+            {
+                p5.ProductName = "Túi đựng thiết bị STEP";
+                p5.Description = "Túi vải cao cấp chống va đập, đựng vừa thiết bị STEP + phụ kiện. Có ngăn riêng cho cáp sạc.";
+                p5.Price = 200_000;
+                p5.ProductType = "Phụ kiện";
+                p5.ImageUrl = "/images/bag.jpg";
+            }
+            await db.SaveChangesAsync();
+        }
     }
 
     // ----------------------------------------------------------------
@@ -219,7 +271,7 @@ public class DbInitializer
                 DoctorId       = 2,          // BS. Trần Minh Khoa
                 DateOfBirth    = new DateOnly(1979, 3, 15),
                 Gender         = "Nam",
-                MedicalHistory = "Yếu cơ tay phải sau đột quỵ nhẹ. Cần phục hồi sức mạnh cầm nắm và biên độ khớp cổ tay."
+                MedicalHistory = "Hạn chế vận động khớp cổ tay phải sau chấn thương. Cần hỗ trợ phục hồi sức mạnh cầm nắm và biên độ khớp cổ tay."
             },
             new PatientProfile
             {
@@ -272,7 +324,7 @@ public class DbInitializer
                 new ExerciseRoutineItem { Name = "Căng cơ cẳng tay", Sets = 2, Reps = 1, DurationSeconds = 30, RestSeconds = 15 }
             },
             Schedule = new WorkoutSchedule { DaysOfWeek = new List<int> { 2, 4, 6 }, ReminderTime = "17:00" },
-            DoctorNotes = "Tăng cường ROM toàn phần. Kết hợp bài tập kháng lực nhẹ. Theo dõi tín hiệu EMG để phát hiện co cứng bất thường.",
+            DoctorNotes = "Tăng cường ROM toàn phần. Kết hợp bài tập kháng lực nhẹ. Theo dõi sát góc gập duỗi (ROM) để phát hiện bất thường.",
             LastUpdated = DateTime.UtcNow
         }, jsonOptions);
 
@@ -283,7 +335,7 @@ public class DbInitializer
                 new ExerciseRoutineItem { Name = "Trượt gân", Sets = 3, Reps = 10, DurationSeconds = 5, RestSeconds = 30 }
             },
             Schedule = new WorkoutSchedule { DaysOfWeek = new List<int> { 0, 1, 2, 3, 4, 5, 6 }, ReminderTime = "20:00" },
-            DoctorNotes = "Bài tập giải phóng dây thần kinh giữa. Tránh vận động mạnh. Ghi nhận các đỉnh EMG bất thường để điều chỉnh phác đồ.",
+            DoctorNotes = "Bài tập giải phóng dây thần kinh giữa. Tránh vận động mạnh. Ghi nhận tiến trình cải thiện góc gập duỗi (ROM) để điều chỉnh phác đồ.",
             LastUpdated = DateTime.UtcNow
         }, jsonOptions);
 
@@ -293,7 +345,7 @@ public class DbInitializer
                 PlanId             = 1,
                 PatientId          = 1,
                 DoctorId           = 2,
-                Title              = "Phục hồi sau đột quỵ — Giai đoạn 1",
+                Title              = "Hỗ trợ phục hồi vận động cổ tay — Giai đoạn 1",
                 Description        = plan1Json,
                 TargetRepetitions  = 20,
                 TargetDuration     = 30,
@@ -349,7 +401,7 @@ public class DbInitializer
                 DurationMinutes  = durationMin,
                 AvgEmg           = avgEmg,
                 MaxRom           = maxRom,
-                DeviceType       = "STEP Smart Glove Pro"
+                DeviceType       = "STEP Smart Band Pro"
             };
 
         // Patient 1 — Nguyễn Văn An (14 ngày, tiến bộ dần)
@@ -447,9 +499,9 @@ public class DbInitializer
         using var transaction = await db.Database.BeginTransactionAsync();
         try
         {
-            await db.Database.ExecuteSqlRawAsync($"SET IDENTITY_INSERT {tableName} ON");
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT [" + tableName + "] ON");
             await db.SaveChangesAsync();
-            await db.Database.ExecuteSqlRawAsync($"SET IDENTITY_INSERT {tableName} OFF");
+            await db.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT [" + tableName + "] OFF");
             await transaction.CommitAsync();
         }
         catch

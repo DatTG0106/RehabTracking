@@ -1,8 +1,8 @@
-@page "/admin-dashboard"
+@page "/admin/orders"
 @using Microsoft.AspNetCore.Authorization
 @using MediatR
 @using RehabTracking.Web.Entities
-@using RehabTracking.Web.Features.Healthcare.AdminDashboard
+@using RehabTracking.Web.Features.Admin.OrderManagement
 @attribute [Authorize(Roles = "Admin")]
 @inject IMediator Mediator
 @rendermode InteractiveServer
@@ -14,7 +14,7 @@
     <div class="row mb-5 align-items-center">
         <div class="col-lg-8">
             <h1 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2.2rem;">Trung Tâm Xử Lý Đơn Hàng</h1>
-            <p class="text-muted fs-5 mb-0">Quản lý và xuất kho thiết bị STEP Smart Glove. Đảm bảo bảo mật toàn bộ dữ liệu y khoa của bệnh nhân.</p>
+            <p class="text-muted fs-5 mb-0">Quản lý và xuất kho thiết bị STEP Smart Band. Đảm bảo bảo mật toàn bộ dữ liệu y khoa của bệnh nhân.</p>
             <div class="d-flex gap-2 mt-3 flex-wrap">
                 <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;">
                     <i class="bi bi-clock-history me-1"></i>Chờ xử lý: @(orders?.Count(o => o.Status == "Pending") ?? 0)
@@ -190,9 +190,22 @@
                                                 </span>
                                             </td>
                                             <td class="pe-4 text-end">
-                                                <button class="btn btn-modern-primary rounded-pill btn-sm px-3 shadow-sm" @onclick="() => OpenProcessModal(order)">
-                                                    <i class="bi bi-cpu me-1"></i> Gán Serial
-                                                </button>
+                                                @if (order.Status == "Pending")
+                                                {
+                                                    <button class="btn btn-modern-primary rounded-pill btn-sm px-3 shadow-sm" @onclick="() => OpenProcessModal(order)">
+                                                        <i class="bi bi-cpu me-1"></i> Gán Serial
+                                                    </button>
+                                                }
+                                                else if (order.Status == "Shipped")
+                                                {
+                                                    <button class="btn btn-outline-secondary rounded-pill btn-sm px-3 shadow-sm" @onclick="() => ViewDetail(order)">
+                                                        <i class="bi bi-eye me-1"></i> Chi Tiết
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">Không</span>
+                                                }
                                             </td>
                                         </tr>
                                     }
@@ -353,6 +366,11 @@
         showProcessModal = false;
         selectedOrder = null;
         errorMessage = "";
+    }
+
+    private void ViewDetail(Order order)
+    {
+        globalErrorMessage = "Tính năng xem chi tiết đang được phát triển.";
     }
 
     private async Task SubmitProcessOrder()

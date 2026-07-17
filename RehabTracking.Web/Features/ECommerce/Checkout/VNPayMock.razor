@@ -6,6 +6,8 @@
 @inject NavigationManager Navigation
 @inject IMediator Mediator
 @inject RehabTrackingContext DbContext
+@using RehabTracking.Web.Features.ECommerce.Cart
+@inject CartState CartState
 @rendermode InteractiveServer
 
 <PageTitle>VNPay - Cổng thanh toán Mock</PageTitle>
@@ -133,6 +135,7 @@
 
             if (result)
             {
+                CartState.ClearCart();
                 Navigation.NavigateTo("/checkout/success");
             }
             else

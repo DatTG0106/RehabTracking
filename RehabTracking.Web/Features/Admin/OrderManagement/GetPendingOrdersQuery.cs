@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using RehabTracking.Web.Entities;
 
-namespace RehabTracking.Web.Features.Healthcare.AdminDashboard;
+namespace RehabTracking.Web.Features.Admin.OrderManagement;
 
 public class GetPendingOrdersQuery : IRequest<List<Order>>
 {

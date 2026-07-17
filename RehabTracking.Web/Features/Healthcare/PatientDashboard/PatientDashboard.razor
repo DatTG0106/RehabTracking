@@ -15,7 +15,7 @@
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>Dashboard Bệnh nhân - STEP</PageTitle>
+<PageTitle>Sức khỏe của tôi - STEP</PageTitle>
 
 <div class="container-fluid py-4">
     @if (isLoading)
@@ -83,7 +83,7 @@
             </div>
             <div class="col-lg-4 text-lg-end mt-3 mt-lg-0 d-flex gap-2 justify-content-lg-end flex-wrap">
                 <a href="/patient/workout" class="btn btn-outline-primary btn-lg rounded-pill fw-semibold shadow-sm">
-                    <i class="bi bi-dumbbell me-1"></i> Bài tập hôm nay
+                    <i class="bi bi-calendar-check me-1"></i> Bài tập hôm nay
                 </a>
                 @if (!isExercising)
                 {
@@ -132,11 +132,11 @@
                 <div class="spinner-grow text-success flex-shrink-0" role="status" style="width: 1.2rem; height: 1.2rem;"></div>
                 <div>
                     <h6 class="fw-bold text-success mb-0">Thiết bị Đang kết nối &amp; Phát sóng</h6>
-                    <p class="text-muted mb-0 small">Đang truyền tín hiệu EMG &amp; IMU theo thời gian thực đến bác sĩ của bạn.</p>
+                    <p class="text-muted mb-0 small">Đang truyền góc gập cổ tay (ROM) theo thời gian thực đến bác sĩ của bạn.</p>
                 </div>
                 <div class="ms-auto text-end">
-                    <div class="text-success fw-bold">@currentEMG.ToString("0.0") µV</div>
-                    <div class="text-muted small cursor-pointer" data-tooltip="Hoạt động điện cơ (Càng cao càng tốt)">EMG hiện tại <i class="bi bi-info-circle ms-1"></i></div>
+                    <div class="text-success fw-bold">@(liveData.LastOrDefault()?.ROMValue.ToString("0") ?? "0")°</div>
+                    <div class="text-muted small cursor-pointer" data-tooltip="Tầm vận động cổ tay hiện tại">Góc gập hiện tại <i class="bi bi-info-circle ms-1"></i></div>
                 </div>
             </div>
         }
@@ -222,6 +222,142 @@
             </div>
         </div>
 
+        <!-- Ranking & Rewards Section -->
+        <div class="row g-4 mb-4">
+            <!-- Ranking Card -->
+            <div class="col-lg-6">
+                <div class="modern-card p-4 h-100 position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="position-absolute top-0 end-0 m-3 text-white-50 opacity-10">
+                        <i class="bi bi-award-fill" style="font-size: 8rem;"></i>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+                        <h5 class="fw-bold text-white mb-0">
+                            <i class="bi bi-award text-warning me-2"></i> Xếp hạng &amp; Điểm thưởng
+                        </h5>
+                        <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2">
+                            Chuỗi tập: @CalculateStreak() ngày 🔥
+                        </span>
+                    </div>
+
+                    <div class="row align-items-center">
+                        <div class="col-sm-5 text-center mb-3 mb-sm-0 border-end border-secondary border-opacity-25">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 p-3 shadow-lg" 
+                                 style="width: 90px; height: 90px; background: @GetRankGradient(GetRankTier(CalculatePoints())); border: 3px solid rgba(255,255,255,0.15);">
+                                <i class="bi @GetRankIcon(GetRankTier(CalculatePoints())) text-white fs-1"></i>
+                            </div>
+                            <h3 class="fw-bold text-white mb-1">@GetRankName(GetRankTier(CalculatePoints()))</h3>
+                            <p class="text-white-50 small mb-0">Hạng Thành viên</p>
+                        </div>
+                        <div class="col-sm-7 ps-sm-4">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between text-white-50 small mb-1">
+                                    <span>Tổng điểm tích lũy</span>
+                                    @if (GetRankTier(CalculatePoints()) >= 4)
+                                    {
+                                        <span class="text-warning fw-bold">@CalculatePoints() ✨ Tối đa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-white fw-bold">@CalculatePoints() / @GetNextRankThreshold(GetRankTier(CalculatePoints())) điểm</span>
+                                    }
+                                </div>
+                                <div class="progress bg-secondary bg-opacity-20" style="height: 8px; border-radius: 4px;">
+                                    <div class="progress-bar @GetRankProgressBarClass(GetRankTier(CalculatePoints()))" role="progressbar" 
+                                         style="width: @(GetRankProgressPercentage(CalculatePoints()))%; border-radius: 4px; transition: width 0.5s ease;"></div>
+                                </div>
+                            </div>
+                            <ul class="list-unstyled text-white-50 small mb-0 d-flex flex-column gap-2">
+                                <li class="d-flex align-items-center">
+                                    <i class="bi bi-check2 text-success me-2"></i>
+                                    <span>Tập luyện hôm nay: <strong class="text-white">+@(todayReps * 10 + todayDuration * 5) điểm</strong></span>
+                                </li>
+                                <li class="d-flex align-items-center">
+                                    <i class="bi bi-check2 text-success me-2"></i>
+                                    <span>Điểm thưởng chuỗi (x50): <strong class="text-white">@(CalculateStreak() * 50) điểm</strong></span>
+                                </li>
+                                <li class="d-flex align-items-start">
+                                    <i class="bi bi-info-circle text-info mt-1 me-2"></i>
+                                    <span class="text-info text-start">@GetNextRankMessage(CalculatePoints())</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ad Block & Rewards Card -->
+            <div class="col-lg-6">
+                <div class="modern-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                            <h5 class="fw-bold text-dark mb-0">
+                                <i class="bi bi-shield-check text-primary me-2"></i> Ưu đãi theo Thứ hạng
+                            </h5>
+                            <span class="badge @(GetRankTier(CalculatePoints()) >= 2 ? "bg-success" : "bg-primary") rounded-pill px-3 py-2">
+                                <i class="bi bi-badge-ad me-1"></i> QC: @GetAdFrequencyMessage(GetRankTier(CalculatePoints()))
+                            </span>
+                        </div>
+
+                        <!-- Vouchers -->
+                        <div class="mb-4 text-start">
+                            <h6 class="fw-bold text-dark small text-uppercase mb-3">Voucher Ưu đãi đã Mở khóa</h6>
+                            <div class="row g-2">
+                                @foreach (var voucher in GetVouchers(GetRankTier(CalculatePoints())))
+                                {
+                                    <div class="col-sm-6">
+                                        <div class="p-3 border border-dashed rounded-4 d-flex justify-content-between align-items-center" style="background: rgba(79,70,229,0.03); border-color: rgba(79,70,229,0.2) !important;">
+                                            <div class="text-start">
+                                                <div class="fw-bold text-dark mb-0 small" style="font-size:0.8rem;">@voucher.Title</div>
+                                                <span class="text-muted" style="font-size: 0.72rem;">Code: <strong class="text-primary font-monospace">@voucher.Code</strong></span>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 flex-shrink-0" @onclick="() => CopyVoucherCode(voucher.Code)"
+                                                    title="Sao chép mã voucher">
+                                                @if (copiedVoucherCode == voucher.Code)
+                                                {
+                                                    <i class="bi bi-check-lg text-success me-1"></i><span class="text-success">Đã copy!</span>
+                                                }
+                                                else
+                                                {
+                                                    <span><i class="bi bi-copy me-1"></i>Copy</span>
+                                                }
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Ad Banner (Dynamic based on rank) -->
+                    @if (GetRankTier(CalculatePoints()) < 2)
+                    {
+                        <div class="p-3 bg-light rounded-4 border border-light d-flex align-items-center gap-3">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-4 d-flex justify-content-center align-items-center fs-2 flex-shrink-0" style="width: 50px; height: 50px;">
+                                <i class="bi bi-bag-check-fill"></i>
+                            </div>
+                            <div class="flex-grow-1 text-start" style="min-width: 0;">
+                                <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">Mua RehabBand V2 - Trả góp 0%</div>
+                                <p class="text-muted mb-0 small text-truncate">Cảm biến góc khớp MPU6050 thế hệ mới, kết nối nhạy bén 10x.</p>
+                            </div>
+                            <a href="/#products" class="btn btn-sm btn-primary rounded-pill flex-shrink-0">Mua ngay</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="p-3 rounded-4 d-flex align-items-center gap-3 text-success border border-success border-opacity-10" style="background: rgba(16,185,129,0.05);">
+                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center fs-3 flex-shrink-0" style="width: 44px; height: 44px;">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <div class="text-start">
+                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">Bạn đã được Tắt quảng cáo 100%!</div>
+                                <p class="text-muted mb-0 small">Quyền lợi dành cho thành viên Hạng Vàng trở lên. Cảm ơn sự nỗ lực tập luyện của bạn!</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
         <!-- Chart & Plan -->
         <div class="row g-4 mb-4">
             <!-- Live Chart -->
@@ -229,7 +365,7 @@
                 <div class="modern-card glow-card p-4 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="fw-bold text-dark mb-0">
-                            <i class="bi bi-graph-up-arrow text-primary me-2"></i> Hoạt động cơ theo thời gian thực (EMG)
+                            <i class="bi bi-graph-up-arrow text-primary me-2"></i> Góc gập cổ tay thời gian thực (ROM)
                         </h5>
                         @if (isExercising)
                         {
@@ -253,13 +389,13 @@
                     {
                         <div class="rounded-4 overflow-hidden" style="height: 320px;">
                             <RadzenChart Style="width: 100%; height: 100%;">
-                                <RadzenLineSeries Smooth="true" Data="@liveData" CategoryProperty="Time" ValueProperty="EMGValue"
-                                                  Title="EMG (µV)" Stroke="var(--primary-color)" StrokeWidth="2.5">
+                                <RadzenLineSeries Smooth="true" Data="@liveData" CategoryProperty="Time" ValueProperty="ROMValue"
+                                                  Title="Góc gập (°)" Stroke="var(--primary-color)" StrokeWidth="2.5">
                                     <RadzenSeriesDataLabels Visible="false" />
                                     <RadzenMarkers MarkerType="MarkerType.None" />
                                 </RadzenLineSeries>
                                 <RadzenCategoryAxis FormatString="{0:HH:mm:ss}" />
-                                <RadzenValueAxis>
+                                <RadzenValueAxis Min="0" Max="180">
                                     <RadzenGridLines Visible="true" Stroke="rgba(0,0,0,0.04)" />
                                 </RadzenValueAxis>
                             </RadzenChart>
@@ -351,6 +487,27 @@
                             }
                         </div>
                     }
+
+                    <!-- Kết nối Bác sĩ -->
+                    <div class="p-4 border-top">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="text-muted small fw-semibold text-uppercase mb-1">Cố vấn chuyên khoa</div>
+                                <h6 class="fw-bold text-dark mb-0">BS. Trần Minh Khoa</h6>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="javascript:void(0)" class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px; height:36px; transition: all 0.2s;" title="Chat trực tuyến">
+                                    <i class="bi bi-chat-text-fill"></i>
+                                </a>
+                                <a href="https://zalo.me/0787775716" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center bg-white border" style="width:36px; height:36px; transition: all 0.2s;" title="Zalo Bác sĩ">
+                                    <img src="https://page.widget.zalo.me/static/images/2.0/Logo.svg" style="width:20px; height:20px;" alt="Zalo" />
+                                </a>
+                                <a href="https://www.facebook.com/profile.php?id=61590138553379" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px; height:36px; transition: all 0.2s;" title="Facebook Bác sĩ">
+                                    <i class="bi bi-facebook"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -361,9 +518,9 @@
                 <h5 class="fw-bold text-dark mb-0">
                     <i class="bi bi-trophy-fill text-warning me-2"></i>Thành tích tuần này
                 </h5>
+                @{var weekStart = DateTime.UtcNow.AddDays(-7);}
                 <span class="badge bg-white text-primary rounded-pill px-3 py-2 shadow-sm fw-semibold" style="font-size:0.8rem;">
-                    @{ var weekStart = DateTime.UtcNow.AddDays(-7); }
-                    @sessions.Count(s => s.StartTime >= weekStart) / 7 ngày
+                    @sessions.Count(s => s.StartTime >= weekStart) buổi / 7 ngày
                 </span>
             </div>
             <div class="row g-3">
@@ -473,7 +630,6 @@
                                 <th class="text-uppercase small">Thời lượng</th>
                                 <th class="text-uppercase small">Số Reps</th>
                                 <th class="text-uppercase small cursor-pointer" data-tooltip="Tầm vận động khớp tối đa">Max ROM <i class="bi bi-info-circle"></i></th>
-                                <th class="text-uppercase small cursor-pointer" data-tooltip="Hoạt động điện cơ trung bình">EMG TB <i class="bi bi-info-circle"></i></th>
                                 <th class="pe-4 text-uppercase small">Kết quả</th>
                             </tr>
                         </thead>
@@ -485,7 +641,6 @@
                                     <td class="text-muted">@session.DurationMinutes phút</td>
                                     <td class="fw-bold" style="color: var(--secondary-color);">@session.RepetitionsCount</td>
                                     <td class="text-muted">@session.MaxRom°</td>
-                                    <td class="text-muted">@session.AvgEmg.ToString("0.0") µV</td>
                                     <td class="pe-4">
                                         @if (session.RepetitionsCount >= (treatmentPlan?.TargetRepetitions ?? 10))
                                         {
@@ -535,6 +690,8 @@
         font-size: 1.1rem;
         letter-spacing: 0.05em;
     }
+    .bg-purple { background-color: #a855f7 !important; }
+    .bg-amber { background-color: #d97706 !important; }
 </style>
 
 @code {
@@ -556,6 +713,22 @@
     // Computed stats
     private int todayDuration => todaySessions.Sum(s => s.DurationMinutes);
     private int todayReps => todaySessions.Sum(s => s.RepetitionsCount);
+
+    // Voucher copy feedback state (replaces browser alert())
+    private string copiedVoucherCode = string.Empty;
+    private System.Threading.Timer? _copyFeedbackTimer;
+
+    private void CopyVoucherCode(string code)
+    {
+        copiedVoucherCode = code;
+        // Auto-reset after 2 seconds
+        _copyFeedbackTimer?.Dispose();
+        _copyFeedbackTimer = new System.Threading.Timer(_ =>
+        {
+            copiedVoucherCode = string.Empty;
+            InvokeAsync(StateHasChanged);
+        }, null, 2000, Timeout.Infinite);
+    }
 
     // FIX O3: Cache recoveryScore để tránh tính lại mỗi render
     private int _recoveryScore = 0;
@@ -642,7 +815,7 @@
         hubConnection.On<double, double>("ReceiveNewMetrics", (avgEMG, maxROM) =>
         {
             currentEMG = avgEMG;
-            liveData.Add(new ChartDataPoint { Time = DateTime.Now, EMGValue = avgEMG });
+            liveData.Add(new ChartDataPoint { Time = DateTime.Now, ROMValue = maxROM });
             if (liveData.Count > 30) liveData.RemoveAt(0);
             InvokeAsync(StateHasChanged);
         });
@@ -694,8 +867,8 @@
             if (durationMinutes > 0 && patientId > 0)
             {
                 var sessionReps = Math.Max(liveData.Count, 1);
-                var avgEmg = liveData.Any() ? liveData.Average(d => d.EMGValue) : 0;
-                var maxRom = liveData.Any() ? (int)(liveData.Max(d => d.EMGValue) / 2) : 0;
+                var avgEmg = 0.0;
+                var maxRom = liveData.Any() ? (int)liveData.Max(d => d.ROMValue) : 0;
 
                 // BUG FIX: Now saves to DB via MediatR command
                 var saved = await Mediator.Send(new SaveSessionCommand
@@ -729,17 +902,39 @@
                     RecalculateRecoveryScore();
                     sessionSavedMsg = string.Format(AppMessages.SessionSavedSuccessTemplate, durationMinutes);
                     sessionSavedSuccess = true;
+                    
+                    // Auto-dismiss after 5 seconds
+                    _ = Task.Run(async () => 
+                    {
+                        await Task.Delay(5000);
+                        sessionSavedMsg = string.Empty;
+                        await InvokeAsync(StateHasChanged);
+                    });
                 }
                 else
                 {
                     sessionSavedMsg = AppMessages.SessionSavedError;
                     sessionSavedSuccess = false;
+                    
+                    _ = Task.Run(async () => 
+                    {
+                        await Task.Delay(5000);
+                        sessionSavedMsg = string.Empty;
+                        await InvokeAsync(StateHasChanged);
+                    });
                 }
             }
             else if (durationMinutes <= 0)
             {
                 sessionSavedMsg = AppMessages.SessionTooShort;
                 sessionSavedSuccess = false;
+                
+                _ = Task.Run(async () => 
+                {
+                    await Task.Delay(5000);
+                    sessionSavedMsg = string.Empty;
+                    await InvokeAsync(StateHasChanged);
+                });
             }
         }
         catch (Exception ex)
@@ -783,15 +978,197 @@
         _timerCts?.Cancel();
         _timerCts?.Dispose();
         _timerCts = null;
+        _copyFeedbackTimer?.Dispose();
+        _copyFeedbackTimer = null;
         if (hubConnection is not null)
         {
             await hubConnection.DisposeAsync();
         }
     }
 
+    // Ranking & Rewards Helpers
+    public class VoucherItem
+    {
+        public string Title { get; set; } = "";
+        public string Code { get; set; } = "";
+    }
+
+    private int CalculatePoints()
+    {
+        int exercisePoints = sessions.Sum(s => s.RepetitionsCount * 10 + s.DurationMinutes * 5);
+        int streakPoints = CalculateStreak() * 50;
+        return exercisePoints + streakPoints;
+    }
+
+    private int CalculateStreak()
+    {
+        if (!sessions.Any()) return 0;
+        
+        var exerciseDates = sessions
+            .Select(s => s.StartTime.ToLocalTime().Date)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .ToList();
+            
+        if (!exerciseDates.Any()) return 0;
+        
+        var today = DateTime.Today;
+        var yesterday = today.AddDays(-1);
+        
+        if (exerciseDates[0] != today && exerciseDates[0] != yesterday)
+        {
+            return 0;
+        }
+        
+        int streak = 0;
+        var currentCheckDate = exerciseDates[0];
+        
+        foreach (var date in exerciseDates)
+        {
+            if (date == currentCheckDate)
+            {
+                streak++;
+                currentCheckDate = currentCheckDate.AddDays(-1);
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        return streak;
+    }
+
+    private int GetRankTier(int points)
+    {
+        if (points >= 8000) return 4;
+        if (points >= 4000) return 3;
+        if (points >= 1500) return 2;
+        if (points >= 500) return 1;
+        return 0;
+    }
+
+    private string GetRankName(int tier)
+    {
+        return tier switch
+        {
+            4 => "KIM CƯƠNG",
+            3 => "BẠCH KIM",
+            2 => "VÀNG",
+            1 => "BẠC",
+            _ => "ĐỒNG"
+        };
+    }
+
+    private string GetRankIcon(int tier)
+    {
+        return tier switch
+        {
+            4 => "bi-gem",
+            3 => "bi-award-fill",
+            2 => "bi-trophy-fill",
+            1 => "bi-bookmark-star-fill",
+            _ => "bi-award"
+        };
+    }
+
+    private string GetRankGradient(int tier)
+    {
+        return tier switch
+        {
+            4 => "linear-gradient(135deg, #a855f7 0%, #d946ef 100%)",
+            3 => "linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)",
+            2 => "linear-gradient(135deg, #eab308 0%, #f97316 100%)",
+            1 => "linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%)",
+            _ => "linear-gradient(135deg, #b45309 0%, #d97706 100%)"
+        };
+    }
+
+    private string GetRankProgressBarClass(int tier)
+    {
+        return tier switch
+        {
+            4 => "bg-purple",
+            3 => "bg-primary",
+            2 => "bg-warning",
+            1 => "bg-secondary",
+            _ => "bg-amber"
+        };
+    }
+
+    private int GetNextRankThreshold(int tier)
+    {
+        return tier switch
+        {
+            3 => 8000,
+            2 => 4000,
+            1 => 1500,
+            0 => 500,
+            _ => 99999 // Diamond max – used for progress bar max only
+        };
+    }
+
+    private double GetRankProgressPercentage(int points)
+    {
+        int tier = GetRankTier(points);
+        int currentBase = tier switch
+        {
+            4 => 8000,
+            3 => 4000,
+            2 => 1500,
+            1 => 500,
+            _ => 0
+        };
+        int nextGoal = GetNextRankThreshold(tier);
+        if (nextGoal == 99999) return 100.0;
+        
+        double progress = (double)(points - currentBase) / (nextGoal - currentBase) * 100.0;
+        return Math.Clamp(progress, 0.0, 100.0);
+    }
+
+    private string GetNextRankMessage(int points)
+    {
+        int tier = GetRankTier(points);
+        if (tier == 4) return "🏆 Bạn đã đạt cấp bậc KIM CƯƠNG cao nhất!";
+        int pointsNeeded = GetNextRankThreshold(tier) - points;
+        string nextRank = GetRankName(tier + 1);
+        return $"Còn {pointsNeeded:#,0} điểm để lên hạng {nextRank}";
+    }
+
+    private string GetAdFrequencyMessage(int tier)
+    {
+        return tier switch
+        {
+            4 => "Tắt 100%",
+            3 => "Tắt 100%",
+            2 => "Tắt 100%",
+            1 => "Giảm 60%",
+            _ => "Mặc định"
+        };
+    }
+
+    private List<VoucherItem> GetVouchers(int tier)
+    {
+        var vouchers = new List<VoucherItem>();
+        vouchers.Add(new VoucherItem { Title = "Giảm 10k mua phụ kiện", Code = "STEPWELCOME10" });
+        if (tier >= 1)
+        {
+            vouchers.Add(new VoucherItem { Title = "Giảm 30k gói Đặc Quyền", Code = "STEPSILVER30" });
+        }
+        if (tier >= 2)
+        {
+            vouchers.Add(new VoucherItem { Title = "Giảm 50k thiết bị mới", Code = "STEPGOLD50" });
+        }
+        if (tier >= 3)
+        {
+            vouchers.Add(new VoucherItem { Title = "Miễn phí 1 tháng tập VIP", Code = "STEPPLATINUMFREE" });
+        }
+        return vouchers;
+    }
+
     public class ChartDataPoint
     {
         public DateTime Time { get; set; }
-        public double EMGValue { get; set; }
+        public double ROMValue { get; set; }
     }
 }

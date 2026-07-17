@@ -14,7 +14,7 @@ namespace RehabTracking.Web.Constants
         public const string ProgressGood = "Bạn đang tiến bộ tốt trong hành trình phục hồi chức năng.";
         public const string ProgressStartToday = "Hãy bắt đầu buổi tập đầu tiên của bạn hôm nay!";
         public const string NoDataYet = "Chưa có dữ liệu";
-        public const string ClickToStart = "Nhấn \"Bắt đầu Tập luyện\" để xem biểu đồ EMG trực tiếp";
+        public const string ClickToStart = "Nhấn \"Bắt đầu Tập luyện\" để xem biểu đồ góc khớp (ROM) trực tiếp";
         public const string NoTreatmentPlan = "Chưa có phác đồ điều trị. Bác sĩ của bạn sẽ cập nhật sớm.";
         public const string NoHistory = "Chưa có lịch sử tập luyện. Hãy bắt đầu buổi tập đầu tiên!";
 

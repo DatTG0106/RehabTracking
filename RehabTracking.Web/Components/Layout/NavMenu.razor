@@ -30,12 +30,12 @@
                 <AuthorizeView Roles="Patient">
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
                         <NavLink class="nav-link" href="patient-dashboard">
-                            <i class="bi bi-person-heart me-1"></i> Dashboard Bệnh nhân
+                            <i class="bi bi-person-heart me-1"></i> Sức khỏe của tôi
                         </NavLink>
                     </li>
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
                         <NavLink class="nav-link" href="patient/workout">
-                            <i class="bi bi-dumbbell me-1"></i> Bài tập hôm nay
+                            <i class="bi bi-calendar-check me-1"></i> Bài tập hôm nay
                         </NavLink>
                     </li>
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
@@ -48,7 +48,7 @@
                 <AuthorizeView Roles="Doctor">
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
                         <NavLink class="nav-link" href="doctor-dashboard">
-                            <i class="bi bi-heart-pulse me-1"></i> Dashboard Bác sĩ
+                            <i class="bi bi-heart-pulse me-1"></i> Bảng điều khiển Bác sĩ
                         </NavLink>
                     </li>
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
@@ -60,8 +60,13 @@
 
                 <AuthorizeView Roles="Admin">
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
-                        <NavLink class="nav-link" href="admin-dashboard">
+                        <NavLink class="nav-link" href="admin/orders">
                             <i class="bi bi-speedometer2 me-1"></i> Quản lý Đơn hàng
+                        </NavLink>
+                    </li>
+                    <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
+                        <NavLink class="nav-link" href="admin/inventory">
+                            <i class="bi bi-boxes me-1"></i> Quản lý Kho
                         </NavLink>
                     </li>
                     <li class="nav-item ms-lg-2" @onclick="CloseMobileMenu">
@@ -153,10 +158,10 @@
                                     <AuthorizeView Roles="Patient" Context="patCtx">
                                         <div class="px-2 py-1">
                                             <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/patient-dashboard")'>
-                                                <i class="bi bi-person-heart text-success me-2"></i> Dashboard của tôi
+                                                <i class="bi bi-person-heart text-success me-2"></i> Sức khỏe của tôi
                                             </button>
                                             <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/patient/workout")'>
-                                                <i class="bi bi-dumbbell text-primary me-2"></i> Bài tập hôm nay
+                                                <i class="bi bi-calendar-check text-primary me-2"></i> Bài tập hôm nay
                                             </button>
                                             <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/patient/profile")'>
                                                 <i class="bi bi-person-badge text-info me-2"></i> Hồ sơ cá nhân
@@ -171,7 +176,7 @@
                                     <AuthorizeView Roles="Doctor" Context="docCtx">
                                         <div class="px-2 py-1">
                                             <button class="dropdown-item-btn w-100 text-start" @onclick='() => GoTo("/doctor-dashboard")'>
-                                                <i class="bi bi-heart-pulse text-danger me-2"></i> Dashboard Bác sĩ
+                                                <i class="bi bi-heart-pulse text-danger me-2"></i> Bảng điều khiển Bác sĩ
                                             </button>
                                             <button class="dropdown-item-btn w-100 text-start mt-1" @onclick='() => GoTo("/doctor/exercise-plans")'>
                                                 <i class="bi bi-journal-medical text-info me-2"></i> Lộ trình Bài tập

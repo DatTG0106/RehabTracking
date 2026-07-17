@@ -1,0 +1,313 @@
+@page "/admin/inventory"
+@using Microsoft.AspNetCore.Authorization
+@using MediatR
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Features.Admin.InventoryManagement
+@attribute [Authorize(Roles = "Admin")]
+@inject IMediator Mediator
+@rendermode InteractiveServer
+
+<PageTitle>Quản lý Kho - STEP</PageTitle>
+
+<div class="container-fluid py-4">
+    <!-- Hero Section -->
+    <div class="row mb-5 align-items-center">
+        <div class="col-lg-8">
+            <h1 class="fw-bold mb-1" style="color: var(--text-main); font-size: 2.2rem;">Quản Lý Tồn Kho</h1>
+            <p class="text-muted fs-5 mb-0">Giám sát và nhập hàng mới cho các thiết bị y tế IoT, sẵn sàng phân phối đến bệnh nhân.</p>
+        </div>
+        <div class="col-lg-6 text-lg-end mt-3 mt-lg-0">
+            <div class="d-flex flex-wrap justify-content-lg-end gap-3">
+                <div class="bg-white px-3 py-2 rounded-3 shadow-sm text-center border-0" style="min-width: 100px;">
+                    <h3 class="fw-bold text-primary mb-0">@(products?.Count ?? 0)</h3>
+                    <span class="text-muted small fw-semibold text-uppercase">Tổng SKU</span>
+                </div>
+                <div class="bg-white px-3 py-2 rounded-3 shadow-sm text-center border-0" style="min-width: 100px;">
+                    <h3 class="fw-bold text-info mb-0">@(products?.Sum(p => p.StockQuantity) ?? 0)</h3>
+                    <span class="text-muted small fw-semibold text-uppercase">Tổng Tồn</span>
+                </div>
+                <div class="bg-white px-3 py-2 rounded-3 shadow-sm text-center border-0" style="min-width: 100px;">
+                    <h3 class="fw-bold text-warning mb-0">@(products?.Count(p => p.StockQuantity > 0 && p.StockQuantity < 5) ?? 0)</h3>
+                    <span class="text-muted small fw-semibold text-uppercase">Sắp Hết</span>
+                </div>
+                <div class="bg-white px-3 py-2 rounded-3 shadow-sm text-center border-0" style="min-width: 100px;">
+                    <h3 class="fw-bold text-danger mb-0">@(products?.Count(p => p.StockQuantity == 0) ?? 0)</h3>
+                    <span class="text-muted small fw-semibold text-uppercase">Hết Hàng</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success alert-dismissible border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fade-in" role="alert">
+            <i class="bi bi-check-circle-fill flex-shrink-0 fs-5"></i>
+            <span>@successMessage</span>
+            <button type="button" class="btn-close ms-auto" @onclick="() => successMessage = string.Empty"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(mainErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fade-in" role="alert">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 fs-5"></i>
+            <span>@mainErrorMessage</span>
+            <button type="button" class="btn-close ms-auto" @onclick="() => mainErrorMessage = string.Empty"></button>
+        </div>
+    }
+
+    <!-- Toolbar -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group shadow-sm" style="border-radius: 0.75rem; overflow: hidden;">
+                <span class="input-group-text bg-white border-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-0 bg-white" placeholder="Tìm kiếm theo mã, tên hoặc loại..." @bind="searchQuery" @bind:event="oninput">
+            </div>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <button class="btn btn-white border shadow-sm rounded-3 px-3" @onclick="RefreshData">
+                <i class="bi bi-arrow-clockwise me-1"></i> Làm Mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="modern-card p-0 overflow-hidden">
+                <div class="card-header bg-white border-bottom pt-4 pb-3 px-4">
+                    <h5 class="fw-bold text-dark mb-0">Danh Sách Thiết Bị</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (products == null)
+                    {
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                            <p class="text-muted mt-3 fw-medium">Đang tải dữ liệu...</p>
+                        </div>
+                    }
+                    else if (!FilteredProducts.Any())
+                    {
+                        <div class="text-center py-5">
+                            <div class="bg-light rounded-circle d-inline-flex justify-content-center align-items-center mb-3" style="width: 64px; height: 64px;">
+                                <i class="bi bi-box-seam text-muted fs-2"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Không có dữ liệu</h5>
+                            <p class="text-muted mb-0">Không tìm thấy sản phẩm nào trong danh sách.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 border-top">
+                                <thead class="table-light text-muted">
+                                    <tr>
+                                        <th class="ps-4 py-3 text-uppercase" style="font-size: 0.85rem;">Mã SP</th>
+                                        <th class="py-3 text-uppercase" style="font-size: 0.85rem;">Tên Sản Phẩm</th>
+                                        <th class="py-3 text-uppercase" style="font-size: 0.85rem;">Loại</th>
+                                        <th class="py-3 text-uppercase" style="font-size: 0.85rem;">Giá Bán</th>
+                                        <th class="py-3 text-uppercase text-center" style="font-size: 0.85rem;">Tồn Kho</th>
+                                        <th class="pe-4 py-3 text-end text-uppercase" style="font-size: 0.85rem;">Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var product in FilteredProducts)
+                                    {
+                                        <tr style="transition: all 0.2s;">
+                                            <td class="ps-4 fw-bold text-dark">#@product.ProductId</td>
+                                            <td>
+                                                <div class="fw-semibold text-dark">@product.ProductName</div>
+                                            </td>
+                                            <td class="text-muted">
+                                                <span class="badge bg-light text-dark border">@product.ProductType</span>
+                                            </td>
+                                            <td class="fw-bold text-dark">@product.Price.ToString("N0")₫</td>
+                                            <td class="text-center">
+                                                <span class="badge @(product.StockQuantity > 10 ? "bg-success" : (product.StockQuantity > 0 ? "bg-warning text-dark" : "bg-danger")) px-3 py-2 rounded-pill" style="font-size: 0.9rem;">
+                                                    @product.StockQuantity
+                                                </span>
+                                            </td>
+                                            <td class="pe-4 text-end">
+                                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm" @onclick="() => OpenRestockModal(product)">
+                                                    <i class="bi bi-box-arrow-in-down me-1"></i> Nhập Thêm
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Restock Modal -->
+@if (selectedProduct != null && showRestockModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(5px);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+                <div class="modal-header border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center" style="width: 48px; height: 48px;">
+                            <i class="bi bi-boxes text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0">Nhập Thêm Hàng</h5>
+                            <span class="text-muted small">@selectedProduct.ProductName</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" @onclick="CloseRestockModal"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <p class="text-muted">Vui lòng nhập số lượng hàng mới về từ xưởng hoặc đối tác cung cấp.</p>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger border-0 rounded-3 py-2 d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            @errorMessage
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between mb-3 p-3 bg-light rounded-3">
+                        <span class="text-muted">Tồn kho hiện tại:</span>
+                        <strong class="fs-5 @(selectedProduct.StockQuantity > 0 ? "text-success" : "text-danger")">
+                            @selectedProduct.StockQuantity
+                        </strong>
+                    </div>
+
+                    <div class="form-floating mb-2">
+                        <input type="number" min="1" max="1000" class="form-control" id="quantityInput" placeholder="Số lượng nhập"
+                               @bind="quantityToAdd" style="border-radius: 0.75rem;" />
+                        <label for="quantityInput">Số Lượng Nhập Thêm</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" @onclick="CloseRestockModal">Hủy</button>
+                    <button type="button" class="btn btn-modern-primary rounded-pill px-4"
+                            @onclick="SubmitRestock"
+                            disabled="@(quantityToAdd <= 0 || isSubmitting)">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span>Đang xử lý...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-plus-circle me-2"></i>
+                            <span>Nhập Kho</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Product>? products;
+    private Product? selectedProduct;
+    
+    private string searchQuery = "";
+    private IEnumerable<Product> FilteredProducts => string.IsNullOrWhiteSpace(searchQuery) 
+        ? (products ?? Enumerable.Empty<Product>())
+        : (products ?? Enumerable.Empty<Product>()).Where(p => 
+            p.ProductName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) || 
+            p.ProductId.ToString().Contains(searchQuery) || 
+            (p.ProductType != null && p.ProductType.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)));
+
+    private bool showRestockModal = false;
+    private bool isSubmitting = false;
+    private int quantityToAdd = 10;
+    
+    private string successMessage = "";
+    private string errorMessage = "";
+    private string mainErrorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInventory();
+    }
+
+    private async Task LoadInventory()
+    {
+        mainErrorMessage = "";
+        try
+        {
+            products = await Mediator.Send(new GetInventoryQuery());
+        }
+        catch (Exception ex)
+        {
+            mainErrorMessage = "Không thể tải dữ liệu tồn kho: " + ex.Message;
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        products = null; // Show loading spinner
+        await LoadInventory();
+    }
+
+    private void OpenRestockModal(Product product)
+    {
+        selectedProduct = product;
+        quantityToAdd = 10; // Default suggestions
+        errorMessage = "";
+        showRestockModal = true;
+    }
+
+    private void CloseRestockModal()
+    {
+        showRestockModal = false;
+        selectedProduct = null;
+        errorMessage = "";
+    }
+
+    private async Task SubmitRestock()
+    {
+        if (selectedProduct == null) return;
+        
+        if (quantityToAdd <= 0)
+        {
+            errorMessage = "Số lượng nhập không hợp lệ.";
+            return;
+        }
+
+        isSubmitting = true;
+        errorMessage = "";
+
+        try
+        {
+            var result = await Mediator.Send(new UpdateStockCommand
+            {
+                ProductId = selectedProduct.ProductId,
+                QuantityToAdd = quantityToAdd
+            });
+
+            if (result)
+            {
+                var qty = quantityToAdd;
+                var name = selectedProduct.ProductName;
+                CloseRestockModal();
+                successMessage = $"Nhập thành công {qty} cái {name} vào kho.";
+                await LoadInventory();
+            }
+            else
+            {
+                errorMessage = "Có lỗi xảy ra khi cập nhật kho.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Lỗi hệ thống: " + ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}
