@@ -494,10 +494,11 @@
                         </div>
                     </div>
                 }
-                <div class="row row-cols-1 row-cols-md-3 g-4">
+
+                <div class="row g-4 justify-content-center">
                     @foreach (var product in products)
                     {
-                        <div class="col">
+                        <div class="col-md-6 col-lg-5 col-xl-4">
                             <div class="card h-100 border-0 shadow-sm product-card rounded-4 overflow-hidden">
                                 <div class="product-img-wrapper position-relative" style="cursor:pointer;" @onclick="() => ShowDetailsModal(product)">
                                     <img src="@(string.IsNullOrEmpty(product.ImageUrl) ? "https://placehold.co/400x220/e0e7ff/6366f1?text=No+Image" : product.ImageUrl)"
@@ -529,7 +530,7 @@
 
                                     <div class="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
                                         <div>
-                                            <span class="fs-5 fw-bold text-primary">@product.Price.ToString("N0")₫</span>
+                                            <span class="fs-5 fw-bold text-primary">Liên hệ</span>
                                         </div>
                                         <div class="d-flex gap-2">
                                             <button class="btn btn-outline-secondary rounded-circle d-flex justify-content-center align-items-center" 
@@ -538,12 +539,10 @@
                                                     title="Xem chi tiết">
                                                 <i class="bi bi-eye"></i>
                                             </button>
-                                            <button class="btn btn-modern-primary rounded-pill px-3 shadow-sm d-flex align-items-center"
-                                                    disabled="@(product.StockQuantity <= 0)"
-                                                    @onclick="async () => await AddToCart(product)">
-                                                <i class="bi bi-cart-plus me-1"></i>
-                                                Thêm
-                                            </button>
+                                            <a href="https://zalo.me/0787775716" target="_blank" class="btn btn-modern-primary rounded-pill px-3 shadow-sm d-flex align-items-center text-white" style="text-decoration:none;">
+                                                <i class="bi bi-chat-dots me-1"></i>
+                                                Liên hệ
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -617,81 +616,189 @@
     </div>
 
     <!-- Pricing Plans Section -->
-    <div class="py-5 border-bottom bg-white">
+    <!-- Pricing Plans Section -->
+    <div id="pricing" class="py-5 border-bottom bg-white" style="scroll-margin-top: 100px;">
         <div class="container py-4">
-            <div class="text-center mb-5">
+            <div class="text-center mb-4">
                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 mb-2">
                     <i class="bi bi-tags-fill me-1"></i> Bảng giá dịch vụ
                 </span>
                 <h2 class="fw-bold">Nâng cấp lộ trình phục hồi của bạn</h2>
                 <p class="text-muted">Chọn gói dịch vụ phần mềm đi kèm thiết bị phù hợp nhất với nhu cầu của bạn.</p>
             </div>
+
+            <!-- Billing Toggle Switch -->
+            <div class="d-flex align-items-center justify-content-center mb-5 gap-3">
+                <span class="fw-semibold @(!isAnnualBilling ? "text-primary" : "text-muted")" style="cursor: pointer;" @onclick="() => isAnnualBilling = false">Thanh toán hàng tháng</span>
+                <div class="form-check form-switch p-0 m-0 d-flex align-items-center" style="font-size: 1.5rem;">
+                    <input class="form-check-input m-0" type="checkbox" role="switch" checked="@isAnnualBilling" @onchange="ToggleBilling" style="cursor: pointer; width: 3rem; height: 1.6rem; float: none;">
+                </div>
+                <span class="fw-semibold @(isAnnualBilling ? "text-primary" : "text-muted")" style="cursor: pointer;" @onclick="() => isAnnualBilling = true">
+                    Thanh toán hàng năm
+                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill ms-1" style="font-size: 0.65rem; padding: 0.25rem 0.5rem; vertical-align: middle; border: 1px solid rgba(220, 53, 69, 0.2);">Tiết kiệm ~2 tháng</span>
+                </span>
+            </div>
             
             <div class="row g-4 justify-content-center">
                 <!-- Basic Plan -->
-                <div class="col-md-4">
-                    <div class="card border border-light shadow-sm rounded-4 h-100">
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border border-light-subtle shadow-sm rounded-4 h-100 d-flex flex-column hover-lift">
                         <div class="card-header bg-transparent border-0 pt-4 pb-2 text-center">
-                            <h5 class="fw-bold text-muted mb-1 text-uppercase letter-spacing-1" style="font-size: 0.85rem;">Gói Cơ Bản</h5>
-                            <div class="display-5 fw-bold text-dark">Miễn phí</div>
-                            <p class="text-muted small mt-2 mb-0">Mặc định đi kèm khi mua thiết bị</p>
+                            <h5 class="fw-bold text-muted mb-2 text-uppercase letter-spacing-1" style="font-size: 0.85rem;">STEP Basic</h5>
+                            @if (!isAnnualBilling)
+                            {
+                                <div class="display-5 fw-bold text-dark">1.000.000₫<span class="fs-6 fw-normal text-muted">/tháng</span></div>
+                            }
+                            else
+                            {
+                                <div class="display-5 fw-bold text-dark">10.000.000₫<span class="fs-6 fw-normal text-muted">/năm</span></div>
+                                <div class="text-primary small fw-semibold mt-1">(Tương đương ~833.000₫/tháng)</div>
+                            }
+                            <div class="badge bg-light text-secondary border border-light-subtle rounded-pill px-3 py-1.5 mt-3 fw-bold" style="font-size: 0.75rem;">
+                                + 2.000.000₫ phí thiết lập ban đầu
+                            </div>
+                            <p class="text-muted small mt-3 mb-0" style="min-height: 40px; text-align: justify; text-align-last: center;">Phù hợp với chuyên gia muốn sử dụng thử các chức năng phần mềm cốt lõi mà chưa cần tích hợp thiết bị.</p>
                         </div>
                         <div class="card-body p-4 pt-2 d-flex flex-column">
                             <hr class="text-muted opacity-25 mb-4">
-                            <ul class="list-unstyled mb-4 text-start">
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Kết nối Bluetooth App Mobile</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Xem biểu đồ thống kê cá nhân</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Tích lũy điểm &amp; thứ hạng thành viên</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Chạy quảng cáo (giảm tần suất theo hạng)</span></li>
-                                <li class="mb-3 d-flex align-items-start text-muted opacity-75"><i class="bi bi-x-circle text-secondary fs-5 me-3 flex-shrink-0"></i> <span>Không kết nối trực tiếp Bác sĩ</span></li>
+                            <div class="bg-light rounded-3 p-3 mb-4 text-start">
+                                <div class="small mb-1 text-muted">Giới hạn hệ thống:</div>
+                                <div class="fw-semibold text-dark mb-1"><i class="bi bi-people me-2 text-primary"></i>Tối đa 30 bệnh nhân hoạt động</div>
+                                <div class="fw-semibold text-dark mb-1"><i class="bi bi-person-workspace me-2 text-primary"></i>2 tài khoản bác sĩ/kỹ thuật viên</div>
+                                <div class="fw-semibold text-dark"><i class="bi bi-geo-alt me-2 text-primary"></i>1 địa điểm sử dụng</div>
+                            </div>
+                            <ul class="list-unstyled mb-4 text-start flex-grow-1">
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Quản lý hồ sơ bệnh nhân</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Thiết lập lịch và bài tập</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Nhắc lịch và thông báo tự động</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Theo dõi mức độ hoàn thành bài tập</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Phản hồi mức độ đau, mệt sau tập</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Báo cáo tổng hợp cơ bản</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Gamification &amp; linh vật (Cơ bản)</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Đào tạo ban đầu trực tuyến</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Hỗ trợ cấp độ Tiêu chuẩn</span></li>
+                                <li class="mb-2 d-flex align-items-start text-muted opacity-60"><i class="bi bi-x-circle-fill text-danger fs-5 me-3 flex-shrink-0"></i> <span style="text-decoration: line-through;">Không có vòng đeo cho mượn</span></li>
+                                <li class="mb-2 d-flex align-items-start text-muted opacity-60"><i class="bi bi-x-circle-fill text-danger fs-5 me-3 flex-shrink-0"></i> <span style="text-decoration: line-through;">Không hỗ trợ Dashboard cảm biến</span></li>
+                                <li class="mb-2 d-flex align-items-start text-muted opacity-60"><i class="bi bi-x-circle-fill text-danger fs-5 me-3 flex-shrink-0"></i> <span style="text-decoration: line-through;">Không hỗ trợ quyền theo dõi của người thân</span></li>
                             </ul>
-                            <button class="btn btn-outline-secondary w-100 rounded-pill fw-bold py-2 mt-auto" disabled>Đã bao gồm</button>
+                            <button class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2.5 mt-auto" @onclick='() => ScrollTo("products")'>Bắt đầu ngay</button>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Premium Plan -->
-                <div class="col-md-4">
-                    <div class="card border-primary shadow-lg rounded-4 h-100 position-relative" style="transform: scale(1.05); z-index: 10;">
-                        <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2 text-uppercase letter-spacing-1">Khuyên dùng</div>
+                <!-- Plus Plan -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-primary shadow-lg rounded-4 h-100 position-relative d-flex flex-column hover-lift" style="z-index: 2; border-width: 2px !important;">
+                        <div class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2 text-uppercase letter-spacing-1">Gói trọng tâm</div>
                         <div class="card-header bg-primary text-white text-center rounded-top-4 pt-4 pb-2 border-0">
-                            <h5 class="fw-bold mb-1 opacity-75 text-uppercase letter-spacing-1" style="font-size: 0.85rem;">Gói Đặc Quyền</h5>
-                            <div class="display-5 fw-bold">499.000₫<span class="fs-6 fw-normal opacity-75">/tháng</span></div>
-                            <p class="small mt-2 mb-0 opacity-75">Giải pháp toàn diện nhất</p>
+                            <h5 class="fw-bold mb-2 text-uppercase letter-spacing-1" style="font-size: 0.85rem; opacity: 0.9;">STEP Plus</h5>
+                            @if (!isAnnualBilling)
+                            {
+                                <div class="display-5 fw-bold">2.500.000₫<span class="fs-6 fw-normal opacity-80">/tháng</span></div>
+                            }
+                            else
+                            {
+                                <div class="display-5 fw-bold">25.000.000₫<span class="fs-6 fw-normal opacity-80">/năm</span></div>
+                                <div class="text-white opacity-90 small fw-semibold mt-1">(Tương đương ~2.083.000₫/tháng)</div>
+                            }
+                            <div class="badge bg-white text-primary rounded-pill px-3 py-1.5 mt-3 fw-bold" style="font-size: 0.75rem;">
+                                + 3.000.000₫ phí thiết lập ban đầu
+                            </div>
+                            <p class="small mt-3 mb-0 opacity-90" style="min-height: 40px; text-align: justify; text-align-last: center;">Sản phẩm trọng tâm, kết hợp phần mềm, người chăm sóc và một số vòng đeo cho bệnh nhân cần theo dõi.</p>
                         </div>
                         <div class="card-body p-4 pt-2 d-flex flex-column">
-                            <hr class="text-white opacity-25 mb-4">
-                            <ul class="list-unstyled mb-4 text-start">
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Toàn bộ tính năng gói Cơ bản</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Chỉ định 1 Bác sĩ chuyên khoa theo dõi Live 24/7</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Miễn quảng cáo 100% khi đạt thứ hạng Vàng</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Đổi Voucher giảm giá phụ kiện STEP hàng tuần</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Tải báo cáo Y khoa (PDF) hàng tuần</span></li>
+                            <hr class="text-muted opacity-25 mb-4">
+                            <div class="bg-primary bg-opacity-10 rounded-3 p-3 mb-4 text-start">
+                                <div class="small mb-1 text-primary fw-bold">Giới hạn hệ thống &amp; Thiết bị:</div>
+                                <div class="fw-bold text-dark mb-1"><i class="bi bi-people me-2 text-primary"></i>Tối đa 80 bệnh nhân hoạt động</div>
+                                <div class="fw-bold text-dark mb-1"><i class="bi bi-person-workspace me-2 text-primary"></i>5 tài khoản bác sĩ/kỹ thuật viên</div>
+                                <div class="fw-bold text-dark mb-1"><i class="bi bi-geo-alt me-2 text-primary"></i>1 địa điểm sử dụng</div>
+                                <div class="fw-bold text-primary mt-1"><i class="bi bi-watch me-2 text-primary"></i>Vòng đeo cho mượn: 2 thiết bị</div>
+                            </div>
+                            <ul class="list-unstyled mb-4 text-start flex-grow-1">
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Toàn bộ tính năng gói Basic</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Quyền theo dõi của người thân</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Dashboard dữ liệu cảm biến</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Báo cáo tổng hợp theo tuần/tháng</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Xuất dữ liệu hồ sơ bệnh nhân (Cơ bản)</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Gamification &amp; linh vật (Đầy đủ)</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-primary fs-5 me-3 flex-shrink-0"></i> <span class="fw-medium text-dark">Mức độ hỗ trợ: Ưu tiên</span></li>
                             </ul>
-                            <button class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow mt-auto">Đăng ký ngay</button>
+                            <button class="btn btn-primary w-100 rounded-pill fw-bold py-2.5 shadow mt-auto" @onclick='() => ScrollTo("products")'>Đăng ký ngay</button>
                         </div>
                     </div>
                 </div>
                 
-                <!-- VIP Plan -->
-                <div class="col-md-4">
-                    <div class="card border border-light shadow-sm rounded-4 h-100">
+                <!-- Pro Plan -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border border-light-subtle shadow-sm rounded-4 h-100 d-flex flex-column hover-lift">
                         <div class="card-header bg-transparent border-0 pt-4 pb-2 text-center">
-                            <h5 class="fw-bold text-muted mb-1 text-uppercase letter-spacing-1" style="font-size: 0.85rem;">Gói Chuyên Gia</h5>
-                            <div class="display-5 fw-bold text-dark">Liên hệ</div>
-                            <p class="text-muted small mt-2 mb-0">Dành cho Phòng khám / Bệnh viện</p>
+                            <h5 class="fw-bold text-muted mb-2 text-uppercase letter-spacing-1" style="font-size: 0.85rem;">STEP Pro</h5>
+                            @if (!isAnnualBilling)
+                            {
+                                <div class="display-5 fw-bold text-dark">4.500.000₫<span class="fs-6 fw-normal text-muted">/tháng</span></div>
+                            }
+                            else
+                            {
+                                <div class="display-5 fw-bold text-dark">45.000.000₫<span class="fs-6 fw-normal text-muted">/năm</span></div>
+                                <div class="text-primary small fw-semibold mt-1">(Tương đương ~3.750.000₫/tháng)</div>
+                            }
+                            <div class="badge bg-light text-secondary border border-light-subtle rounded-pill px-3 py-1.5 mt-3 fw-bold" style="font-size: 0.75rem;">
+                                + 5.000.000₫ phí thiết lập ban đầu
+                            </div>
+                            <p class="text-muted small mt-3 mb-0" style="min-height: 40px; text-align: justify; text-align-last: center;">Hướng đến cơ sở có quy mô lớn hơn, cần nhiều tài khoản, số lượng bệnh nhân cao và báo cáo chi tiết.</p>
                         </div>
                         <div class="card-body p-4 pt-2 d-flex flex-column">
                             <hr class="text-muted opacity-25 mb-4">
-                            <ul class="list-unstyled mb-4 text-start">
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Cấp tài khoản Doctor không giới hạn</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Quản lý bệnh nhân quy mô lớn</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Tích hợp API vào hệ thống HIS của bệnh viện</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Hỗ trợ kỹ thuật On-site 24/7</span></li>
-                                <li class="mb-3 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Tùy chỉnh Logo & Tên miền riêng (White-label)</span></li>
+                            <div class="bg-light rounded-3 p-3 mb-4 text-start">
+                                <div class="small mb-1 text-muted">Giới hạn hệ thống &amp; Thiết bị:</div>
+                                <div class="fw-semibold text-dark mb-1"><i class="bi bi-people me-2 text-primary"></i>Tối đa 200 bệnh nhân hoạt động</div>
+                                <div class="fw-semibold text-dark mb-1"><i class="bi bi-person-workspace me-2 text-primary"></i>10 tài khoản bác sĩ/kỹ thuật viên</div>
+                                <div class="fw-semibold text-dark mb-1"><i class="bi bi-geo-alt me-2 text-primary"></i>Tối đa 2 địa điểm sử dụng</div>
+                                <div class="fw-semibold text-success mt-1"><i class="bi bi-watch me-2 text-success"></i>Vòng đeo cho mượn: 5 thiết bị</div>
+                            </div>
+                            <ul class="list-unstyled mb-4 text-start flex-grow-1">
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Toàn bộ tính năng gói Plus</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Báo cáo tổng hợp tùy chỉnh chuyên sâu</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Xuất dữ liệu đầy đủ (Có)</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Đào tạo ban đầu trực tiếp hoặc trực tuyến</span></li>
+                                <li class="mb-2 d-flex align-items-start"><i class="bi bi-check-circle-fill text-success fs-5 me-3 flex-shrink-0"></i> <span>Mức độ hỗ trợ: Ưu tiên cao</span></li>
                             </ul>
-                            <button class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2 mt-auto">Nhận báo giá</button>
+                            <button class="btn btn-outline-primary w-100 rounded-pill fw-bold py-2.5 mt-auto" @onclick='() => ScrollTo("products")'>Liên hệ hỗ trợ</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device Pricing Section -->
+            <div class="row mt-5 pt-4 justify-content-center">
+                <div class="col-lg-10">
+                    <div class="bg-light rounded-4 p-4 p-md-5 border border-light-subtle shadow-sm">
+                        <h4 class="fw-bold text-dark text-center mb-4"><i class="bi bi-watch text-primary me-2"></i>Tùy Chọn Thiết Bị Đeo Bổ Sung</h4>
+                        <p class="text-muted text-center mb-4">Các gói Plus và Pro đã bao gồm số lượng thiết bị cho mượn giới hạn. Nếu cơ sở cần thêm thiết bị, STEP cung cấp dưới hai hình thức:</p>
+                        <div class="row g-4 justify-content-center">
+                            <!-- Rent option -->
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 bg-white shadow-sm p-4 rounded-3 text-center">
+                                    <div class="text-primary mb-2"><i class="bi bi-calendar-event fs-3"></i></div>
+                                    <h5 class="fw-bold text-primary mb-2">Thuê thêm thiết bị</h5>
+                                    <div class="display-6 fw-bold text-dark mb-2">90.000₫<span class="fs-6 fw-normal text-muted">/tháng/thiết bị</span></div>
+                                    <p class="text-muted small mb-0">Tiền đặt cọc: <strong>300.000₫/thiết bị</strong> (sẽ được hoàn trả đầy đủ khi trả lại thiết bị đúng điều kiện ban đầu sau khi sử dụng xong).</p>
+                                </div>
+                            </div>
+                            <!-- Buy option -->
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 bg-white shadow-sm p-4 rounded-3 text-center">
+                                    <div class="text-success mb-2"><i class="bi bi-cart-check fs-3"></i></div>
+                                    <h5 class="fw-bold text-success mb-2">Mua thiết bị</h5>
+                                    <div class="display-6 fw-bold text-dark mb-2">Khoảng 690.000₫<span class="fs-6 fw-normal text-muted">/thiết bị</span></div>
+                                    <p class="text-muted small mb-0">Chỉ áp dụng mua bổ sung sau khi thiết bị hoàn thành giai đoạn kiểm thử lâm sàng thành công.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-center text-muted small mt-4 mb-0" style="font-size: 0.8rem; line-height: 1.5;">
+                            <i class="bi bi-info-circle-fill me-1 text-warning"></i> * <strong>Lưu ý giai đoạn MVP:</strong> Trong giai đoạn phát triển sản phẩm khả dụng tối thiểu (MVP), thiết bị đeo chỉ là phiên bản thử nghiệm (prototype) sử dụng cảm biến gia tốc và chưa dùng để chẩn đoán lâm sàng hay tự động hiệu chỉnh phác đồ tập. Doanh thu bổ sung từ thiết bị chưa đưa vào kịch bản tài chính cốt lõi.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -1074,40 +1181,13 @@
             </div>
             
             <div class="row g-4">
-                <!-- Nghĩa -->
-                <div class="col-md-6 col-lg-4">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
-                        <div class="p-3 d-flex justify-content-center">
-                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Nghĩa" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Leader">
-                        </div>
-                        <div class="card-body text-center pt-0 d-flex flex-column">
-                            <h5 class="fw-bold mb-1">Lê Huỳnh Đại Nghĩa</h5>
-                            <span class="badge px-3 py-2 rounded-pill text-uppercase mb-3" style="background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; letter-spacing: 1px;"><i class="bi bi-star-fill me-1"></i> Trưởng nhóm dự án</span>
-                            <div class="text-muted small mb-4 text-start flex-grow-1">
-                                <div class="text-center mb-3">
-                                    <div class="d-inline-flex align-items-center justify-content-center bg-light text-secondary rounded-pill px-3 py-1 fw-medium border shadow-sm" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                                        <i class="bi bi-mortarboard-fill me-2 text-primary"></i> Chuyên ngành Kinh tế
-                                    </div>
-                                </div>
-                                <ul class="mb-0 ps-3">
-                                    <li class="mb-1">Quản lý và theo dõi tiến độ chung của nhóm.</li>
-                                    <li class="mb-1">Khảo sát thực tế nhu cầu người bệnh để cải tiến thiết bị.</li>
-                                    <li>Điều phối các hoạt động phát triển dự án.</li>
-                                </ul>
-                            </div>
-                            <div class="d-flex justify-content-center gap-2 mt-auto">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
-                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-envelope-fill"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Ngọc -->
                 <div class="col-md-6 col-lg-4">
                     <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
-                        <div class="p-3 d-flex justify-content-center">
-                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Ngọc" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Ngọc">
+                        <div class="pt-4 px-3 pb-2 d-flex justify-content-center">
+                            <div class="team-img-wrapper shadow-sm" style="width: 160px; height: 210px; overflow: hidden; border-radius: 1rem;">
+                                <img src="/images/Ngoc.jpg" class="w-100 h-100 object-fit-cover team-img" alt="Ngọc">
+                            </div>
                         </div>
                         <div class="card-body text-center pt-0 d-flex flex-column">
                             <h5 class="fw-bold mb-1">Nguyễn Lâm Hoàng Ngọc</h5>
@@ -1132,11 +1212,44 @@
                     </div>
                 </div>
                 
+                <!-- Nghĩa -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
+                        <div class="pt-4 px-3 pb-2 d-flex justify-content-center">
+                            <div class="team-img-wrapper shadow-sm" style="width: 160px; height: 210px; overflow: hidden; border-radius: 1rem;">
+                                <img src="/images/Nghia.jpg" class="w-100 h-100 object-fit-cover team-img" alt="Leader">
+                            </div>
+                        </div>
+                        <div class="card-body text-center pt-0 d-flex flex-column">
+                            <h5 class="fw-bold mb-1">Lê Huỳnh Đại Nghĩa</h5>
+                            <span class="badge px-3 py-2 rounded-pill text-uppercase mb-3" style="background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; letter-spacing: 1px;"><i class="bi bi-star-fill me-1"></i> Trưởng nhóm dự án</span>
+                            <div class="text-muted small mb-4 text-start flex-grow-1">
+                                <div class="text-center mb-3">
+                                    <div class="d-inline-flex align-items-center justify-content-center bg-light text-secondary rounded-pill px-3 py-1 fw-medium border shadow-sm" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                        <i class="bi bi-mortarboard-fill me-2 text-primary"></i> Chuyên ngành Kinh tế
+                                    </div>
+                                </div>
+                                <ul class="mb-0 ps-3">
+                                    <li class="mb-1">Quản lý và theo dõi tiến độ chung của nhóm.</li>
+                                    <li class="mb-1">Khảo sát thực tế nhu cầu người bệnh để cải tiến thiết bị.</li>
+                                    <li>Điều phối các hoạt động phát triển dự án.</li>
+                                </ul>
+                            </div>
+                            <div class="d-flex justify-content-center gap-2 mt-auto">
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-envelope-fill"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Hà -->
                 <div class="col-md-6 col-lg-4">
                     <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
-                        <div class="p-3 d-flex justify-content-center">
-                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Hà" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Hà">
+                        <div class="pt-4 px-3 pb-2 d-flex justify-content-center">
+                            <div class="team-img-wrapper shadow-sm" style="width: 160px; height: 210px; overflow: hidden; border-radius: 1rem;">
+                                <img src="/images/Ha.jpg" class="w-100 h-100 object-fit-cover team-img" alt="Hà">
+                            </div>
                         </div>
                         <div class="card-body text-center pt-0 d-flex flex-column">
                             <h5 class="fw-bold mb-1">Chung Khánh Hà</h5>
@@ -1164,8 +1277,10 @@
                 <!-- Đạt -->
                 <div class="col-md-6 col-lg-4">
                     <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
-                        <div class="p-3 d-flex justify-content-center">
-                            <img src="/images/abc.png" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Đạt">
+                        <div class="pt-4 px-3 pb-2 d-flex justify-content-center">
+                            <div class="team-img-wrapper shadow-sm" style="width: 160px; height: 210px; overflow: hidden; border-radius: 1rem;">
+                                <img src="/images/Dat.jpg" class="w-100 h-100 object-fit-cover team-img" alt="Đạt">
+                            </div>
                         </div>
                         <div class="card-body text-center pt-0 d-flex flex-column">
                             <h5 class="fw-bold mb-1">Trần Gia Đạt</h5>
@@ -1190,40 +1305,13 @@
                     </div>
                 </div>
                 
-                <!-- Hưng -->
-                <div class="col-md-6 col-lg-4">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
-                        <div class="p-3 d-flex justify-content-center">
-                            <img src="/images/hung.png" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Hưng">
-                        </div>
-                        <div class="card-body text-center pt-0 d-flex flex-column">
-                            <h5 class="fw-bold mb-1">Ngô Quốc Hưng</h5>
-                            <span class="badge px-3 py-2 rounded-pill text-uppercase mb-3" style="background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; letter-spacing: 1px;"><i class="bi bi-cpu-fill me-1"></i> Kỹ sư Phần cứng &amp; Nhúng</span>
-                            <div class="text-muted small mb-4 text-start flex-grow-1">
-                                <div class="text-center mb-3">
-                                    <div class="d-inline-flex align-items-center justify-content-center bg-light text-secondary rounded-pill px-3 py-1 fw-medium border shadow-sm" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                                        <i class="bi bi-mortarboard-fill me-2 text-secondary"></i> Chuyên ngành Kỹ thuật phần mềm
-                                    </div>
-                                </div>
-                                <ul class="mb-0 ps-3">
-                                    <li class="mb-1">Thiết kế mạch in (PCB) cho thiết bị đeo.</li>
-                                    <li class="mb-1">Lập trình firmware đọc dữ liệu từ cảm biến MPU6050.</li>
-                                    <li>Hiệu chuẩn cảm biến và tối ưu độ chính xác dữ liệu.</li>
-                                </ul>
-                            </div>
-                            <div class="d-flex justify-content-center gap-2 mt-auto">
-                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-github"></i></a>
-                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Tuyến -->
                 <div class="col-md-6 col-lg-4">
                     <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
-                        <div class="p-3 d-flex justify-content-center">
-                            <img src="https://placehold.co/200x200/cbd5e1/1e293b?text=Tuyến" class="rounded-circle shadow-sm border border-3 border-white object-fit-cover" style="width: 150px; height: 150px;" alt="Tuyến">
+                        <div class="pt-4 px-3 pb-2 d-flex justify-content-center">
+                            <div class="team-img-wrapper shadow-sm" style="width: 160px; height: 210px; overflow: hidden; border-radius: 1rem;">
+                                <img src="/images/Tuyen.jpg" class="w-100 h-100 object-fit-cover team-img" alt="Tuyến">
+                            </div>
                         </div>
                         <div class="card-body text-center pt-0 d-flex flex-column">
                             <h5 class="fw-bold mb-1">Lê Trần Kim Tuyến</h5>
@@ -1242,6 +1330,37 @@
                             </div>
                             <div class="d-flex justify-content-center gap-2 mt-auto">
                                 <a href="javascript:void(0)" class="btn btn-sm btn-light text-danger rounded-circle"><i class="bi bi-dribbble"></i></a>
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hưng -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden hover-lift team-card">
+                        <div class="pt-4 px-3 pb-2 d-flex justify-content-center">
+                            <div class="team-img-wrapper shadow-sm" style="width: 160px; height: 210px; overflow: hidden; border-radius: 1rem;">
+                                <img src="/images/Hung.jpg" class="w-100 h-100 object-fit-cover team-img" alt="Hưng">
+                            </div>
+                        </div>
+                        <div class="card-body text-center pt-0 d-flex flex-column">
+                            <h5 class="fw-bold mb-1">Ngô Quốc Hưng</h5>
+                            <span class="badge px-3 py-2 rounded-pill text-uppercase mb-3" style="background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; letter-spacing: 1px;"><i class="bi bi-cpu-fill me-1"></i> Kỹ sư Phần cứng &amp; Nhúng</span>
+                            <div class="text-muted small mb-4 text-start flex-grow-1">
+                                <div class="text-center mb-3">
+                                    <div class="d-inline-flex align-items-center justify-content-center bg-light text-secondary rounded-pill px-3 py-1 fw-medium border shadow-sm" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                        <i class="bi bi-mortarboard-fill me-2 text-secondary"></i> Chuyên ngành Kỹ thuật phần mềm
+                                    </div>
+                                </div>
+                                <ul class="mb-0 ps-3">
+                                    <li class="mb-1">Thiết kế mạch in (PCB) cho thiết bị đeo.</li>
+                                    <li class="mb-1">Lập trình firmware đọc dữ liệu từ cảm biến MPU6050.</li>
+                                    <li>Hiệu chuẩn cảm biến và tối ưu độ chính xác dữ liệu.</li>
+                                </ul>
+                            </div>
+                            <div class="d-flex justify-content-center gap-2 mt-auto">
+                                <a href="javascript:void(0)" class="btn btn-sm btn-light text-dark rounded-circle"><i class="bi bi-github"></i></a>
                                 <a href="javascript:void(0)" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
                             </div>
                         </div>
@@ -1402,7 +1521,7 @@
                             </span>
                             
                             <h3 class="fw-bold mb-2">@selectedProduct.ProductName</h3>
-                            <h3 class="text-primary fw-bold mb-4">@selectedProduct.Price.ToString("N0")₫</h3>
+                            <h3 class="text-primary fw-bold mb-4">Liên hệ</h3>
                             
                             <div class="mb-4 flex-grow-1">
                                 <h6 class="fw-bold text-dark mb-2">Thông tin sản phẩm</h6>
@@ -1424,12 +1543,10 @@
                                 </div>
                             </div>
                             
-                            <button class="btn btn-modern-primary btn-lg rounded-pill w-100 shadow-sm fw-bold py-3"
-                                    disabled="@(selectedProduct.StockQuantity <= 0)"
-                                    @onclick="async () => { await AddToCart(selectedProduct); CloseDetailsModal(); }">
-                                <i class="bi bi-cart-plus fs-5 me-2"></i>
-                                @(selectedProduct.StockQuantity > 0 ? "Thêm vào giỏ hàng ngay" : "Không thể đặt hàng")
-                            </button>
+                            <a href="https://zalo.me/0787775716" target="_blank" class="btn btn-modern-primary btn-lg rounded-pill w-100 shadow-sm fw-bold py-3 text-center text-white d-block" style="text-decoration:none;">
+                                <i class="bi bi-chat-dots fs-5 me-2"></i>
+                                Liên hệ tư vấn qua Zalo
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -1565,17 +1682,24 @@
     
     // For FAQ Accordion
     private string activeFaq = string.Empty;
+    private bool isAnnualBilling = false;
 
     private void ToggleFaq(string id)
     {
         activeFaq = activeFaq == id ? string.Empty : id;
     }
 
+    private void ToggleBilling()
+    {
+        isAnnualBilling = !isAnnualBilling;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            products = await Mediator.Send(new GetProductsQuery());
+            var allProducts = await Mediator.Send(new GetProductsQuery());
+            products = allProducts.Where(p => p.ProductId == 1 || p.ProductId == 2).ToList();
         }
         catch (Exception ex)
         {

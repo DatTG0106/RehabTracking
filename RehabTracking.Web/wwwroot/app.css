@@ -628,3 +628,9 @@ main {
 .rz-notification-message-error .rz-notification-icon { color: var(--danger-color) !important; }
 .rz-notification-message-info .rz-notification-icon { color: var(--secondary-color) !important; }
 .rz-notification-message-warning .rz-notification-icon { color: var(--warning-color) !important; }
+
+/* Compatibility utility for older Bootstrap versions */
+.object-fit-cover {
+    object-fit: cover !important;
+}
+
