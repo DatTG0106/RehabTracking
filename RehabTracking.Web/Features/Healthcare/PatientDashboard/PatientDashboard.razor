@@ -15,684 +15,421 @@
 @implements IAsyncDisposable
 @rendermode InteractiveServer
 
-<PageTitle>Sức khỏe của tôi - STEP</PageTitle>
+<PageTitle>Bảng Sức Khỏe Của Bác - STEP</PageTitle>
 
-<div class="container-fluid py-4">
-    @if (isLoading)
-    {
-        <div class="d-flex align-items-center justify-content-center" style="min-height: 60vh;">
-            <div class="text-center">
-                <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;" role="status"></div>
-                <p class="text-muted fw-medium">@AppMessages.LoadingData</p>
+<div class="py-4" style="background-color: var(--color-bg-app); min-height: 100vh;">
+    <div class="container py-2">
+        @if (isLoading)
+        {
+            <div class="d-flex flex-column align-items-center justify-content-center py-5" style="min-height: 50vh;">
+                <div class="spinner-border text-success mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+                <h4 class="fw-bold text-dark">Đang tải dữ liệu sức khỏe của Bác...</h4>
+                <p class="text-muted">Bác vui lòng chờ trong giây lát nhé ạ.</p>
             </div>
-        </div>
-    }
-    else if (!hasPatientProfile)
-    {
-        <!-- No device activated yet -->
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="modern-card p-5 text-center">
-                    <div class="mb-4">
-                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex justify-content-center align-items-center" style="width:100px;height:100px;">
-                            <i class="bi bi-watch text-warning" style="font-size:3rem;"></i>
+        }
+        else if (!hasPatientProfile)
+        {
+            <!-- Chưa kích hoạt thiết bị -->
+            <div class="row justify-content-center">
+                <div class="col-md-9 col-lg-7">
+                    <div class="senior-card p-5 text-center">
+                        <div class="mb-4">
+                            <div class="rounded-circle d-inline-flex justify-content-center align-items-center" 
+                                 style="width:110px;height:110px; background-color: var(--color-status-warning-bg); border: 2px solid #FDE68A;">
+                                <i class="bi bi-watch text-warning fs-1" style="font-size:3.5rem !important;"></i>
+                            </div>
                         </div>
-                    </div>
-                    <h3 class="fw-bold text-dark mb-2">@AppMessages.WelcomePrefix @patientName!</h3>
-                    <p class="text-muted mb-4">@AppMessages.NoDeviceActivated</p>
-                    <a href="/activate-device" class="btn btn-modern-primary btn-lg rounded-pill px-5 shadow">
-                        <i class="bi bi-watch me-2"></i>Kích hoạt thiết bị ngay
-                    </a>
-                    <div class="mt-4 text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Mã Serial nằm ở mặt sau vòng đeo tay RehabBand của bạn.
+                        <h2 class="fw-bold text-dark mb-3">Kính chào Bác @patientName!</h2>
+                        <p class="text-muted fs-5 mb-4" style="line-height: 1.7;">
+                            Bác chưa kích hoạt vòng đeo tay thông minh RehabBand. Bác hãy bấm nút bên dưới để kết nối thiết bị và bắt đầu hành trình phục hồi an toàn nhé!
+                        </p>
+                        <a href="/activate-device" class="senior-btn senior-btn-accent senior-btn-hero shadow">
+                            <i class="bi bi-qr-code-scan fs-4"></i> KÍCH HOẠT THIẾT BỊ NGAY
+                        </a>
+                        <div class="mt-4 p-3 bg-light rounded-3 text-muted small border">
+                            <i class="bi bi-info-circle-fill text-primary me-2"></i>
+                            Mã kích hoạt gồm 8 số in rõ ở mặt sau vòng tay hoặc trên phiếu khám bệnh.
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    }
-    else
-    {
-        <!-- Hero Welcome -->
-        <div class="row mb-4 align-items-center">
-            <div class="col-lg-8">
-                <h1 class="fw-bold mb-1" style="font-size: 2rem; color: var(--text-main);">
-                    @AppMessages.WelcomePrefix <span style="color: var(--primary-color);">@patientName</span>! 👋
-                </h1>
-                <p class="text-muted mb-0">
-                    @if (sessions.Any())
-                    {
-                        <span>@AppMessages.ProgressGood</span>
-                    }
-                    else
-                    {
-                        <span>@AppMessages.ProgressStartToday</span>
-                    }
-                </p>
-                <div class="d-flex gap-2 mt-3 flex-wrap">
-                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-medium" style="font-size:0.8rem;">
-                        <i class="bi bi-calendar-check me-1"></i>@sessions.Count buổi đã tập
+        }
+        else
+        {
+            <!-- Lời chào đầu ngày ấm áp -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <span class="senior-badge senior-badge-success mb-2">
+                        <i class="bi bi-shield-check"></i> Hồ sơ y tế đang được Bác sĩ theo dõi
                     </span>
-                    @if (treatmentPlan != null)
-                    {
-                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-medium" style="font-size:0.8rem;">
-                            <i class="bi bi-clipboard2-pulse me-1"></i>Đang trong phác đồ điều trị
-                        </span>
-                    }
+                    <h1 class="fw-bold mb-1" style="font-size: 2.2rem; color: var(--color-text-main);">
+                        Kính chào Bác <span style="color: var(--color-primary);">@patientName</span>! 🌿
+                    </h1>
+                    <p class="text-muted fs-5 mb-0">
+                        Chúc Bác một ngày thật nhiều niềm vui, vận động nhẹ nhàng và an tâm!
+                    </p>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/patient/recovery-diary" class="senior-btn senior-btn-secondary" title="Ghi lại mức độ đau hôm nay">
+                        <i class="bi bi-journal-medical fs-5 text-primary"></i> Ghi Nhật Ký
+                    </a>
+                    <a href="/patient/appointments" class="senior-btn senior-btn-secondary" title="Xem lịch hẹn với Bác sĩ">
+                        <i class="bi bi-calendar2-heart fs-5 text-danger"></i> Lịch Hẹn Bác Sĩ
+                    </a>
                 </div>
             </div>
-            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0 d-flex gap-2 justify-content-lg-end flex-wrap">
-                <a href="/patient/workout" class="btn btn-outline-primary btn-lg rounded-pill fw-semibold shadow-sm">
-                    <i class="bi bi-calendar-check me-1"></i> Bài tập hôm nay
-                </a>
-                @if (!isExercising)
-                {
-                    <button class="btn btn-modern btn-modern-primary btn-lg shadow-sm" @onclick="StartSession">
-                        <i class="bi bi-play-fill fs-5 me-1"></i> Bắt đầu Nhanh
-                    </button>
-                }
-                else
-                {
-                    <div class="d-flex align-items-center justify-content-lg-end gap-3">
-                        <div class="text-success fw-bold">
-                            <i class="bi bi-stopwatch me-1"></i>
-                            <span class="session-timer">@FormatElapsedTime()</span>
-                        </div>
-                        <button class="btn btn-danger btn-lg rounded-pill shadow-sm fw-semibold" @onclick="StopSession" disabled="@isSavingSession">
-                            @if (isSavingSession)
+
+            <!-- 1. KHỐI TIÊU ĐIỂM: VIỆC CẦN LÀM HÔM NAY (DAILY FOCUS CARD) -->
+            <div class="senior-daily-focus mb-4">
+                <div class="row align-items-center justify-content-between g-4">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-warning text-dark fs-6 px-3 py-1 rounded-pill fw-bold">
+                                <i class="bi bi-star-fill me-1"></i> NHIỆM VỤ QUAN TRỌNG HÔM NAY
+                            </span>
+                            @if (treatmentPlan != null)
                             {
-                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                                <span>Đang lưu...</span>
+                                <span class="text-muted small">Phác đồ: @treatmentPlan.Title</span>
+                            }
+                        </div>
+                        <h2 class="fw-bold text-dark fs-1 mb-2">
+                            @(treatmentPlan?.Title ?? "Bài tập phục hồi khớp gối & cổ chân")
+                        </h2>
+                        <p class="text-muted fs-5 mb-3" style="line-height: 1.6;">
+                            @if (!string.IsNullOrWhiteSpace(parsedDoctorNotes))
+                            {
+                                <span><strong>Lời dặn của Bác sĩ:</strong> "@parsedDoctorNotes"</span>
                             }
                             else
                             {
-                                <i class="bi bi-stop-fill fs-5 me-1"></i>
-                                <span>Dừng tập</span>
+                                <span>Mục tiêu hôm nay: Vận động nhẹ nhàng <strong>@(treatmentPlan?.TargetDuration ?? 15) phút</strong>, thực hiện đúng tầm vận động khớp để duy trì độ dẻo dai.</span>
                             }
-                        </button>
+                        </p>
+
+                        <div class="d-flex align-items-center gap-4 flex-wrap">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-clock-history fs-4 text-primary"></i>
+                                <span class="fs-5">Thời gian: <strong>@(treatmentPlan?.TargetDuration ?? 15) phút</strong></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-repeat fs-4 text-success"></i>
+                                <span class="fs-5">Số lần gập duỗi: <strong>@(treatmentPlan?.TargetRepetitions ?? 20) lần</strong></span>
+                            </div>
+                        </div>
                     </div>
-                }
-            </div>
-        </div>
 
-        <!-- Session saved notification -->
-        @if (!string.IsNullOrEmpty(sessionSavedMsg))
-        {
-            <div class="alert @(sessionSavedSuccess ? "alert-success" : "alert-warning") alert-dismissible border-0 rounded-3 d-flex align-items-center gap-2 mb-4 fade-in" role="alert">
-                <i class="bi @(sessionSavedSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill") flex-shrink-0"></i>
-                <span>@sessionSavedMsg</span>
-                <button type="button" class="btn-close" @onclick="() => sessionSavedMsg = string.Empty"></button>
-            </div>
-        }
-
-        @if (isExercising)
-        {
-            <div class="modern-card p-3 mb-4 d-flex align-items-center gap-3"
-                 style="background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03)); border: 1px solid rgba(16,185,129,0.2);">
-                <div class="spinner-grow text-success flex-shrink-0" role="status" style="width: 1.2rem; height: 1.2rem;"></div>
-                <div>
-                    <h6 class="fw-bold text-success mb-0">Thiết bị Đang kết nối &amp; Phát sóng</h6>
-                    <p class="text-muted mb-0 small">Đang truyền góc gập cổ tay (ROM) theo thời gian thực đến bác sĩ của bạn.</p>
+                    <!-- Nút Bắt đầu tập lớn -->
+                    <div class="col-lg-4 text-lg-end">
+                        @if (!isExercising)
+                        {
+                            <a href="/patient/workout" class="senior-btn senior-btn-accent senior-btn-hero w-100 w-lg-auto shadow">
+                                <i class="bi bi-play-circle-fill fs-3"></i> BẮT ĐẦU TẬP NGAY
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="p-3 bg-white rounded-4 border border-danger text-center">
+                                <div class="text-danger fw-bold fs-4 mb-2">
+                                    <i class="bi bi-stopwatch fs-4 me-1"></i> Đang tập: @FormatElapsedTime()
+                                </div>
+                                <button class="senior-btn btn-danger w-100" @onclick="StopSession" disabled="@isSavingSession">
+                                    @if (isSavingSession)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <span>Đang lưu...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-stop-circle fs-4 me-1"></i> <strong>HOÀN THÀNH & LƯU</strong>
+                                    }
+                                </button>
+                            </div>
+                        }
+                    </div>
                 </div>
-                <div class="ms-auto text-end">
-                    <div class="text-success fw-bold">@(liveData.LastOrDefault()?.ROMValue.ToString("0") ?? "0")°</div>
-                    <div class="text-muted small cursor-pointer" data-tooltip="Tầm vận động cổ tay hiện tại">Góc gập hiện tại <i class="bi bi-info-circle ms-1"></i></div>
-                </div>
             </div>
-        }
 
-        <!-- Progress Cards -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="modern-card p-4 h-100">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+            <!-- Thông báo lưu phiên tập thành công -->
+            @if (!string.IsNullOrEmpty(sessionSavedMsg))
+            {
+                <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3 border @(sessionSavedSuccess ? "border-success bg-success-subtle text-success" : "border-warning bg-warning-subtle text-dark")">
+                    <i class="bi @(sessionSavedSuccess ? "bi-check-circle-fill fs-3" : "bi-exclamation-circle-fill fs-3")"></i>
+                    <div class="fs-6 fw-bold">@sessionSavedMsg</div>
+                    <button type="button" class="btn-close ms-auto" @onclick="() => sessionSavedMsg = string.Empty"></button>
+                </div>
+            }
+
+            <!-- Thiết bị đang kết nối phát sóng trực tiếp -->
+            @if (isExercising)
+            {
+                <div class="senior-card p-4 mb-4 border-2 border-success" style="background-color: var(--color-status-success-bg);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="spinner-grow text-success" role="status" style="width: 2rem; height: 2rem;"></div>
                         <div>
-                            <h6 class="text-muted fw-semibold text-uppercase mb-0" style="font-size: 0.78rem; letter-spacing: 0.05em;">Thời gian tập hôm nay</h6>
+                            <h4 class="fw-bold text-success mb-1">Vòng tay RehabBand đang hoạt động tốt</h4>
+                            <p class="text-muted mb-0 fs-6">Đang đo và truyền góc gập khớp trực tiếp đến hồ sơ theo dõi của Bác sĩ.</p>
                         </div>
-                        <div class="bg-primary bg-opacity-10 p-2 rounded-3 text-primary">
-                            <i class="bi bi-clock-history fs-5"></i>
+                        <div class="ms-auto text-end">
+                            <div class="fs-1 fw-bold text-success">@(liveData.LastOrDefault()?.ROMValue.ToString("0") ?? "0")°</div>
+                            <div class="text-muted small fw-bold">Góc gập khớp hiện tại</div>
                         </div>
-                    </div>
-                    <div class="d-flex align-items-baseline gap-2">
-                        <h2 class="fw-bold text-dark mb-0" style="font-size: 2.8rem;">@todayDuration</h2>
-                        <span class="text-muted fw-medium">phút</span>
-                    </div>
-                    <div class="progress mt-3" style="height: 4px; border-radius: 2px; background-color: rgba(79,70,229,0.1);">
-                        <div class="progress-bar bg-primary" style="width: @(Math.Min(todayDuration * 100 / Math.Max(treatmentPlan?.TargetDuration ?? 30, 1), 100))%; transition: width 0.5s ease;"></div>
-                    </div>
-                    <div class="text-muted small mt-1">Mục tiêu: @(treatmentPlan?.TargetDuration ?? 30) phút</div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="modern-card p-4 h-100">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h6 class="text-muted fw-semibold text-uppercase mb-0" style="font-size: 0.78rem; letter-spacing: 0.05em;">Số lần lặp hợp lệ</h6>
-                        <div class="bg-success bg-opacity-10 p-2 rounded-3 text-success">
-                            <i class="bi bi-arrow-repeat fs-5"></i>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-baseline gap-2">
-                        <h2 class="fw-bold text-success mb-0" style="font-size: 2.8rem;">@todayReps</h2>
-                        <span class="text-muted fw-medium">lần</span>
-                    </div>
-                    <div class="progress mt-3" style="height: 4px; border-radius: 2px; background-color: rgba(16,185,129,0.1);">
-                        <div class="progress-bar bg-success" style="width: @(Math.Min(todayReps * 100 / Math.Max(treatmentPlan?.TargetRepetitions ?? 30, 1), 100))%; transition: width 0.5s ease;"></div>
-                    </div>
-                    <div class="text-muted small mt-1">Mục tiêu: @(treatmentPlan?.TargetRepetitions ?? 30) lần</div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="modern-card p-4 h-100">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h6 class="text-muted fw-semibold text-uppercase mb-0" style="font-size: 0.78rem; letter-spacing: 0.05em;">Điểm Phục hồi</h6>
-                        <div class="bg-info bg-opacity-10 p-2 rounded-3 text-info">
-                            <i class="bi bi-activity fs-5"></i>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-baseline gap-2 mb-2">
-                        <h2 class="fw-bold text-info mb-0" style="font-size: 2.8rem;">@recoveryScore</h2>
-                        <span class="text-muted fw-medium">%</span>
-                    </div>
-                    <div class="progress" style="height: 6px; border-radius: 3px; background-color: rgba(14,165,233,0.1);">
-                        <div class="progress-bar bg-info" role="progressbar"
-                             style="width: @recoveryScore%; border-radius: 3px; transition: width 0.5s ease;"
-                             aria-valuenow="@recoveryScore" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                    <div class="text-muted small mt-1">
-                        @if (recoveryScore >= 80)
-                        {
-                            <i class="bi bi-trophy-fill text-warning me-1"></i><span>Xuất sắc!</span>
-                        }
-                        else if (recoveryScore >= 60)
-                        {
-                            <i class="bi bi-hand-thumbs-up-fill text-success me-1"></i><span>Tốt</span>
-                        }
-                        else if (recoveryScore > 0)
-                        {
-                            <i class="bi bi-arrow-up-circle-fill text-primary me-1"></i><span>Cố gắng lên!</span>
-                        }
-                        else
-                        {
-                            <i class="bi bi-bar-chart-fill text-muted me-1"></i><span>Chưa có dữ liệu</span>
-                        }
                     </div>
                 </div>
-            </div>
-        </div>
+            }
 
-        <!-- Ranking & Rewards Section -->
-        <div class="row g-4 mb-4">
-            <!-- Ranking Card -->
-            <div class="col-lg-6">
-                <div class="modern-card p-4 h-100 position-relative overflow-hidden" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid rgba(255,255,255,0.05);">
-                    <div class="position-absolute top-0 end-0 m-3 text-white-50 opacity-10">
-                        <i class="bi bi-award-fill" style="font-size: 8rem;"></i>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
-                        <h5 class="fw-bold text-white mb-0">
-                            <i class="bi bi-award text-warning me-2"></i> Xếp hạng &amp; Điểm thưởng
-                        </h5>
-                        <span class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2">
-                            Chuỗi tập: @CalculateStreak() ngày 🔥
-                        </span>
-                    </div>
-
-                    <div class="row align-items-center">
-                        <div class="col-sm-5 text-center mb-3 mb-sm-0 border-end border-secondary border-opacity-25">
-                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 p-3 shadow-lg" 
-                                 style="width: 90px; height: 90px; background: @GetRankGradient(GetRankTier(CalculatePoints())); border: 3px solid rgba(255,255,255,0.15);">
-                                <i class="bi @GetRankIcon(GetRankTier(CalculatePoints())) text-white fs-1"></i>
+            <!-- 2. BA THẺ CHỈ SỐ TIẾN BỘ LỚN TRONG NGÀY -->
+            <div class="row g-4 mb-4">
+                <!-- Thẻ 1: Thời gian tập hôm nay -->
+                <div class="col-md-4">
+                    <div class="senior-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fs-6 fw-bold text-muted text-uppercase">Thời gian tập hôm nay</span>
+                            <div class="p-2 rounded-circle bg-light text-primary">
+                                <i class="bi bi-clock-history fs-4"></i>
                             </div>
-                            <h3 class="fw-bold text-white mb-1">@GetRankName(GetRankTier(CalculatePoints()))</h3>
-                            <p class="text-white-50 small mb-0">Hạng Thành viên</p>
                         </div>
-                        <div class="col-sm-7 ps-sm-4">
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between text-white-50 small mb-1">
-                                    <span>Tổng điểm tích lũy</span>
-                                    @if (GetRankTier(CalculatePoints()) >= 4)
-                                    {
-                                        <span class="text-warning fw-bold">@CalculatePoints() ✨ Tối đa</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-white fw-bold">@CalculatePoints() / @GetNextRankThreshold(GetRankTier(CalculatePoints())) điểm</span>
-                                    }
-                                </div>
-                                <div class="progress bg-secondary bg-opacity-20" style="height: 8px; border-radius: 4px;">
-                                    <div class="progress-bar @GetRankProgressBarClass(GetRankTier(CalculatePoints()))" role="progressbar" 
-                                         style="width: @(GetRankProgressPercentage(CalculatePoints()))%; border-radius: 4px; transition: width 0.5s ease;"></div>
-                                </div>
+                        <div class="d-flex align-items-baseline gap-2 mb-2">
+                            <span class="fw-bold text-dark" style="font-size: 3rem; line-height: 1;">@todayDuration</span>
+                            <span class="fs-5 text-muted fw-bold">phút</span>
+                        </div>
+                        <div class="senior-progress mb-2">
+                            <div class="senior-progress-bar" style="width: @(Math.Min(todayDuration * 100 / Math.Max(treatmentPlan?.TargetDuration ?? 30, 1), 100))%;"></div>
+                        </div>
+                        <div class="text-muted small">
+                            Mục tiêu của Bác sĩ: <strong>@(treatmentPlan?.TargetDuration ?? 30) phút/ngày</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thẻ 2: Số lần gập duỗi hợp lệ -->
+                <div class="col-md-4">
+                    <div class="senior-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fs-6 fw-bold text-muted text-uppercase">Số lần vận động khớp</span>
+                            <div class="p-2 rounded-circle bg-light text-success">
+                                <i class="bi bi-arrow-repeat fs-4"></i>
                             </div>
-                            <ul class="list-unstyled text-white-50 small mb-0 d-flex flex-column gap-2">
-                                <li class="d-flex align-items-center">
-                                    <i class="bi bi-check2 text-success me-2"></i>
-                                    <span>Tập luyện hôm nay: <strong class="text-white">+@(todayReps * 10 + todayDuration * 5) điểm</strong></span>
-                                </li>
-                                <li class="d-flex align-items-center">
-                                    <i class="bi bi-check2 text-success me-2"></i>
-                                    <span>Điểm thưởng chuỗi (x50): <strong class="text-white">@(CalculateStreak() * 50) điểm</strong></span>
-                                </li>
-                                <li class="d-flex align-items-start">
-                                    <i class="bi bi-info-circle text-info mt-1 me-2"></i>
-                                    <span class="text-info text-start">@GetNextRankMessage(CalculatePoints())</span>
-                                </li>
-                            </ul>
+                        </div>
+                        <div class="d-flex align-items-baseline gap-2 mb-2">
+                            <span class="fw-bold text-success" style="font-size: 3rem; line-height: 1;">@todayReps</span>
+                            <span class="fs-5 text-muted fw-bold">lần</span>
+                        </div>
+                        <div class="senior-progress mb-2">
+                            <div class="senior-progress-bar bg-success" style="width: @(Math.Min(todayReps * 100 / Math.Max(treatmentPlan?.TargetRepetitions ?? 30, 1), 100))%;"></div>
+                        </div>
+                        <div class="text-muted small">
+                            Mục tiêu của Bác sĩ: <strong>@(treatmentPlan?.TargetRepetitions ?? 30) lần/ngày</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thẻ 3: Điểm tiến bộ phục hồi -->
+                <div class="col-md-4">
+                    <div class="senior-card h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fs-6 fw-bold text-muted text-uppercase">Đánh giá tiến bộ</span>
+                            <div class="p-2 rounded-circle bg-light text-info">
+                                <i class="bi bi-award-fill fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-baseline gap-2 mb-2">
+                            <span class="fw-bold text-info" style="font-size: 3rem; line-height: 1;">@recoveryScore</span>
+                            <span class="fs-5 text-muted fw-bold">%</span>
+                        </div>
+                        <div class="senior-progress mb-2">
+                            <div class="senior-progress-bar bg-info" style="width: @recoveryScore%;"></div>
+                        </div>
+                        <div class="fs-6 fw-bold">
+                            @if (recoveryScore >= 80)
+                            {
+                                <span class="text-success"><i class="bi bi-emoji-laughing-fill me-1"></i> Rất xuất sắc! Khớp gối hồi phục rất tốt.</span>
+                            }
+                            else if (recoveryScore >= 50)
+                            {
+                                <span class="text-primary"><i class="bi bi-emoji-smile-fill me-1"></i> Khá tốt! Bác hãy tiếp tục duy trì nhé.</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted"><i class="bi bi-heart-fill text-danger me-1"></i> Bác hãy tập đều đặn mỗi ngày nhé ạ.</span>
+                            }
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Ad Block & Rewards Card -->
-            <div class="col-lg-6">
-                <div class="modern-card p-4 h-100 d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                            <h5 class="fw-bold text-dark mb-0">
-                                <i class="bi bi-shield-check text-primary me-2"></i> Ưu đãi theo Thứ hạng
-                            </h5>
-                            <span class="badge @(GetRankTier(CalculatePoints()) >= 2 ? "bg-success" : "bg-primary") rounded-pill px-3 py-2">
-                                <i class="bi bi-badge-ad me-1"></i> QC: @GetAdFrequencyMessage(GetRankTier(CalculatePoints()))
+            <!-- 3. CHUỖI NGÀY KIÊN TRÌ CỦA BÁC & BÁC SĨ PHỤ TRÁCH -->
+            <div class="row g-4 mb-4">
+                <!-- Chuỗi ngày kiên trì (Warm Light Theme) -->
+                <div class="col-lg-7">
+                    <div class="senior-card h-100" style="background-color: var(--color-accent-surface); border-color: var(--color-accent-light);">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="senior-card-title fs-4" style="color: var(--color-accent);">
+                                <i class="bi bi-stars fs-3"></i> Chuỗi Ngày Kiên Trì Của Bác
+                            </h3>
+                            <span class="badge rounded-pill bg-white text-dark px-3 py-2 fs-6 fw-bold border">
+                                @CalculateStreak() ngày liên tục 🎉
                             </span>
                         </div>
 
-                        <!-- Vouchers -->
-                        <div class="mb-4 text-start">
-                            <h6 class="fw-bold text-dark small text-uppercase mb-3">Voucher Ưu đãi đã Mở khóa</h6>
-                            <div class="row g-2">
-                                @foreach (var voucher in GetVouchers(GetRankTier(CalculatePoints())))
-                                {
-                                    <div class="col-sm-6">
-                                        <div class="p-3 border border-dashed rounded-4 d-flex justify-content-between align-items-center" style="background: rgba(79,70,229,0.03); border-color: rgba(79,70,229,0.2) !important;">
-                                            <div class="text-start">
-                                                <div class="fw-bold text-dark mb-0 small" style="font-size:0.8rem;">@voucher.Title</div>
-                                                <span class="text-muted" style="font-size: 0.72rem;">Code: <strong class="text-primary font-monospace">@voucher.Code</strong></span>
-                                            </div>
-                                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 flex-shrink-0" @onclick="() => CopyVoucherCode(voucher.Code)"
-                                                    title="Sao chép mã voucher">
-                                                @if (copiedVoucherCode == voucher.Code)
-                                                {
-                                                    <i class="bi bi-check-lg text-success me-1"></i><span class="text-success">Đã copy!</span>
-                                                }
-                                                else
-                                                {
-                                                    <span><i class="bi bi-copy me-1"></i>Copy</span>
-                                                }
-                                            </button>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
+                        <p class="text-muted fs-6 mb-4">
+                            Mỗi ngày tập luyện là một bước tiến quan trọng giúp các khớp vận động linh hoạt hơn. Bác hãy cùng giữ vững chuỗi ngày kiên trì này nhé!
+                        </p>
 
-                    <!-- Live Ad Banner (Dynamic based on rank) -->
-                    @if (GetRankTier(CalculatePoints()) < 2)
-                    {
-                        <div class="p-3 bg-light rounded-4 border border-light d-flex align-items-center gap-3">
-                            <div class="bg-primary bg-opacity-10 text-primary rounded-4 d-flex justify-content-center align-items-center fs-2 flex-shrink-0" style="width: 50px; height: 50px;">
-                                <i class="bi bi-bag-check-fill"></i>
-                            </div>
-                            <div class="flex-grow-1 text-start" style="min-width: 0;">
-                                <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">Mua RehabBand V2 - Trả góp 0%</div>
-                                <p class="text-muted mb-0 small text-truncate">Cảm biến góc khớp MPU6050 thế hệ mới, kết nối nhạy bén 10x.</p>
-                            </div>
-                            <a href="/#products" class="btn btn-sm btn-primary rounded-pill flex-shrink-0">Mua ngay</a>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="p-3 rounded-4 d-flex align-items-center gap-3 text-success border border-success border-opacity-10" style="background: rgba(16,185,129,0.05);">
-                            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center fs-3 flex-shrink-0" style="width: 44px; height: 44px;">
-                                <i class="bi bi-check-circle-fill"></i>
-                            </div>
-                            <div class="text-start">
-                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">Bạn đã được Tắt quảng cáo 100%!</div>
-                                <p class="text-muted mb-0 small">Quyền lợi dành cho thành viên Hạng Vàng trở lên. Cảm ơn sự nỗ lực tập luyện của bạn!</p>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <!-- Chart & Plan -->
-        <div class="row g-4 mb-4">
-            <!-- Live Chart -->
-            <div class="col-lg-8">
-                <div class="modern-card glow-card p-4 h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold text-dark mb-0">
-                            <i class="bi bi-graph-up-arrow text-primary me-2"></i> Góc gập cổ tay thời gian thực (ROM)
-                        </h5>
-                        @if (isExercising)
-                        {
-                            <span class="badge bg-success rounded-pill px-3 py-2">
-                                <span class="live-dot me-1"></span> LIVE
-                            </span>
-                        }
-                    </div>
-
-                    @if (!liveData.Any() && !isExercising)
-                    {
-                        <div class="d-flex align-items-center justify-content-center bg-light rounded-4" style="height:320px;">
-                            <div class="text-center text-muted p-4">
-                                <i class="bi bi-activity text-muted" style="font-size:4rem;opacity:0.2;"></i>
-                                <h5 class="mt-3 fw-bold">@AppMessages.NoDataYet</h5>
-                                <p class="small">@AppMessages.ClickToStart</p>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="rounded-4 overflow-hidden" style="height: 320px;">
-                            <RadzenChart Style="width: 100%; height: 100%;">
-                                <RadzenLineSeries Smooth="true" Data="@liveData" CategoryProperty="Time" ValueProperty="ROMValue"
-                                                  Title="Góc gập (°)" Stroke="var(--primary-color)" StrokeWidth="2.5">
-                                    <RadzenSeriesDataLabels Visible="false" />
-                                    <RadzenMarkers MarkerType="MarkerType.None" />
-                                </RadzenLineSeries>
-                                <RadzenCategoryAxis FormatString="{0:HH:mm:ss}" />
-                                <RadzenValueAxis Min="0" Max="180">
-                                    <RadzenGridLines Visible="true" Stroke="rgba(0,0,0,0.04)" />
-                                </RadzenValueAxis>
-                            </RadzenChart>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- Treatment Plan -->
-            <div class="col-lg-4">
-                <div class="modern-card h-100 d-flex flex-column">
-                    <div class="p-4 border-bottom">
-                        <h5 class="fw-bold text-dark mb-0">
-                            <i class="bi bi-clipboard2-pulse text-primary me-2"></i> Mục tiêu hôm nay
-                        </h5>
-                    </div>
-                    <div class="p-4 flex-grow-1">
-                        @if (treatmentPlan != null)
-                        {
-                            <div class="d-flex flex-column gap-3 mb-4">
-                                <div class="p-3 bg-light rounded-4 d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center" style="width: 38px; height: 38px;">
-                                            <i class="bi bi-arrow-repeat fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold mb-0">Số lần lặp</h6>
-                                            <span class="text-muted small">Mục tiêu mỗi buổi</span>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-primary rounded-pill px-3 py-2 fw-bold">@treatmentPlan.TargetRepetitions lần</span>
-                                </div>
-
-                                <div class="p-3 bg-light rounded-4 d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center" style="width: 38px; height: 38px;">
-                                            <i class="bi bi-clock fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold mb-0">Thời gian</h6>
-                                            <span class="text-muted small">Mục tiêu mỗi buổi</span>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-success rounded-pill px-3 py-2 fw-bold">@treatmentPlan.TargetDuration phút</span>
-                                </div>
-                            </div>
-
-                            @if (!string.IsNullOrWhiteSpace(parsedDoctorNotes))
+                        <!-- Vòng tròn 7 ngày trong tuần trực quan -->
+                        <div class="d-flex justify-content-between align-items-center text-center p-3 bg-white rounded-4 border mb-3">
+                            @for (int i = 6; i >= 0; i--)
                             {
-                                <div class="p-3 rounded-4" style="background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04)); border: 1px solid rgba(245,158,11,0.2);">
-                                    <div class="d-flex align-items-start gap-2">
-                                        <i class="bi bi-chat-quote-fill fs-4 flex-shrink-0" style="color: var(--warning-color);"></i>
-                                        <div>
-                                            <h6 class="fw-bold text-dark mb-1 small text-uppercase">Lời nhắn từ Bác sĩ</h6>
-                                            <p class="mb-0 small text-muted fst-italic">"@parsedDoctorNotes"</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="text-center py-4 text-muted">
-                                <i class="bi bi-clipboard2 fs-1 opacity-30 mb-3 d-block"></i>
-                                <p class="small">@AppMessages.NoTreatmentPlan</p>
-                            </div>
-                        }
-                    </div>
-
-                    <!-- Today's sessions mini list -->
-                    @if (todaySessions.Any())
-                    {
-                        <div class="p-4 border-top">
-                            <div class="text-muted small fw-semibold text-uppercase mb-2">Buổi tập hôm nay</div>
-                            @foreach (var s in todaySessions.Take(3))
-                            {
-                                <div class="d-flex justify-content-between align-items-center py-1">
-                                    <span class="small text-muted">@s.StartTime.ToLocalTime().ToString("HH:mm")</span>
-                                    <span class="small">@s.DurationMinutes phút · @s.RepetitionsCount lần</span>
-                                    @if (s.RepetitionsCount >= (treatmentPlan?.TargetRepetitions ?? 10))
-                                    {
-                                        <span class="badge badge-soft-success rounded-pill px-2">Tốt</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge badge-soft-warning rounded-pill px-2">Cố gắng</span>
-                                    }
-                                </div>
-                            }
-                        </div>
-                    }
-
-                    <!-- Kết nối Bác sĩ -->
-                    <div class="p-4 border-top">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <div class="text-muted small fw-semibold text-uppercase mb-1">Cố vấn chuyên khoa</div>
-                                <h6 class="fw-bold text-dark mb-0">BS. Trần Minh Khoa</h6>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <a href="javascript:void(0)" class="btn btn-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px; height:36px; transition: all 0.2s;" title="Chat trực tuyến">
-                                    <i class="bi bi-chat-text-fill"></i>
-                                </a>
-                                <a href="https://zalo.me/0787775716" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center bg-white border" style="width:36px; height:36px; transition: all 0.2s;" title="Zalo Bác sĩ">
-                                    <img src="https://page.widget.zalo.me/static/images/2.0/Logo.svg" style="width:20px; height:20px;" alt="Zalo" />
-                                </a>
-                                <a href="https://www.facebook.com/profile.php?id=61590138553379" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px; height:36px; transition: all 0.2s;" title="Facebook Bác sĩ">
-                                    <i class="bi bi-facebook"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Weekly Achievement -->
-        <div class="modern-card p-4 mb-4" style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1px solid rgba(79,70,229,0.15);">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h5 class="fw-bold text-dark mb-0">
-                    <i class="bi bi-trophy-fill text-warning me-2"></i>Thành tích tuần này
-                </h5>
-                @{var weekStart = DateTime.UtcNow.AddDays(-7);}
-                <span class="badge bg-white text-primary rounded-pill px-3 py-2 shadow-sm fw-semibold" style="font-size:0.8rem;">
-                    @sessions.Count(s => s.StartTime >= weekStart) buổi / 7 ngày
-                </span>
-            </div>
-            <div class="row g-3">
-                <div class="col-4">
-                    <div class="bg-white rounded-4 p-3 text-center shadow-sm">
-                        <div class="fw-bold text-primary" style="font-size:1.8rem;">@sessions.Count(s => s.StartTime >= weekStart)</div>
-                        <div class="text-muted small fw-semibold">Buổi tập</div>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="bg-white rounded-4 p-3 text-center shadow-sm">
-                        <div class="fw-bold text-success" style="font-size:1.8rem;">@sessions.Where(s => s.StartTime >= weekStart).Sum(s => s.DurationMinutes)</div>
-                        <div class="text-muted small fw-semibold">Phút tập</div>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="bg-white rounded-4 p-3 text-center shadow-sm">
-                        <div class="fw-bold text-info" style="font-size:1.8rem;">@sessions.Where(s => s.StartTime >= weekStart).Sum(s => s.RepetitionsCount)</div>
-                        <div class="text-muted small fw-semibold">Lần lặp</div>
-                    </div>
-                </div>
-            </div>
-            @if (recoveryScore >= 80)
-            {
-                <div class="mt-3 p-3 bg-white rounded-4 d-flex align-items-center gap-3 shadow-sm">
-                    <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;flex-shrink:0;">
-                        <i class="bi bi-star-fill text-warning fs-4"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold text-dark">Xuất sắc! 🎉</div>
-                        <div class="text-muted small">Bạn đang đạt điểm phục hồi xuất sắc. Tiếp tục phát huy nhé!</div>
-                    </div>
-                </div>
-            }
-            else if (recoveryScore >= 50)
-            {
-                <div class="mt-3 p-3 bg-white rounded-4 d-flex align-items-center gap-3 shadow-sm">
-                    <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;flex-shrink:0;">
-                        <i class="bi bi-hand-thumbs-up-fill text-success fs-4"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold text-dark">Tiến bộ tốt! 💪</div>
-                        <div class="text-muted small">Bạn đang trên đà phục hồi. Cố gắng hoàn thành mục tiêu mỗi ngày!</div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="mt-3 p-3 bg-white rounded-4 d-flex align-items-center gap-3 shadow-sm">
-                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;flex-shrink:0;">
-                        <i class="bi bi-lightning-charge-fill text-primary fs-4"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold text-dark">Hãy bắt đầu hành trình!</div>
-                        <div class="text-muted small">Mỗi buổi tập đều quan trọng. Hôm nay là ngày tốt để bắt đầu.</div>
-                    </div>
-                </div>
-            }
-        </div>
-
-        <!-- Exercise History Table -->
-        <div class="modern-card overflow-hidden mb-4">
-            <div class="card-header bg-white border-bottom-0 p-4 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold text-dark mb-0">
-                    <i class="bi bi-calendar3 text-primary me-2"></i>Lịch sử Tập luyện (30 ngày gần nhất)
-                </h5>
-                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">@sessions.Count buổi</span>
-            </div>
-            @if (sessions.Any())
-            {
-                <!-- Weekly Progress Summary -->
-                <div class="px-4 pb-3">
-                    <div class="row g-2">
-                        @for (int d = 6; d >= 0; d--)
-                        {
-                            var day = DateTime.UtcNow.AddDays(-d);
-                            var daySessions = sessions.Where(s => s.StartTime.Date == day.Date).ToList();
-                            var dayReps = daySessions.Sum(s => s.RepetitionsCount);
-                            var isToday = d == 0;
-                            var hasData = daySessions.Any();
-                            var targetReps = treatmentPlan?.TargetRepetitions ?? 30;
-                            var fillPct = Math.Min(dayReps * 100 / Math.Max(targetReps, 1), 100);
-                            var col = d;
-                            <div class="col" style="min-width: 0;">
-                                <div class="text-center">
-                                    <div class="small text-muted mb-1" style="font-size:0.7rem;">@day.ToString("ddd").ToUpper()</div>
-                                    <div class="position-relative mx-auto" style="width:36px; height:60px; background:#f1f5f9; border-radius:8px; overflow:hidden;">
-                                        <div class="position-absolute bottom-0 start-0 w-100"
-                                             style="height:@fillPct%; background: @(hasData ? (fillPct >= 100 ? "#10b981" : "#4f46e5") : "#e2e8f0"); border-radius:6px; transition: height 0.5s ease;"></div>
-                                    </div>
-                                    <div class="small mt-1" style="font-size:0.7rem; font-weight:@(isToday ? "bold" : "normal"); color:@(isToday ? "#4f46e5" : "#94a3b8");">@day.Day</div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                    <div class="d-flex justify-content-between mt-2">
-                        <span class="text-muted" style="font-size:0.72rem;"><span style="display:inline-block;width:10px;height:10px;background:#10b981;border-radius:2px;"></span> Đạt mục tiêu</span>
-                        <span class="text-muted" style="font-size:0.72rem;"><span style="display:inline-block;width:10px;height:10px;background:#4f46e5;border-radius:2px;"></span> Chưa đủ</span>
-                        <span class="text-muted" style="font-size:0.72rem;"><span style="display:inline-block;width:10px;height:10px;background:#e2e8f0;border-radius:2px;"></span> Nghỉ</span>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light text-muted">
-                            <tr>
-                                <th class="ps-4 text-uppercase small">Ngày tập</th>
-                                <th class="text-uppercase small">Thời lượng</th>
-                                <th class="text-uppercase small">Số Reps</th>
-                                <th class="text-uppercase small cursor-pointer" data-tooltip="Tầm vận động khớp tối đa">Max ROM <i class="bi bi-info-circle"></i></th>
-                                <th class="pe-4 text-uppercase small">Kết quả</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var session in sessions.Take(10))
-                            {
-                                <tr>
-                                    <td class="ps-4 fw-medium text-dark">@session.StartTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td class="text-muted">@session.DurationMinutes phút</td>
-                                    <td class="fw-bold" style="color: var(--secondary-color);">@session.RepetitionsCount</td>
-                                    <td class="text-muted">@session.MaxRom°</td>
-                                    <td class="pe-4">
-                                        @if (session.RepetitionsCount >= (treatmentPlan?.TargetRepetitions ?? 10))
+                                var checkDay = DateTime.UtcNow.AddDays(-i);
+                                var hasDone = sessions.Any(s => s.StartTime.Date == checkDay.Date);
+                                var isTodayDay = i == 0;
+                                <div class="d-flex flex-column align-items-center">
+                                    <span class="small text-muted mb-1 fw-bold">@(checkDay.DayOfWeek == DayOfWeek.Sunday ? "CN" : "T" + ((int)checkDay.DayOfWeek + 1))</span>
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center border"
+                                         style="width: 44px; height: 44px; background-color: @(hasDone ? "var(--color-status-success-bg)" : "#F5F5F0"); border-color: @(hasDone ? "var(--color-status-success)" : "#D6D3D1") !important;">
+                                        @if (hasDone)
                                         {
-                                            <span class="badge badge-soft-success rounded-pill px-3 py-2">
-                                                <i class="bi bi-check-circle-fill me-1"></i>Hoàn thành
-                                            </span>
+                                            <i class="bi bi-check-lg text-success fs-4 fw-bold"></i>
+                                        }
+                                        else if (isTodayDay)
+                                        {
+                                            <i class="bi bi-circle-fill text-warning fs-6"></i>
                                         }
                                         else
                                         {
-                                            <span class="badge badge-soft-warning rounded-pill px-3 py-2">
-                                                <i class="bi bi-exclamation-circle me-1"></i>Cần cải thiện
-                                            </span>
+                                            <span class="text-muted small">@checkDay.Day</span>
                                         }
-                                    </td>
-                                </tr>
+                                    </div>
+                                    <span class="small mt-1 @(isTodayDay ? "fw-bold text-dark" : "text-muted")">
+                                        @(isTodayDay ? "Hôm nay" : checkDay.Day + "/" + checkDay.Month)
+                                    </span>
+                                </div>
                             }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-calendar-x fs-1 opacity-30 mb-3 d-block"></i>
-                    <p>@AppMessages.NoHistory</p>
-                </div>
-            }
-        </div>
-    }
-</div>
+                        </div>
 
-<style>
-    .live-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        background: white;
-        border-radius: 50%;
-        animation: pulse 1s infinite;
-    }
-    @@keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.3; }
-    }
-    .session-timer {
-        font-family: 'Inter', monospace;
-        font-size: 1.1rem;
-        letter-spacing: 0.05em;
-    }
-    .bg-purple { background-color: #a855f7 !important; }
-    .bg-amber { background-color: #d97706 !important; }
-</style>
+                        <div class="d-flex align-items-center justify-content-between bg-white p-3 rounded-4 border">
+                            <div>
+                                <span class="text-muted small">Cấp bậc kiên trì:</span>
+                                <div class="fw-bold fs-5" style="color: var(--color-primary);">@GetRankName(GetRankTier(CalculatePoints()))</div>
+                            </div>
+                            <a href="/patient/ranking" class="senior-btn senior-btn-secondary py-2 px-3 fs-6">
+                                <i class="bi bi-trophy-fill text-warning"></i> Xem Bảng Vàng
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bác sĩ chuyên khoa phụ trách -->
+                <div class="col-lg-5">
+                    <div class="senior-card h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="senior-card-header mb-3">
+                                <h3 class="senior-card-title fs-5">
+                                    <i class="bi bi-person-heart text-danger"></i> Bác Sĩ Cố Vấn Của Bác
+                                </h3>
+                                <span class="senior-badge senior-badge-success">Đang trực tuyến</span>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-3 mb-4">
+                                <img src="/images/bsiAn.jpg" alt="Bác sĩ điều trị" class="rounded-circle border" 
+                                     style="width: 72px; height: 72px; object-fit: cover; border-width: 3px !important; border-color: var(--color-primary) !important;" />
+                                <div>
+                                    <h4 class="fw-bold text-dark mb-1">BS. CKII. Trần Minh Khoa</h4>
+                                    <p class="text-muted small mb-0">Chuyên khoa Phục hồi chức năng & Vật lý trị liệu</p>
+                                    <span class="badge bg-light text-dark border mt-1">Bệnh viện Hoàn Mỹ</span>
+                                </div>
+                            </div>
+
+                            <div class="p-3 rounded-3 mb-3 bg-light border">
+                                <div class="text-muted small fw-bold mb-1">
+                                    <i class="bi bi-chat-quote-fill text-primary me-1"></i> Lời dặn từ Bác sĩ:
+                                </div>
+                                <p class="mb-0 fs-6" style="line-height: 1.5;">
+                                    "Bác nhớ khởi động xoay khớp nhẹ nhàng trước khi tập và uống một ly nước ấm sau khi hoàn thành bài tập nhé ạ!"
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Các nút liên hệ nhanh to rõ -->
+                        <div class="d-grid gap-2">
+                            <a href="tel:0787775716" class="senior-btn senior-btn-primary">
+                                <i class="bi bi-telephone-fill"></i> Gọi Điện Cho Bác Sĩ (0787.775.716)
+                            </a>
+                            <a href="https://zalo.me/0787775716" target="_blank" class="senior-btn senior-btn-secondary">
+                                <img src="https://page.widget.zalo.me/static/images/2.0/Logo.svg" style="width: 22px; height: 22px;" alt="Zalo" />
+                                Nhắn Tin Zalo Với Bác Sĩ
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. LỊCH SỬ TẬP LUYỆN 10 BUỔI GẦN NHẤT -->
+            <div class="senior-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h3 class="senior-card-title fs-4">
+                        <i class="bi bi-clock-history text-primary"></i> Lịch Sử Tập Luyện Gần Đây
+                    </h3>
+                    <span class="badge rounded-pill bg-light text-dark border px-3 py-2 fs-6">
+                        Tổng cộng: @sessions.Count buổi tập
+                    </span>
+                </div>
+
+                @if (sessions.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 1.05rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="py-3 ps-3">Ngày & Giờ tập</th>
+                                    <th class="py-3">Thời gian</th>
+                                    <th class="py-3">Số lần co duỗi</th>
+                                    <th class="py-3">Góc gập khớp tối đa</th>
+                                    <th class="py-3 pe-3 text-end">Đánh giá</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var session in sessions.Take(7))
+                                {
+                                    <tr>
+                                        <td class="py-3 ps-3 fw-bold text-dark">
+                                            <i class="bi bi-calendar-check text-success me-2"></i>
+                                            @session.StartTime.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td class="py-3 text-muted">@session.DurationMinutes phút</td>
+                                        <td class="py-3 fw-bold" style="color: var(--color-primary);">@session.RepetitionsCount lần</td>
+                                        <td class="py-3 text-muted">@session.MaxRom°</td>
+                                        <td class="py-3 pe-3 text-end">
+                                            @if (session.RepetitionsCount >= (treatmentPlan?.TargetRepetitions ?? 10))
+                                            {
+                                                <span class="senior-badge senior-badge-success">
+                                                    <i class="bi bi-check-circle-fill"></i> Hoàn thành tốt
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="senior-badge senior-badge-warning">
+                                                    <i class="bi bi-star-half"></i> Đã cố gắng
+                                                </span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-calendar-plus fs-1 text-muted mb-2 d-block"></i>
+                        <p class="fs-5 mb-0">Bác chưa có buổi tập nào được ghi lại. Hãy bắt đầu buổi tập đầu tiên hôm nay nhé!</p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
 
 @code {
     private List<ExerciseSession> sessions = new();
@@ -701,36 +438,17 @@
     private bool isExercising = false;
     private bool isLoading = true;
     private bool isSavingSession = false;
-    // FIX B4: Default = false để tránh UI flicker trước khi data load xong
     private bool hasPatientProfile = false;
     private int patientId = 0;
-    private string patientName = "Bạn";
+    private string patientName = "Bác";
     private double currentEMG = 0;
     private string sessionSavedMsg = string.Empty;
     private bool sessionSavedSuccess = false;
     private string parsedDoctorNotes = string.Empty;
 
-    // Computed stats
     private int todayDuration => todaySessions.Sum(s => s.DurationMinutes);
     private int todayReps => todaySessions.Sum(s => s.RepetitionsCount);
 
-    // Voucher copy feedback state (replaces browser alert())
-    private string copiedVoucherCode = string.Empty;
-    private System.Threading.Timer? _copyFeedbackTimer;
-
-    private void CopyVoucherCode(string code)
-    {
-        copiedVoucherCode = code;
-        // Auto-reset after 2 seconds
-        _copyFeedbackTimer?.Dispose();
-        _copyFeedbackTimer = new System.Threading.Timer(_ =>
-        {
-            copiedVoucherCode = string.Empty;
-            InvokeAsync(StateHasChanged);
-        }, null, 2000, Timeout.Infinite);
-    }
-
-    // FIX O3: Cache recoveryScore để tránh tính lại mỗi render
     private int _recoveryScore = 0;
     private int recoveryScore => _recoveryScore;
 
@@ -744,11 +462,9 @@
         _recoveryScore = (int)Math.Min((avgReps / Math.Max(targetReps, 1)) * 100, 100);
     }
 
-    // Timer - FIX: PeriodicTimer triggers UI re-render every second during exercise
     private DateTime sessionStartTime;
     private CancellationTokenSource? _timerCts;
 
-    // SignalR & Chart
     private HubConnection? hubConnection;
     private List<ChartDataPoint> liveData = new();
 
@@ -763,7 +479,7 @@
             patientId = userId;
         }
 
-        patientName = user.Identity?.Name ?? "Bạn";
+        patientName = user.Identity?.Name ?? "Bác";
 
         try
         {
@@ -787,15 +503,14 @@
                             parsedDoctorNotes = planData.DoctorNotes;
                         }
                     }
-                    catch { /* fallback to default if parsing fails */ }
+                    catch { }
                 }
                 else
                 {
-                    parsedDoctorNotes = treatmentPlan.Description; // Legacy plain text
+                    parsedDoctorNotes = treatmentPlan.Description;
                 }
             }
 
-            // FIX O3: Calculate and cache recovery score after data is loaded
             RecalculateRecoveryScore();
         }
         catch (Exception ex)
@@ -806,7 +521,6 @@
             hasPatientProfile = false;
         }
 
-        // Setup SignalR
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/dashboardHub"))
             .WithAutomaticReconnect()
@@ -834,7 +548,6 @@
         liveData.Clear();
         sessionSavedMsg = string.Empty;
         _ = SimulateDataLoop();
-        // FIX: Start a periodic timer to update the UI timer display every second
         _timerCts = new CancellationTokenSource();
         _ = RunSessionTimerAsync(_timerCts.Token);
     }
@@ -849,13 +562,12 @@
                 await InvokeAsync(StateHasChanged);
             }
         }
-        catch (OperationCanceledException) { /* Normal cancellation */ }
+        catch (OperationCanceledException) { }
     }
 
     private async Task StopSession()
     {
         isExercising = false;
-        // FIX: Cancel the UI timer
         _timerCts?.Cancel();
         _timerCts = null;
         isSavingSession = true;
@@ -870,7 +582,6 @@
                 var avgEmg = 0.0;
                 var maxRom = liveData.Any() ? (int)liveData.Max(d => d.ROMValue) : 0;
 
-                // BUG FIX: Now saves to DB via MediatR command
                 var saved = await Mediator.Send(new SaveSessionCommand
                 {
                     PatientId = patientId,
@@ -898,12 +609,10 @@
                     };
                     sessions.Insert(0, newSession);
                     todaySessions.Insert(0, newSession);
-                    // FIX O3: Recalculate cached score after new session is added
                     RecalculateRecoveryScore();
-                    sessionSavedMsg = string.Format(AppMessages.SessionSavedSuccessTemplate, durationMinutes);
+                    sessionSavedMsg = $"Chúc mừng Bác đã hoàn thành buổi tập ({durationMinutes} phút)! Dữ liệu đã được lưu an toàn.";
                     sessionSavedSuccess = true;
                     
-                    // Auto-dismiss after 5 seconds
                     _ = Task.Run(async () => 
                     {
                         await Task.Delay(5000);
@@ -913,33 +622,19 @@
                 }
                 else
                 {
-                    sessionSavedMsg = AppMessages.SessionSavedError;
+                    sessionSavedMsg = "Có lỗi xảy ra khi lưu buổi tập. Bác vui lòng thử lại nhé.";
                     sessionSavedSuccess = false;
-                    
-                    _ = Task.Run(async () => 
-                    {
-                        await Task.Delay(5000);
-                        sessionSavedMsg = string.Empty;
-                        await InvokeAsync(StateHasChanged);
-                    });
                 }
             }
-            else if (durationMinutes <= 0)
+            else
             {
-                sessionSavedMsg = AppMessages.SessionTooShort;
+                sessionSavedMsg = "Buổi tập quá ngắn (dưới 1 phút) nên chưa được ghi nhận vào lịch sử.";
                 sessionSavedSuccess = false;
-                
-                _ = Task.Run(async () => 
-                {
-                    await Task.Delay(5000);
-                    sessionSavedMsg = string.Empty;
-                    await InvokeAsync(StateHasChanged);
-                });
             }
         }
         catch (Exception ex)
         {
-            sessionSavedMsg = AppMessages.SessionSaveException;
+            sessionSavedMsg = "Có lỗi xảy ra. Bác vui lòng thử lại.";
             sessionSavedSuccess = false;
             Console.WriteLine($"Error saving session: {ex.Message}");
         }
@@ -966,7 +661,7 @@
             }
             catch
             {
-                break; // Exit loop if SignalR disconnects
+                break;
             }
             await Task.Delay(1000);
         }
@@ -974,23 +669,13 @@
 
     public async ValueTask DisposeAsync()
     {
-        // FIX: Single cleanup path - removed IDisposable to avoid double-dispose
         _timerCts?.Cancel();
         _timerCts?.Dispose();
         _timerCts = null;
-        _copyFeedbackTimer?.Dispose();
-        _copyFeedbackTimer = null;
         if (hubConnection is not null)
         {
             await hubConnection.DisposeAsync();
         }
-    }
-
-    // Ranking & Rewards Helpers
-    public class VoucherItem
-    {
-        public string Title { get; set; } = "";
-        public string Code { get; set; } = "";
     }
 
     private int CalculatePoints()
@@ -1003,7 +688,6 @@
     private int CalculateStreak()
     {
         if (!sessions.Any()) return 0;
-        
         var exerciseDates = sessions
             .Select(s => s.StartTime.ToLocalTime().Date)
             .Distinct()
@@ -1014,15 +698,10 @@
         
         var today = DateTime.Today;
         var yesterday = today.AddDays(-1);
-        
-        if (exerciseDates[0] != today && exerciseDates[0] != yesterday)
-        {
-            return 0;
-        }
+        if (exerciseDates[0] != today && exerciseDates[0] != yesterday) return 0;
         
         int streak = 0;
         var currentCheckDate = exerciseDates[0];
-        
         foreach (var date in exerciseDates)
         {
             if (date == currentCheckDate)
@@ -1030,12 +709,8 @@
                 streak++;
                 currentCheckDate = currentCheckDate.AddDays(-1);
             }
-            else
-            {
-                break;
-            }
+            else break;
         }
-        
         return streak;
     }
 
@@ -1048,123 +723,14 @@
         return 0;
     }
 
-    private string GetRankName(int tier)
+    private string GetRankName(int tier) => tier switch
     {
-        return tier switch
-        {
-            4 => "KIM CƯƠNG",
-            3 => "BẠCH KIM",
-            2 => "VÀNG",
-            1 => "BẠC",
-            _ => "ĐỒNG"
-        };
-    }
-
-    private string GetRankIcon(int tier)
-    {
-        return tier switch
-        {
-            4 => "bi-gem",
-            3 => "bi-award-fill",
-            2 => "bi-trophy-fill",
-            1 => "bi-bookmark-star-fill",
-            _ => "bi-award"
-        };
-    }
-
-    private string GetRankGradient(int tier)
-    {
-        return tier switch
-        {
-            4 => "linear-gradient(135deg, #a855f7 0%, #d946ef 100%)",
-            3 => "linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)",
-            2 => "linear-gradient(135deg, #eab308 0%, #f97316 100%)",
-            1 => "linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%)",
-            _ => "linear-gradient(135deg, #b45309 0%, #d97706 100%)"
-        };
-    }
-
-    private string GetRankProgressBarClass(int tier)
-    {
-        return tier switch
-        {
-            4 => "bg-purple",
-            3 => "bg-primary",
-            2 => "bg-warning",
-            1 => "bg-secondary",
-            _ => "bg-amber"
-        };
-    }
-
-    private int GetNextRankThreshold(int tier)
-    {
-        return tier switch
-        {
-            3 => 8000,
-            2 => 4000,
-            1 => 1500,
-            0 => 500,
-            _ => 99999 // Diamond max – used for progress bar max only
-        };
-    }
-
-    private double GetRankProgressPercentage(int points)
-    {
-        int tier = GetRankTier(points);
-        int currentBase = tier switch
-        {
-            4 => 8000,
-            3 => 4000,
-            2 => 1500,
-            1 => 500,
-            _ => 0
-        };
-        int nextGoal = GetNextRankThreshold(tier);
-        if (nextGoal == 99999) return 100.0;
-        
-        double progress = (double)(points - currentBase) / (nextGoal - currentBase) * 100.0;
-        return Math.Clamp(progress, 0.0, 100.0);
-    }
-
-    private string GetNextRankMessage(int points)
-    {
-        int tier = GetRankTier(points);
-        if (tier == 4) return "🏆 Bạn đã đạt cấp bậc KIM CƯƠNG cao nhất!";
-        int pointsNeeded = GetNextRankThreshold(tier) - points;
-        string nextRank = GetRankName(tier + 1);
-        return $"Còn {pointsNeeded:#,0} điểm để lên hạng {nextRank}";
-    }
-
-    private string GetAdFrequencyMessage(int tier)
-    {
-        return tier switch
-        {
-            4 => "Tắt 100%",
-            3 => "Tắt 100%",
-            2 => "Tắt 100%",
-            1 => "Giảm 60%",
-            _ => "Mặc định"
-        };
-    }
-
-    private List<VoucherItem> GetVouchers(int tier)
-    {
-        var vouchers = new List<VoucherItem>();
-        vouchers.Add(new VoucherItem { Title = "Giảm 10k mua phụ kiện", Code = "STEPWELCOME10" });
-        if (tier >= 1)
-        {
-            vouchers.Add(new VoucherItem { Title = "Giảm 30k gói Đặc Quyền", Code = "STEPSILVER30" });
-        }
-        if (tier >= 2)
-        {
-            vouchers.Add(new VoucherItem { Title = "Giảm 50k thiết bị mới", Code = "STEPGOLD50" });
-        }
-        if (tier >= 3)
-        {
-            vouchers.Add(new VoucherItem { Title = "Miễn phí 1 tháng tập VIP", Code = "STEPPLATINUMFREE" });
-        }
-        return vouchers;
-    }
+        4 => "Thành Viên Kim Cương",
+        3 => "Thành Viên Bạch Kim",
+        2 => "Thành Viên Vàng",
+        1 => "Thành Viên Bạc",
+        _ => "Thành Viên Tích Cực"
+    };
 
     public class ChartDataPoint
     {

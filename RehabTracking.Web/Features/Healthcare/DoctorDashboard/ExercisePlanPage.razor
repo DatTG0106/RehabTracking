@@ -54,6 +54,12 @@
     .ep-collapsed-badge { font-size: 0.72rem; padding: 0.25rem 0.6rem; border-radius: 20px; }
     .ep-reorder-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #94a3b8; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
     .ep-reorder-btn:hover { border-color: #4f46e5; color: #4f46e5; background: #eef2ff; }
+    .btn-back-modern { background: white; color: #4f46e5; border: 2px solid transparent; border-radius: 50px; padding: 0.6rem 1.5rem; font-weight: 600; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.08); transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem; position: relative; overflow: hidden; text-decoration: none; }
+    .btn-back-modern::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(124, 58, 237, 0.05)); z-index: 0; }
+    .btn-back-modern > * { position: relative; z-index: 1; }
+    .btn-back-modern:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15); border-color: rgba(79, 70, 229, 0.2); color: #4f46e5; }
+    .btn-back-modern:hover i { transform: translateX(-4px); }
+    .btn-back-modern i { transition: transform 0.3s ease; }
 </style>
 
 <div class="ep-page py-4">
@@ -67,7 +73,7 @@
                 </h2>
                 <p class="text-muted mb-0">Thiết kế bài tập cụ thể cho từng bệnh nhân · Gửi nhắc hẹn qua email</p>
             </div>
-            <a href="/doctor-dashboard" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold d-inline-flex align-items-center gap-2 border-light shadow-sm" style="transition: all 0.2s ease;">
+            <a href="/doctor-dashboard" class="btn-back-modern">
                 <i class="bi bi-arrow-left fs-5"></i><span>Về Bảng điều khiển</span>
             </a>
         </div>
@@ -293,7 +299,7 @@
                                                 {
                                                     <div class="d-flex flex-wrap gap-1 mt-1">
                                                         <span class="ep-collapsed-badge badge rounded-pill" style="background:#eef2ff;color:#4f46e5;">@ex.Sets sets × @ex.Reps reps</span>
-                                                        <span class="ep-collapsed-badge badge rounded-pill" style="background:#f0fdf4;color:#059669;">Giữ @ex.DurationSeconds s</span>
+                                                        <span class="ep-collapsed-badge badge rounded-pill" style="background:#f0fdf4;color:#14532d;">Giữ @ex.DurationSeconds s</span>
                                                         @if (!string.IsNullOrEmpty(ex.VideoUrl) && GetYoutubeEmbedId(ex.VideoUrl) != null)
                                                         {
                                                             <span class="ep-collapsed-badge badge rounded-pill bg-danger text-white">
@@ -353,6 +359,7 @@
                                                     <div class="col-6 col-md-3">
                                                         <label class="ep-label">Sets (hiệp) <span class="text-danger">*</span></label>
                                                         <input type="number" class="ep-input text-center" min="1" max="20"
+                                                               aria-label="Số hiệp tập (Sets)"
                                                                value="@ex.Sets"
                                                                @onchange="e => ex.Sets = Math.Max(1, int.TryParse(e.Value?.ToString(), out var v) ? v : 3)" />
                                                         <div class="text-muted mt-1" style="font-size:0.72rem;">1 – 20</div>
@@ -360,6 +367,7 @@
                                                     <div class="col-6 col-md-3">
                                                         <label class="ep-label">Reps (lần) <span class="text-danger">*</span></label>
                                                         <input type="number" class="ep-input text-center" min="1" max="100"
+                                                               aria-label="Số lần lặp lại (Reps)"
                                                                value="@ex.Reps"
                                                                @onchange="e => ex.Reps = Math.Max(1, int.TryParse(e.Value?.ToString(), out var v) ? v : 10)" />
                                                         <div class="text-muted mt-1" style="font-size:0.72rem;">1 – 100</div>
@@ -367,6 +375,7 @@
                                                     <div class="col-6 col-md-3">
                                                         <label class="ep-label">Giữ tư thế (giây)</label>
                                                         <input type="number" class="ep-input text-center" min="1" max="300"
+                                                               aria-label="Thời gian giữ tư thế (giây)"
                                                                value="@ex.DurationSeconds"
                                                                @onchange="e => ex.DurationSeconds = Math.Max(1, int.TryParse(e.Value?.ToString(), out var v) ? v : 5)" />
                                                         <div class="text-muted mt-1" style="font-size:0.72rem;">Thời gian mỗi rep</div>
@@ -374,6 +383,7 @@
                                                     <div class="col-6 col-md-3">
                                                         <label class="ep-label">Nghỉ giữa sets (s)</label>
                                                         <input type="number" class="ep-input text-center" min="0" max="300"
+                                                               aria-label="Thời gian nghỉ giữa các hiệp (giây)"
                                                                value="@ex.RestSeconds"
                                                                @onchange="e => ex.RestSeconds = Math.Max(0, int.TryParse(e.Value?.ToString(), out var v) ? v : 30)" />
                                                         <div class="text-muted mt-1" style="font-size:0.72rem;">0 = không nghỉ</div>
@@ -414,6 +424,7 @@
                                                     {
                                                         <div class="mt-3 video-thumb" style="max-width:360px;height:200px;">
                                                             <iframe width="100%" height="100%"
+                                                                    title="Video xem trước kỹ thuật bài tập"
                                                                     src="https://www.youtube.com/embed/@vid"
                                                                     frameborder="0" allowfullscreen loading="lazy">
                                                             </iframe>
@@ -605,6 +616,12 @@
         finally
         {
             isLoadingPatients = false;
+        }
+
+        // Auto-select first patient if available to bypass empty state
+        if (patients != null && patients.Any())
+        {
+            SelectPatient(patients.First());
         }
     }
 

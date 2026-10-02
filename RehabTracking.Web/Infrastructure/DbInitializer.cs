@@ -25,6 +25,14 @@ public class DbInitializer
         await SeedTreatmentPlansAsync(db);
         await SeedExerciseSessionsAsync(db);
         await SeedOrdersAsync(db);
+
+        // Seed phân hệ Phục hồi chức năng & Chăm sóc sức khỏe STEP
+        await SeedBadgesAsync(db);
+        await SeedExercisesAsync(db);
+        await SeedNutritionArticlesAsync(db);
+        await SeedGamificationProfilesAsync(db);
+        await SeedAppointmentsAndRemindersAsync(db);
+        await SeedDietaryMealPlansAsync(db);
     }
 
     // ----------------------------------------------------------------
@@ -489,6 +497,458 @@ public class DbInitializer
         using var sha256 = System.Security.Cryptography.SHA256.Create();
         var hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(saltedPassword));
         return Convert.ToHexString(hashBytes).ToLowerInvariant();
+    }
+
+    // ----------------------------------------------------------------
+    // 8. Seed Badges
+    // ----------------------------------------------------------------
+    private static async Task SeedBadgesAsync(RehabTrackingContext db)
+    {
+        if (await db.Badges.AnyAsync()) return;
+
+        db.Badges.AddRange(
+            new Badge { Code = "STREAK_3D", Name = "Khởi đầu Bền bỉ", Description = "Hoàn thành 3 ngày tập liên tiếp không gián đoạn", IconClass = "bi-fire", XPBonus = 50 },
+            new Badge { Code = "STREAK_7D", Name = "Chiến binh Tuần", Description = "Duy trì chuỗi 7 ngày tập luyện kiên trì", IconClass = "bi-lightning-charge-fill", XPBonus = 150 },
+            new Badge { Code = "PERFECT_SESSION", Name = "Chuẩn xác 100%", Description = "Hoàn thành trọn vẹn 100% mục tiêu của một buổi tập", IconClass = "bi-check2-circle", XPBonus = 50 },
+            new Badge { Code = "ROOKIE_GRADUATE", Name = "Vượt qua Tân binh", Description = "Tích lũy 500 XP và thăng hạng lên Cấp Bền bỉ", IconClass = "bi-shield-check", XPBonus = 100 },
+            new Badge { Code = "LOW_PAIN_CHAMP", Name = "Kiểm soát Cơn đau", Description = "Thang điểm đau VAS giảm về mức an toàn <= 2 điểm", IconClass = "bi-heart-pulse-fill", XPBonus = 100 }
+        );
+        await db.SaveChangesAsync();
+    }
+
+    // ----------------------------------------------------------------
+    // 9. Seed Exercises (Kho bài tập thông minh)
+    // ----------------------------------------------------------------
+    private static async Task SeedExercisesAsync(RehabTrackingContext db)
+    {
+        if (await db.Exercises.AnyAsync()) return;
+
+        db.Exercises.AddRange(
+            new Exercise
+            {
+                Title = "Gập duỗi gối chủ động (Heel Slides)",
+                TargetArea = "Khớp gối",
+                RecoveryPhase = "Phục hồi",
+                Difficulty = 1,
+                RecommendedPainMax = 4,
+                DefaultDurationSeconds = 180,
+                DefaultSets = 3,
+                DefaultReps = 10,
+                HoldSeconds = 5,
+                RestSeconds = 30,
+                Equipment = "Thảm tập",
+                ApplicableConditions = "Phục hồi sau mổ dây chằng chéo trước (ACL), Phẫu thuật rách sụn chêm, Thoái hóa khớp gối giai đoạn 1-2",
+                Contraindications = "Nhiễm trùng vết mổ khớp gối, Gãy xương quanh khớp chưa lành xương, Tràn dịch khớp gối lượng nhiều căng tức",
+                Description = "Bài tập cơ bản giúp lấy lại biên độ gập duỗi gối sau phẫu thuật dây chằng hoặc thoái hóa khớp.",
+                VideoUrl = "https://www.youtube.com/embed/kYJv8ZpM24Y",
+                ThumbnailUrl = "/images/exercises/knee_heel_slide.jpg",
+                StepInstructionsJson = "[\"Nằm ngửa trên thảm phẳng, hai chân duỗi thẳng thoải mái.\",\"Từ từ trượt gót chân đau về phía mông, gập gối đến góc tối đa không gây đau.\",\"Giữ yên ở tư thế gập tối đa trong 5 giây.\",\"Từ từ trượt gót chân trở lại vị trí ban đầu duỗi thẳng chân.\"]",
+                CommonMistakesJson = "[\"Nâng gót chân hổng khỏi mặt sàn thay vì trượt nhẹ nhàng.\",\"Cố ép gối quá mức khiến điểm đau vượt ngưỡng 4/10.\",\"Xoay bàn chân ra ngoài hoặc vào trong không kiểm soát.\"]",
+                RedFlagWarnings = "Nếu có tiếng rách kèm đau nhói dữ dội, khớp gối sưng to căng bóng nhanh chóng, hãy dừng tập ngay!",
+                TherapeuticBenefits = "Tăng biên độ gập duỗi khớp gối (ROM), bôi trơn dịch khớp và ngăn ngừa dính bao khớp."
+            },
+            new Exercise
+            {
+                Title = "Siết cơ tứ đầu đùi (Isometric Quad Sets)",
+                TargetArea = "Khớp gối",
+                RecoveryPhase = "Cấp tính",
+                Difficulty = 1,
+                RecommendedPainMax = 3,
+                DefaultDurationSeconds = 150,
+                DefaultSets = 3,
+                DefaultReps = 12,
+                HoldSeconds = 6,
+                RestSeconds = 25,
+                Equipment = "Khăn cuộn",
+                ApplicableConditions = "Giai đoạn sớm sau mổ ACL/PCL (tuần 1-2), Thoái hóa gối đau cấp, Bại liệt cơ tứ đầu đùi",
+                Contraindications = "Đau dữ dội tại lồi củ trước xương chày, viêm gân bánh chè cấp tính",
+                Description = "Bài tập tĩnh kích hoạt nhóm cơ tứ đầu đùi mà không làm chuyển động ổ khớp gối, rất an toàn giai đoạn sớm.",
+                VideoUrl = "https://www.youtube.com/embed/F_fK2Q16B3M",
+                ThumbnailUrl = "/images/exercises/quad_set.jpg",
+                StepInstructionsJson = "[\"Ngồi hoặc nằm ngửa, chân duỗi thẳng, đặt một khăn cuộn nhỏ dưới khoeo gối.\",\"Dùng lực siết chặt mặt trước đùi, ấn mạnh khoeo chân xuống khăn cuộn.\",\"Khóa chặt xương bánh chè và giữ căng trong 6 giây.\",\"Thả lỏng 3 giây và lặp lại nhịp tiếp theo.\"]",
+                CommonMistakesJson = "[\"Nín thở khi đang gồng cơ tứ đầu.\",\"Dùng lực gót chân thay vì dùng cơ mặt trước đùi.\"]",
+                RedFlagWarnings = "Đau nhói dưới gân bánh chè hoặc vết mổ rỉ dịch.",
+                TherapeuticBenefits = "Chống teo cơ tứ đầu đùi, hỗ trợ giữ vững khớp gối khi đứng thẳng."
+            },
+            new Exercise
+            {
+                Title = "Nâng chân thẳng có kiểm soát (Straight Leg Raise)",
+                TargetArea = "Khớp gối",
+                RecoveryPhase = "Tăng cường",
+                Difficulty = 2,
+                RecommendedPainMax = 4,
+                DefaultDurationSeconds = 200,
+                DefaultSets = 3,
+                DefaultReps = 10,
+                HoldSeconds = 5,
+                RestSeconds = 30,
+                Equipment = "Thảm tập",
+                ApplicableConditions = "Phục hồi dây chằng sau tuần 4, Tăng sức mạnh cơ gấp hông và duỗi gối",
+                Contraindications = "Rách gân bánh chè chưa phẫu thuật, Đau thắt lưng cấp tính kèm đau lan chân",
+                Description = "Tăng cường sức mạnh toàn diện chuỗi cơ duỗi gối và cơ thắt lưng chậu mà không tạo áp lực nén lên sụn chêm.",
+                VideoUrl = "https://www.youtube.com/embed/xL_K7U5zZ6I",
+                ThumbnailUrl = "/images/exercises/slr.jpg",
+                StepInstructionsJson = "[\"Nằm ngửa, chân lành gập gối 90 độ đặt bàn chân trên sàn để đỡ lưng.\",\"Chân tập duỗi thẳng hoàn toàn, gồng cơ tứ đầu khóa gối.\",\"Từ từ nâng chân thẳng lên độ cao ngang bằng đùi chân bên kia (khoảng 30-45 độ).\",\"Giữ trên cao 5 giây rồi hạ từ từ chạm sàn.\"]",
+                CommonMistakesJson = "[\"Gập cong đầu gối trong lúc nâng lên.\",\"Võng lưng dưới khi nâng chân.\"]",
+                RedFlagWarnings = "Đau buốt xương bánh chè hoặc đau tăng vùng thắt lưng.",
+                TherapeuticBenefits = "Phục hồi cơ lực nhóm duỗi gối bậc 4-5, cải thiện dáng đi bình thường."
+            },
+            new Exercise
+            {
+                Title = "Tư thế Cây cầu (Glute Bridge)",
+                TargetArea = "Cột sống thắt lưng",
+                RecoveryPhase = "Phục hồi",
+                Difficulty = 2,
+                RecommendedPainMax = 4,
+                DefaultDurationSeconds = 240,
+                DefaultSets = 3,
+                DefaultReps = 12,
+                HoldSeconds = 4,
+                RestSeconds = 30,
+                Equipment = "Thảm tập",
+                ApplicableConditions = "Thoát vị đĩa đệm cột sống thắt lưng L4-L5, Đau thắt lưng cơ năng, Thoái hóa cột sống lưng",
+                Contraindications = "Hẹp ống sống thắt lưng nặng gây triệu chứng đi khập khiễng cách hồi, Trượt đốt sống độ 3-4",
+                Description = "Tăng cường sức mạnh nhóm cơ mông và chuỗi cơ lưng dưới, giảm áp lực lên đĩa đệm thắt lưng.",
+                VideoUrl = "https://www.youtube.com/embed/wPM8icPu6H8",
+                ThumbnailUrl = "/images/exercises/glute_bridge.jpg",
+                StepInstructionsJson = "[\"Nằm ngửa, hai gối gập 90 độ, hai bàn chân đặt phẳng trên sàn rộng bằng vai.\",\"Siết cơ bụng và cơ mông, từ từ nâng hông lên khỏi sàn sao cho đùi và thân tạo thành đường thẳng.\",\"Giữ nguyên vị trí đỉnh trong 4 giây kết hợp thở đều.\",\"Hạ hông xuống từ từ từng đốt sống một chạm sàn.\"]",
+                CommonMistakesJson = "[\"Uốn cong lưng quá mức đẩy bụng lên quá cao.\",\"Không siết cơ mông mà dùng lực cơ gân khoeo chân.\"]",
+                RedFlagWarnings = "Cơn đau lưng lan buốt dọc theo mông xuống mặt sau đùi và bàn chân (nghi ngờ chèn ép dây thần kinh tọa).",
+                TherapeuticBenefits = "Ổn định khớp cùng chậu, củng cố cơ lưng dưới và cơ sàn chậu."
+            },
+            new Exercise
+            {
+                Title = "Tư thế Con mèo - Con bò (Cat-Cow Stretch)",
+                TargetArea = "Cột sống thắt lưng",
+                RecoveryPhase = "Phục hồi",
+                Difficulty = 1,
+                RecommendedPainMax = 3,
+                DefaultDurationSeconds = 180,
+                DefaultSets = 2,
+                DefaultReps = 10,
+                HoldSeconds = 4,
+                RestSeconds = 20,
+                Equipment = "Thảm tập",
+                ApplicableConditions = "Đau cứng cơ thắt lưng do ngồi văn phòng lâu, Thoái hóa cột sống lưng, Cứng cột sống buổi sáng",
+                Contraindications = "Gãy lún đốt sống thắt lưng cấp tính, Lao cột sống",
+                Description = "Kéo giãn nhịp nhàng các đốt sống thắt lưng và ngực, giải tỏa sự co cứng cơ do ngồi lâu.",
+                VideoUrl = "https://www.youtube.com/embed/ESJq520H9Fk",
+                ThumbnailUrl = "/images/exercises/cat_cow.jpg",
+                StepInstructionsJson = "[\"Chống hai tay và hai đầu gối trên thảm (tư thế bò bốn điểm).\",\"Hít vào thật sâu: Võng lưng xuống, ngẩng đầu mắt nhìn lên trần (tư thế Con Bò).\",\"Thở ra từ từ: Cuộn tròn lưng lên phía trên, hóp bụng, cằm thu về sát ngực (tư thế Con Mèo).\",\"Lặp lại động tác uyển chuyển theo từng nhịp thở.\"]",
+                CommonMistakesJson = "[\"Di chuyển giật cục nhanh quá mức thay vì chuyển động mềm mại.\",\"Trùng khuỷu tay khi thực hiện.\"]",
+                RedFlagWarnings = "Chóng mặt hoặc đau buốt đột ngột vùng thắt lưng.",
+                TherapeuticBenefits = "Tăng cường tuần hoàn máu đĩa đệm, giải phóng căng thẳng cột sống."
+            },
+            new Exercise
+            {
+                Title = "Rút cằm chỉnh tư thế (Chin Tucks)",
+                TargetArea = "Cột sống cổ",
+                RecoveryPhase = "Cấp tính",
+                Difficulty = 1,
+                RecommendedPainMax = 3,
+                DefaultDurationSeconds = 120,
+                DefaultSets = 3,
+                DefaultReps = 10,
+                HoldSeconds = 5,
+                RestSeconds = 20,
+                Equipment = "Không cần dụng cụ",
+                ApplicableConditions = "Hội chứng cổ vai gáy, Thoát vị đĩa đệm cổ C5-C6, Tư thế đầu nhô ra trước (Text Neck)",
+                Contraindications = "Chấn thương cột sống cổ gãy trật chưa phẫu thuật, Chóng mặt kịch phát lành tính đang đợt cấp",
+                Description = "Kích hoạt nhóm cơ gấp cổ sâu, khắc phục triệt để tư thế đầu nhô về trước (Forward Head Posture).",
+                VideoUrl = "https://www.youtube.com/embed/wqq_p0p9B48",
+                ThumbnailUrl = "/images/exercises/chin_tuck.jpg",
+                StepInstructionsJson = "[\"Ngồi thẳng lưng trên ghế có tựa, hai vai thả lỏng tự nhiên, mắt nhìn thẳng phía trước.\",\"Đặt ngón tay nhẹ lên cằm để làm điểm mốc chuẩn.\",\"Kéo nhẹ đầu lùi thẳng về phía sau như tạo ngấn cằm (không cúi gập đầu xuống).\",\"Giữ yên 5 giây cảm nhận vùng cơ sau gáy được kéo căng nhẹ, sau đó thả lỏng.\"]",
+                CommonMistakesJson = "[\"Cúi gập cổ gập cằm xuống ngực thay vì kéo tịnh tiến đầu về sau.\",\"Nâng vai lên cao khi thực hiện.\"]",
+                RedFlagWarnings = "Chóng mặt quay cuồng, buồn nôn hoặc tê buốt lan xuống hai cánh tay.",
+                TherapeuticBenefits = "Khắc phục thoái hóa đốt sống cổ, giảm áp lực cơ vùng chẩm gáy."
+            },
+            new Exercise
+            {
+                Title = "Bài tập con lắc Codman (Pendulum Shoulder)",
+                TargetArea = "Khớp vai",
+                RecoveryPhase = "Cấp tính",
+                Difficulty = 1,
+                RecommendedPainMax = 3,
+                DefaultDurationSeconds = 180,
+                DefaultSets = 3,
+                DefaultReps = 10,
+                HoldSeconds = 0,
+                RestSeconds = 30,
+                Equipment = "Bàn hoặc ghế tựa",
+                ApplicableConditions = "Đông cứng khớp vai (Frozen Shoulder), Viêm gân cơ chóp xoay giai đoạn đau cấp, Sau phẫu thuật chóp xoay",
+                Contraindications = "Trật khớp vai tái hồi chưa nắn chỉnh, Gãy đầu trên xương cánh tay chưa lành",
+                Description = "Bài tập vận động thụ động khớp vai sử dụng trọng lực, rất hiệu quả cho viêm quanh khớp vai đông cứng (Frozen Shoulder).",
+                VideoUrl = "https://www.youtube.com/embed/v8N9uRzN9sA",
+                ThumbnailUrl = "/images/exercises/shoulder_pendulum.jpg",
+                StepInstructionsJson = "[\"Đứng cạnh mép bàn, tay lành tì vững chắc lên bàn, hơi gập người về phía trước.\",\"Tay đau buông thõng tự nhiên vuông góc với mặt sàn, thả lỏng toàn bộ cơ vai.\",\"Sử dụng cử động nhịp nhàng của thân người để đung đưa cánh tay theo vòng tròn nhỏ.\",\"Đung đưa theo chiều kim đồng hồ 10 vòng rồi đổi ngược lại.\"]",
+                CommonMistakesJson = "[\"Dùng cơ vai để chủ động lắc tay thay vì thả lỏng và dùng lực toàn thân.\",\"Lắc biên độ quá lớn gây đau nhói.\"]",
+                RedFlagWarnings = "Đau buốt dữ dội hoặc cảm giác khớp vai bị trật ra khỏi ổ chảo.",
+                TherapeuticBenefits = "Tách nhẹ bao khớp vai, giảm kết dính và tạo điều kiện hồi phục tuần hoàn."
+            },
+            new Exercise
+            {
+                Title = "Kéo giãn gân gót Achilles với khăn (Towel Calf Stretch)",
+                TargetArea = "Cổ chân",
+                RecoveryPhase = "Phục hồi",
+                Difficulty = 1,
+                RecommendedPainMax = 3,
+                DefaultDurationSeconds = 150,
+                DefaultSets = 3,
+                DefaultReps = 8,
+                HoldSeconds = 15,
+                RestSeconds = 25,
+                Equipment = "Khăn dài hoặc dây tập",
+                ApplicableConditions = "Viêm cân gan chân (Plantar Fasciitis), Sau bong gân cổ chân, Cứng gân gót Achilles",
+                Contraindications = "Đứt gân gót Achilles cấp tính chưa mổ, Gãy xương mắt cá chân đang bó bột",
+                Description = "Kéo giãn cơ bắp chân và mạc gan chân, giúp giảm đau thốn gót chân khi bước xuống giường vào buổi sáng.",
+                VideoUrl = "https://www.youtube.com/embed/sIqGZqV4JbQ",
+                ThumbnailUrl = "/images/exercises/calf_stretch.jpg",
+                StepInstructionsJson = "[\"Ngồi trên sàn với hai chân duỗi thẳng phía trước.\",\"Quàng một chiếc khăn dài vòng qua ức bàn chân bên đau.\",\"Hai tay nắm hai đầu khăn, từ từ kéo nhẹ nhàng về phía thân mình đến khi cảm thấy căng bắp chân.\",\"Giữ tư thế kéo căng trong 15-20 giây, hít thở đều, sau đó thả lỏng.\"]",
+                CommonMistakesJson = "[\"Kéo giật mạnh đột ngột thay vì kéo từ từ tăng dần.\",\"Gập cong đầu gối làm giảm hiệu quả kéo giãn bắp chân.\"]",
+                RedFlagWarnings = "Đau nhói bỏng rát gân gót hoặc cảm giác sưng phù cổ chân tăng nhanh.",
+                TherapeuticBenefits = "Tăng độ dẻo dai gân gót, cải thiện tầm vận động gập mu bàn chân (dorsiflexion)."
+            }
+        );
+        await db.SaveChangesAsync();
+    }
+
+    // ----------------------------------------------------------------
+    // 10. Seed Nutrition Articles (Cẩm nang Dinh dưỡng & Chăm sóc)
+    // ----------------------------------------------------------------
+    private static async Task SeedNutritionArticlesAsync(RehabTrackingContext db)
+    {
+        if (await db.NutritionArticles.AnyAsync()) return;
+
+        db.NutritionArticles.AddRange(
+            new NutritionArticle
+            {
+                Title = "Chườm Nóng hay Chườm Lạnh: Khi nào nên áp dụng để giảm đau chuẩn y khoa?",
+                Category = "Chăm sóc sau tập",
+                ComorbidityTags = "Thoái hóa khớp, Chấn thương thể thao, Đau cơ",
+                Summary = "Phân biệt rõ ràng thời điểm vàng chườm lạnh (sau chấn thương, viêm cấp) và chườm nóng (căng cứng cơ mãn tính).",
+                ContentHtml = "<p>Trong vật lý trị liệu, việc lựa chọn nhiệt trị liệu (nóng hay lạnh) đóng vai trò quyết định trong việc giảm đau và thúc đẩy tái tạo mô liên kết:</p><h4>1. Khi nào chườm LẠNH (Cold Therapy)?</h4><p>Áp dụng ngay trong vòng 24 - 48 giờ sau khi chấn thương hoặc khi khớp có biểu hiện sưng, nóng, đỏ, đau. Nhiệt độ lạnh làm co mạch máu, giảm phù nề mô và gây tê tạm thời các đầu dây thần kinh. <em>Cách thực hiện:</em> Bọc đá trong khăn vải mềm, chườm 15 - 20 phút mỗi lần, cách nhau 2 tiếng.</p><h4>2. Khi nào chườm NÓNG (Heat Therapy)?</h4><p>Áp dụng cho các cơn đau âm ỉ kéo dài quá 48 giờ, co cứng cơ lưng hoặc cổ vai gáy vào buổi sáng. Nhiệt nóng giúp giãn mạch máu, tăng lưu thông máu đưa dưỡng chất nuôi dưỡng khớp.</p>",
+                CoverImageUrl = "/images/knowledge/hot_cold_pack.jpg",
+                AuthorDoctor = "BS. CKII Trần Minh Khoa",
+                ReadTimeMinutes = 4,
+                IsFeatured = true
+            },
+            new NutritionArticle
+            {
+                Title = "Chế độ dinh dưỡng Kháng viêm tự nhiên và Tái tạo sụn khớp",
+                Category = "Kháng viêm",
+                ComorbidityTags = "Thoái hóa khớp, Tim mạch, Gout",
+                Summary = "Danh mục siêu thực phẩm giàu Omega-3, Polyphenol và Collagen Type 2 giúp phục hồi sụn khớp từ bên trong.",
+                ContentHtml = "<p>Dinh dưỡng đúng cách có thể giảm tới 40% phản ứng viêm tại ổ khớp và đẩy nhanh tốc độ phục hồi chức năng dây chằng:</p><ul><li><strong>Acid béo Omega-3:</strong> Có nhiều trong cá hồi, cá trích, hạt óc chó và hạt lanh. Omega-3 ức chế sản xuất cytokine gây viêm.</li><li><strong>Củ nghệ & Curcumin:</strong> Hoạt chất Curcumin là chất chống viêm cực mạnh tương đương một số thuốc NSAIDs nhưng không gây đau dạ dày.</li><li><strong>Trái cây mọng (Quả dâu, việt quất):</strong> Chứa hàm lượng anthocyanin cao giúp chống oxy hóa và bảo vệ tế bào sụn.</li></ul>",
+                CoverImageUrl = "/images/knowledge/anti_inflammatory_diet.jpg",
+                AuthorDoctor = "ThS. Dinh dưỡng Lê Thị Hồng Nhung",
+                ReadTimeMinutes = 5,
+                IsFeatured = true
+            },
+            new NutritionArticle
+            {
+                Title = "Quy tắc Ergonomics: Tư thế làm việc và sinh hoạt chuẩn bảo vệ cột sống",
+                Category = "Tư thế sinh hoạt",
+                ComorbidityTags = "Thoái hóa cột sống, Đau vai gáy, Tiểu đường",
+                Summary = "Hướng dẫn chi tiết góc nhìn màn hình, tư thế ngồi ghế, cách bê vật nặng đúng quy chuẩn chống tái phát thoát vị đĩa đệm.",
+                ContentHtml = "<p>Hơn 80% trường hợp đau lưng tái phát bắt nguồn từ sai lệch tư thế sinh hoạt thường nhật:</p><ol><li><strong>Quy tắc bê vác vật nặng:</strong> Luôn gập đầu gối và hạ thấp hông (Squat), ôm sát vật thể vào ngực rồi dùng lực đẩy của hai chân đứng lên. Tuyệt đối không cúi cong lưng để bê vật nặng.</li><li><strong>Tư thế ngồi bàn làm việc:</strong> Màn hình ngang tầm mắt (cách 50-70cm), khuỷu tay gập 90 độ đặt trên tay vịn, hai bàn chân chạm phẳng trên sàn nhà.</li><li><strong>Quy tắc 30 phút:</strong> Cứ sau mỗi 30-45 phút ngồi làm việc, hãy đứng dậy đi lại và thực hiện 3 nhịp rút cằm (Chin Tucks) và vươn vai nhẹ.</li></ol>",
+                CoverImageUrl = "/images/knowledge/ergonomics_posture.jpg",
+                AuthorDoctor = "BS. CKII Trần Minh Khoa",
+                ReadTimeMinutes = 6,
+                IsFeatured = false
+            }
+        );
+        await db.SaveChangesAsync();
+    }
+
+    // ----------------------------------------------------------------
+    // 11. Seed Gamification Profiles
+    // ----------------------------------------------------------------
+    private static async Task SeedGamificationProfilesAsync(RehabTrackingContext db)
+    {
+        if (await db.GamificationProfiles.AnyAsync()) return;
+
+        var patientUsers = await db.Users.Where(u => u.RoleId == 3).ToListAsync();
+        int idx = 1;
+
+        foreach (var user in patientUsers)
+        {
+            var profile = new GamificationProfile
+            {
+                UserId = user.UserId,
+                TotalXP = 250 * idx,
+                CurrentTier = idx >= 3 ? "Warrior" : (idx >= 2 ? "Resilient" : "Rookie"),
+                CurrentStreak = idx * 2 + 1,
+                LongestStreak = idx * 3 + 2,
+                StreakShieldCount = 1,
+                IsAnonymousLeaderboard = idx % 2 == 0,
+                AnonymousDisplayName = $"Chiến binh #{user.UserId * 43 % 9000 + 1000}",
+                LastActivityDate = DateTime.UtcNow.AddDays(-1),
+                UpdatedAt = DateTime.UtcNow
+            };
+            db.GamificationProfiles.Add(profile);
+            idx++;
+        }
+        await db.SaveChangesAsync();
+    }
+
+    // ----------------------------------------------------------------
+    // 12. Seed Lịch Hẹn, Nhắc Nhở & Thông Báo Mẫu (Mục 6)
+    // ----------------------------------------------------------------
+    private static async Task SeedAppointmentsAndRemindersAsync(RehabTrackingContext db)
+    {
+        var patient = await db.Users.FirstOrDefaultAsync(u => u.RoleId == 3);
+        var doctor = await db.Users.FirstOrDefaultAsync(u => u.RoleId == 2);
+
+        if (patient == null || doctor == null) return;
+
+        // Seed Lịch Nhắc Nhở
+        if (!await db.ReminderSchedules.AnyAsync(r => r.PatientId == patient.UserId))
+        {
+            db.ReminderSchedules.AddRange(
+                new ReminderSchedule
+                {
+                    PatientId = patient.UserId,
+                    Title = "Tập vật lý trị liệu buổi sáng",
+                    ReminderType = "Exercise",
+                    TimeOfDay = new TimeSpan(8, 30, 0),
+                    DaysOfWeek = "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new ReminderSchedule
+                {
+                    PatientId = patient.UserId,
+                    Title = "Đo góc vận động (ROM) & Ghi nhật ký",
+                    ReminderType = "Measurement",
+                    TimeOfDay = new TimeSpan(19, 0, 0),
+                    DaysOfWeek = "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                }
+            );
+        }
+
+        // Seed Lịch Hẹn Khám
+        if (!await db.DoctorAppointments.AnyAsync(a => a.PatientId == patient.UserId))
+        {
+            db.DoctorAppointments.AddRange(
+                new DoctorAppointment
+                {
+                    PatientId = patient.UserId,
+                    DoctorId = doctor.UserId,
+                    AppointmentDate = DateTime.UtcNow.AddDays(2).Date.AddHours(9),
+                    DurationMinutes = 30,
+                    AppointmentType = "PeriodicReview",
+                    Status = "Confirmed",
+                    PatientReason = "Tái khám sau 2 tuần tập bài gập duỗi gối, muốn bác sĩ kiểm tra biên độ ROM",
+                    DoctorNotes = "Bệnh nhân tiến triển tốt, cần chuẩn bị đo góc duỗi chủ động.",
+                    MeetingLink = "https://meet.google.com/step-telehealth-demo",
+                    CreatedAt = DateTime.UtcNow.AddDays(-1),
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new DoctorAppointment
+                {
+                    PatientId = patient.UserId,
+                    DoctorId = doctor.UserId,
+                    AppointmentDate = DateTime.UtcNow.AddDays(5).Date.AddHours(14),
+                    DurationMinutes = 45,
+                    AppointmentType = "OnlineROMCheck",
+                    Status = "Pending",
+                    PatientReason = "Muốn bác sĩ hướng dẫn bài tập nâng cao khớp vai",
+                    CreatedAt = DateTime.UtcNow
+                }
+            );
+        }
+
+        // Seed Thông Báo Mẫu
+        if (!await db.InAppNotifications.AnyAsync(n => n.UserId == patient.UserId))
+        {
+            db.InAppNotifications.AddRange(
+                new InAppNotification
+                {
+                    UserId = patient.UserId,
+                    Title = "Lịch hẹn khám đã được xác nhận",
+                    Message = $"BS. {doctor.FullName} đã xác nhận lịch hẹn vào lúc {DateTime.UtcNow.AddDays(2):dd/MM/yyyy 09:00}. Nhấn để xem phòng khám.",
+                    Type = "Appointment",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddHours(-2),
+                    ActionUrl = "/patient/appointments"
+                },
+                new InAppNotification
+                {
+                    UserId = patient.UserId,
+                    Title = "Nhiệm vụ mới đang chờ bạn!",
+                    Message = "Hoàn thành bài tập hôm nay để nhận thêm +50 XP và duy trì chuỗi ngày kiên trì nhé!",
+                    Type = "Gamification",
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow.AddHours(-5),
+                    ActionUrl = "/patient/ranking"
+                }
+            );
+        }
+
+        await db.SaveChangesAsync();
+    }
+
+    // ----------------------------------------------------------------
+    // 13. Seed Thực Đơn Mẫu Y Khoa Phục Hồi (Mục 7)
+    // ----------------------------------------------------------------
+    private static async Task SeedDietaryMealPlansAsync(RehabTrackingContext db)
+    {
+        if (await db.DietaryMealPlans.AnyAsync()) return;
+
+        db.DietaryMealPlans.AddRange(
+            new DietaryMealPlan
+            {
+                Title = "Thực đơn giàu Canxi & Protein thúc đẩy liền xương gãy",
+                TargetCondition = "Gãy xương / Liền xương",
+                Phase = "Giai đoạn phục hồi tích cực (Tuần 3-8)",
+                CaloriesTarget = 2000,
+                ProteinGrams = 95,
+                CalciumMg = 1200,
+                BreakfastMenu = "1 tô phở bò tái nạm ít béo, 1 ly sữa tươi tiệt trùng bổ sung Canxi & Vitamin D3, 1 quả chuối sứ.",
+                LunchMenu = "2 chén cơm gạo lứt, 150g cá hồi nướng bơ tỏi, 1 đĩa rau cải thìa xào nấm hương, 1 bát canh cua mồng tơi.",
+                DinnerMenu = "1 chén cơm trắng, 120g ức gà rim hạt sen, đậu phụ sốt cà chua, canh sườn bí đỏ hầm nhừ.",
+                SnacksMenu = "1 hũ sữa chua Hy Lạp trộn hạt chia và 30g hạnh nhân sấy mộc.",
+                ClinicalNotes = "Uống đủ 2 - 2.5 lít nước/ngày. Tránh tuyệt đối cà phê đặc, nước ngọt có ga và rượu bia vì làm tăng đào thải canxi qua đường niệu.",
+                AuthorDoctor = "BS. CKII Trần Minh Khoa",
+                CreatedAt = DateTime.UtcNow
+            },
+            new DietaryMealPlan
+            {
+                Title = "Thực đơn kháng viêm sụn khớp & kiểm soát cân nặng",
+                TargetCondition = "Thoái hóa khớp / Viêm khớp",
+                Phase = "Giai đoạn củng cố & duy trì",
+                CaloriesTarget = 1650,
+                ProteinGrams = 80,
+                CalciumMg = 1000,
+                BreakfastMenu = "Cháo yến mạch nấu tôm nõn và rau chân vịt (spinach), 1 ly nước ép cần tây táo xanh.",
+                LunchMenu = "1 chén cơm gạo huyết rồng, 150g cá trích hoặc cá thu kho dứa, đĩa súp lơ xanh hấp chấm kho quẹt nhẹ, canh rong biển đậu hũ.",
+                DinnerMenu = "Salad cá ngừ ngâm dầu ô liu nguyên chất, trứng gà luộc lòng đào, khoai lang hấp cỡ vừa.",
+                SnacksMenu = "1 ly sinh tố bơ ít đường hoặc nắm hạt óc chó giàu Omega-3 tự nhiên.",
+                ClinicalNotes = "Ưu tiên gia vị có tính kháng viêm tự nhiên như nghệ vàng (Curcumin), gừng tươi và tỏi. Giảm lượng muối dưới 5g/ngày.",
+                AuthorDoctor = "BS. Lê Thị Hồng Nhung",
+                CreatedAt = DateTime.UtcNow
+            },
+            new DietaryMealPlan
+            {
+                Title = "Phác đồ dinh dưỡng phục hồi mô mềm & dây chằng sau mổ ACL",
+                TargetCondition = "Hồi phục sau mổ ACL",
+                Phase = "Giai đoạn cấp (Tuần 1-2)",
+                CaloriesTarget = 1850,
+                ProteinGrams = 90,
+                CalciumMg = 900,
+                BreakfastMenu = "Bánh mì đen kẹp 2 quả trứng ốp la, cà chua bi, 1 ly sữa chua men sống.",
+                LunchMenu = "Cơm trắng vừa đủ, 150g thăn bò xào ớt chuông giàu Vitamin C, canh súp rau củ củ dền xương hầm.",
+                DinnerMenu = "Cá chẽm hấp hành gừng, măng tây xào tỏi, 1 củ khoai tây nghiền với sữa tươi.",
+                SnacksMenu = "Nước cam vắt tươi không đường (Vitamin C giúp tổng hợp Collagen cho dây chằng) và quả việt quất.",
+                ClinicalNotes = "Vitamin C đóng vai trò enzyme đồng yếu tố không thể thiếu để liên kết các sợi Collagen tái tạo dây chằng chéo.",
+                AuthorDoctor = "BS. CKII Trần Minh Khoa",
+                CreatedAt = DateTime.UtcNow
+            }
+        );
+
+        await db.SaveChangesAsync();
     }
 
     // ----------------------------------------------------------------

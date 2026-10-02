@@ -1,0 +1,738 @@
+@page "/knowledge"
+@page "/patient/handbook"
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Services
+@inject KnowledgeService KnowledgeService
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Cẩm Nang Y Khoa & Thực Đơn Dinh Dưỡng – STEP</PageTitle>
+
+<div class="container py-4">
+    <!-- Header Banner Thân Thiện Người Cao Tuổi -->
+    <div class="senior-card p-4 p-md-5 mb-4" style="background-color: var(--color-primary-surface); border: 2.5px solid var(--color-primary-light);">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="senior-badge senior-badge-success mb-2">
+                    <i class="bi bi-shield-check"></i> Kiến Thức Y Khoa Thẩm Định
+                </span>
+                <h1 class="fw-bold mb-2 fs-1" style="color: var(--color-text-main);">
+                    <i class="bi bi-book-half text-success me-2"></i>Cẩm Nang & Dinh Dưỡng Phục Hồi
+                </h1>
+                <p class="text-muted fs-5 mb-0" style="line-height: 1.6;">
+                    Hướng dẫn ăn uống lành mạnh giúp nuôi dưỡng sụn khớp, giảm viêm tự nhiên và các mẹo chăm sóc sức khỏe an toàn tại nhà cho người lớn tuổi.
+                </p>
+            </div>
+            <div class="col-lg-4 text-center text-lg-end mt-3 mt-lg-0">
+                <div class="p-3 bg-white rounded-4 border shadow-sm text-start">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-patch-check-fill text-success fs-4"></i>
+                        <span class="fw-bold text-dark fs-6">100% Bác Sĩ Kiểm Duyệt</span>
+                    </div>
+                    <small class="text-muted">Biên soạn bởi các Bác sĩ chuyên khoa Phục hồi chức năng & Dinh dưỡng lâm sàng.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(alertMessage))
+    {
+        <div class="alert @(isSuccessAlert ? "alert-success border-success-subtle" : "alert-danger border-danger-subtle") alert-dismissible fade show rounded-4 p-3 mb-4 shadow-sm" role="alert">
+            <i class="bi @(isSuccessAlert ? "bi-check-circle-fill text-success" : "bi-exclamation-triangle-fill text-danger") me-2"></i>
+            @alertMessage
+            <button type="button" class="btn-close" @onclick="() => alertMessage = string.Empty"></button>
+        </div>
+    }
+
+    <!-- Main Navigation Tabs -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div class="btn-group rounded-pill p-1 bg-white shadow-sm border">
+            <button class="btn rounded-pill px-4 py-2 fw-semibold @(activeMainTab == "Articles" ? "btn-success text-white shadow-sm" : "btn-light text-dark")"
+                    @onclick='() => SwitchMainTab("Articles")'>
+                <i class="bi bi-journal-text me-1.5"></i> Cẩm Nang & Bài Viết Y Khoa
+            </button>
+            <button class="btn rounded-pill px-4 py-2 fw-semibold @(activeMainTab == "MealPlans" ? "btn-success text-white shadow-sm" : "btn-light text-dark")"
+                    @onclick='() => SwitchMainTab("MealPlans")'>
+                <i class="bi bi-cup-hot-fill me-1.5"></i> Thực Đơn Mẫu Phục Hồi
+            </button>
+        </div>
+
+        @if (isDoctorOrAdmin)
+        {
+            <div>
+                @if (activeMainTab == "Articles")
+                {
+                    <button class="btn btn-outline-success rounded-pill px-3.5 py-2 fw-semibold shadow-sm" @onclick="OpenCreateArticleModal">
+                        <i class="bi bi-plus-circle-fill me-1.5"></i> Viết Bài Mới (Bác sĩ)
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-outline-success rounded-pill px-3.5 py-2 fw-semibold shadow-sm" @onclick="OpenCreateMealPlanModal">
+                        <i class="bi bi-plus-circle-fill me-1.5"></i> Thêm Thực Đơn Mới (Bác sĩ)
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- ==================== TAB 1: BÀI VIẾT CẨM NANG ==================== -->
+    @if (activeMainTab == "Articles")
+    {
+        <!-- Search & Filter Bar -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control bg-light border-0" 
+                               placeholder="Tìm bài viết, thực phẩm, triệu chứng..." 
+                               aria-label="Tìm kiếm cẩm nang bài viết"
+                               @bind="searchKeyword" @bind:event="oninput" @bind:after="FilterArticles" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select bg-light border-0" aria-label="Lọc theo chuyên mục cẩm nang" @bind="selectedCategory" @bind:after="FilterArticles">
+                        <option value="">Tất cả chuyên mục</option>
+                        <option value="Kháng viêm">Kháng viêm tự nhiên</option>
+                        <option value="Tái tạo sụn khớp">Tái tạo sụn khớp</option>
+                        <option value="Tăng cường cơ bắp">Tăng cường cơ bắp</option>
+                        <option value="Chăm sóc sau tập">Chăm sóc sau tập (R.I.C.E)</option>
+                        <option value="Tư thế sinh hoạt">Tư thế sinh hoạt công thái học</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select bg-light border-0" aria-label="Lọc theo bệnh lý đi kèm" @bind="selectedComorbidity" @bind:after="FilterArticles">
+                        <option value="">Lọc theo bệnh lý đi kèm (Tất cả)</option>
+                        <option value="Thoái hóa">Thoái hóa khớp / Cột sống</option>
+                        <option value="Gãy xương">Gãy xương / Liền xương</option>
+                        <option value="Tim mạch">Bệnh lý Tim mạch</option>
+                        <option value="Tiểu đường">Tiểu đường (Đái tháo đường)</option>
+                        <option value="Gout">Bệnh Gout</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Articles Grid -->
+        @if (isLoadingArticles)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="text-muted mt-2">Đang tải danh sách bài viết...</p>
+            </div>
+        }
+        else if (articles.Count == 0)
+        {
+            <div class="text-center py-5 bg-white rounded-4 shadow-sm p-5 my-3">
+                <i class="bi bi-journal-x fs-1 text-muted opacity-50"></i>
+                <h5 class="mt-3 fw-bold text-dark">Chưa có bài viết phù hợp</h5>
+                <p class="text-muted mb-0">Hãy thử từ khóa khác hoặc điều chỉnh bộ lọc bệnh lý đi kèm.</p>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var article in articles)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden article-card d-flex flex-column bg-white">
+                            <div class="position-relative bg-light" style="height: 180px;">
+                                <img src="@(string.IsNullOrEmpty(article.CoverImageUrl) ? "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&auto=format&fit=crop&q=80" : article.CoverImageUrl)" 
+                                     alt="@article.Title" 
+                                     class="w-100 h-100" 
+                                     style="object-fit: cover;"
+                                     onerror="this.src='https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&auto=format&fit=crop&q=80'" />
+                                <span class="badge bg-success position-absolute top-0 start-0 m-3 rounded-pill px-3 py-1.5 shadow-sm">
+                                    @article.Category
+                                </span>
+                                @if (article.IsFeatured)
+                                {
+                                    <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-3 rounded-pill px-2.5 py-1.5 shadow-sm fw-bold">
+                                        <i class="bi bi-star-fill me-1"></i>Nổi Bật
+                                    </span>
+                                }
+                            </div>
+                            <div class="card-body p-4 d-flex flex-column flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 text-muted small mb-2">
+                                    <span><i class="bi bi-clock me-1"></i>@article.ReadTimeMinutes phút đọc</span>
+                                    <span>•</span>
+                                    <span><i class="bi bi-person me-1"></i>@(article.AuthorDoctor ?? "Ban Y Khoa STEP")</span>
+                                </div>
+
+                                <h5 class="card-title fw-bold text-dark mb-2">@article.Title</h5>
+                                <p class="card-text text-muted small flex-grow-1 text-truncate-3">
+                                    @article.Summary
+                                </p>
+
+                                @if (!string.IsNullOrEmpty(article.ComorbidityTags))
+                                {
+                                    <div class="d-flex flex-wrap gap-1 mb-3">
+                                        @foreach (var tag in article.ComorbidityTags.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                        {
+                                            <span class="badge bg-light text-secondary rounded-pill border small">#@tag.Trim()</span>
+                                        }
+                                    </div>
+                                }
+
+                                <div class="d-flex gap-2 mt-auto pt-2 border-top">
+                                    <button class="btn btn-outline-success rounded-pill flex-grow-1 fw-semibold small py-2" 
+                                            @onclick="() => selectedArticle = article">
+                                        <i class="bi bi-book me-1"></i> Đọc Toàn Bài
+                                    </button>
+                                    @if (isDoctorOrAdmin)
+                                    {
+                                        <button class="btn btn-sm btn-light border rounded-circle p-2" 
+                                                title="Sửa bài viết"
+                                                @onclick="() => OpenEditArticleModal(article)">
+                                            <i class="bi bi-pencil-fill text-primary"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-light border rounded-circle p-2" 
+                                                title="Xóa bài viết"
+                                                @onclick="() => DeleteArticle(article.ArticleId)">
+                                            <i class="bi bi-trash-fill text-danger"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+    <!-- ==================== TAB 2: THỰC ĐƠN MẪU PHỤC HỒI ==================== -->
+    @if (activeMainTab == "MealPlans")
+    {
+        <!-- Filter Bar -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-6">
+                    <select class="form-select bg-light border-0" @bind="selectedMealCondition" @bind:after="FilterMealPlans">
+                        <option value="">Tất cả bệnh lý mục tiêu</option>
+                        <option value="Gãy xương / Liền xương">Gãy xương / Liền xương (Bổ sung Canxi & Protein)</option>
+                        <option value="Thoái hóa khớp / Viêm khớp">Thoái hóa khớp / Viêm khớp (Kháng viêm & Giảm cân nặng)</option>
+                        <option value="Hồi phục sau mổ ACL">Hồi phục sau mổ dây chằng chéo ACL</option>
+                        <option value="Teo cơ người cao tuổi">Chống teo cơ / Phục hồi khối cơ</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <select class="form-select bg-light border-0" @bind="selectedMealPhase" @bind:after="FilterMealPlans">
+                        <option value="">Tất cả giai đoạn hồi phục</option>
+                        <option value="Giai đoạn cấp (Tuần 1-2)">Giai đoạn cấp (Tuần 1-2)</option>
+                        <option value="Giai đoạn phục hồi tích cực (Tuần 3-8)">Giai đoạn phục hồi tích cực (Tuần 3-8)</option>
+                        <option value="Giai đoạn củng cố & duy trì">Giai đoạn củng cố & duy trì</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        @if (isLoadingMealPlans)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="text-muted mt-2">Đang tải thực đơn dinh dưỡng...</p>
+            </div>
+        }
+        else if (mealPlans.Count == 0)
+        {
+            <div class="text-center py-5 bg-white rounded-4 shadow-sm p-5 my-3">
+                <i class="bi bi-egg-fried fs-1 text-muted opacity-50"></i>
+                <h5 class="mt-3 fw-bold text-dark">Chưa có thực đơn mẫu</h5>
+                <p class="text-muted mb-0">Hiện chưa có thực đơn cho tiêu chí lọc này. Bác sĩ điều trị sẽ sớm bổ sung thêm.</p>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var plan in mealPlans)
+                {
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 bg-white p-4 d-flex flex-column border-start border-4 border-success">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-success-subtle text-success-emphasis rounded-pill px-3 py-1.5 fw-semibold small">
+                                    <i class="bi bi-tag-fill me-1"></i>@plan.TargetCondition
+                                </span>
+                                <span class="badge bg-light text-secondary rounded-pill px-2.5 py-1 small">
+                                    @plan.Phase
+                                </span>
+                            </div>
+
+                            <h5 class="fw-bold text-dark mb-2">@plan.Title</h5>
+                            <div class="text-muted small mb-3">
+                                <i class="bi bi-person-fill-check text-success me-1"></i> Bác sĩ tham vấn: <strong>@plan.AuthorDoctor</strong>
+                            </div>
+
+                            <!-- Macro Stats Pills -->
+                            <div class="row g-2 mb-3 text-center">
+                                <div class="col-4">
+                                    <div class="p-2 bg-light rounded-3">
+                                        <div class="text-muted small" style="font-size: 0.72rem;">Năng lượng</div>
+                                        <div class="fw-bold text-dark">@plan.CaloriesTarget <small class="text-muted">kcal</small></div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2 bg-light rounded-3">
+                                        <div class="text-muted small" style="font-size: 0.72rem;">Đạm (Protein)</div>
+                                        <div class="fw-bold text-primary">@plan.ProteinGrams <small class="text-muted">g</small></div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2 bg-light rounded-3">
+                                        <div class="text-muted small" style="font-size: 0.72rem;">Canxi</div>
+                                        <div class="fw-bold text-success">@plan.CalciumMg <small class="text-muted">mg</small></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Menu Items -->
+                            <div class="list-group list-group-flush mb-3 small">
+                                <div class="list-group-item px-0 py-1.5 border-0 d-flex gap-2">
+                                    <span class="badge bg-warning-subtle text-warning-emphasis rounded px-2 py-1 flex-shrink-0" style="width: 75px;">Bữa Sáng</span>
+                                    <span class="text-dark">@plan.BreakfastMenu</span>
+                                </div>
+                                <div class="list-group-item px-0 py-1.5 border-0 d-flex gap-2">
+                                    <span class="badge bg-primary-subtle text-primary-emphasis rounded px-2 py-1 flex-shrink-0" style="width: 75px;">Bữa Trưa</span>
+                                    <span class="text-dark">@plan.LunchMenu</span>
+                                </div>
+                                <div class="list-group-item px-0 py-1.5 border-0 d-flex gap-2">
+                                    <span class="badge bg-info-subtle text-info-emphasis rounded px-2 py-1 flex-shrink-0" style="width: 75px;">Bữa Tối</span>
+                                    <span class="text-dark">@plan.DinnerMenu</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(plan.SnacksMenu))
+                                {
+                                    <div class="list-group-item px-0 py-1.5 border-0 d-flex gap-2">
+                                        <span class="badge bg-secondary-subtle text-secondary rounded px-2 py-1 flex-shrink-0" style="width: 75px;">Bữa Phụ</span>
+                                        <span class="text-muted">@plan.SnacksMenu</span>
+                                    </div>
+                                }
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(plan.ClinicalNotes))
+                            {
+                                <div class="p-2.5 bg-warning-subtle rounded-3 small text-dark mb-3">
+                                    <i class="bi bi-exclamation-circle-fill text-warning me-1"></i>
+                                    <strong>Lưu ý y tế:</strong> @plan.ClinicalNotes
+                                </div>
+                            }
+
+                            @if (isDoctorOrAdmin)
+                            {
+                                <div class="mt-auto pt-2 border-top d-flex justify-content-end gap-2">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" @onclick="() => OpenEditMealPlanModal(plan)">
+                                        <i class="bi bi-pencil me-1"></i> Sửa
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" @onclick="() => DeleteMealPlan(plan.MealPlanId)">
+                                        <i class="bi bi-trash me-1"></i> Xóa
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+<!-- Modal Đọc Bài Viết Y Khoa -->
+@if (selectedArticle != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 1050;">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow-lg p-3">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1.5 mb-2">@selectedArticle.Category</span>
+                        <h4 class="modal-title fw-bold text-dark">@selectedArticle.Title</h4>
+                        <div class="text-muted small mt-1">
+                            <i class="bi bi-person-fill me-1"></i> @selectedArticle.AuthorDoctor • <i class="bi bi-clock me-1"></i> @selectedArticle.ReadTimeMinutes phút đọc
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" @onclick="() => selectedArticle = null"></button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <div class="lead text-secondary mb-4 p-3 bg-light rounded-3" style="font-size: 1.05rem;">
+                        @selectedArticle.Summary
+                    </div>
+                    <div class="article-content text-dark lh-lg">
+                        @((MarkupString)selectedArticle.ContentHtml)
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" @onclick="() => selectedArticle = null">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal Soạn Thảo / Sửa Bài Viết CMS (Bác sĩ) -->
+@if (showArticleFormModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 1050;">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="bi bi-journal-plus text-success me-2"></i>@(articleForm.ArticleId == 0 ? "Soạn Thảo Bài Viết Mới" : "Chỉnh Sửa Bài Viết Y Khoa")
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="() => showArticleFormModal = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small text-dark">Tiêu đề bài viết <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3" @bind="articleForm.Title" placeholder="Ví dụ: Top 5 thực phẩm giàu Omega-3 kháng viêm khớp..." />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small text-dark">Chuyên mục</label>
+                            <select class="form-select rounded-3" @bind="articleForm.Category">
+                                <option value="Kháng viêm">Kháng viêm tự nhiên</option>
+                                <option value="Tái tạo sụn khớp">Tái tạo sụn khớp</option>
+                                <option value="Tăng cường cơ bắp">Tăng cường cơ bắp</option>
+                                <option value="Chăm sóc sau tập">Chăm sóc sau tập (R.I.C.E)</option>
+                                <option value="Tư thế sinh hoạt">Tư thế sinh hoạt đúng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Bệnh lý đi kèm (Thẻ phân loại, phân tách bởi dấu phẩy)</label>
+                            <input type="text" class="form-control rounded-3" @bind="articleForm.ComorbidityTags" placeholder="Thoái hóa khớp, Gãy xương, Tiểu đường, Tim mạch" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small text-dark">Thời gian đọc (phút)</label>
+                            <input type="number" class="form-control rounded-3" @bind="articleForm.ReadTimeMinutes" min="1" max="60" />
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="featuredCheck" @bind="articleForm.IsFeatured" />
+                                <label class="form-check-label small fw-semibold" for="featuredCheck">Ghim nổi bật</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">URL Ảnh bìa</label>
+                            <input type="text" class="form-control rounded-3" @bind="articleForm.CoverImageUrl" placeholder="https://images.unsplash.com/... hoặc /images/knowledge/..." />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Tóm tắt ngắn (Lead / Summary) <span class="text-danger">*</span></label>
+                            <textarea class="form-control rounded-3" rows="2" @bind="articleForm.Summary" placeholder="Tóm tắt ngắn 1-2 câu cốt lõi bài viết..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Nội dung chi tiết (Hỗ trợ định dạng HTML) <span class="text-danger">*</span></label>
+                            <textarea class="form-control rounded-3 font-monospace small" rows="8" @bind="articleForm.ContentHtml" placeholder="<p>Nội dung bài viết...</p><ol><li>Điểm 1</li></ol>"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @onclick="() => showArticleFormModal = false">Hủy</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 fw-semibold" @onclick="SaveArticle">
+                        <i class="bi bi-check2-circle me-1"></i> Lưu Bài Viết
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal Soạn Thảo / Sửa Thực Đơn Mẫu (Bác sĩ) -->
+@if (showMealPlanFormModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 1050;">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="bi bi-cup-hot text-success me-2"></i>@(mealPlanForm.MealPlanId == 0 ? "Tạo Thực Đơn Mẫu Mới" : "Sửa Thực Đơn Mẫu")
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="() => showMealPlanFormModal = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold small text-dark">Tiêu đề thực đơn <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3" @bind="mealPlanForm.Title" placeholder="Ví dụ: Thực đơn tăng cường Canxi thúc đẩy liền xương gãy..." />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold small text-dark">Bệnh lý mục tiêu</label>
+                            <select class="form-select rounded-3" @bind="mealPlanForm.TargetCondition">
+                                <option value="Gãy xương / Liền xương">Gãy xương / Liền xương</option>
+                                <option value="Thoái hóa khớp / Viêm khớp">Thoái hóa khớp / Viêm khớp</option>
+                                <option value="Hồi phục sau mổ ACL">Hồi phục sau mổ ACL</option>
+                                <option value="Teo cơ người cao tuổi">Teo cơ người cao tuổi</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Giai đoạn hồi phục</label>
+                            <select class="form-select rounded-3" @bind="mealPlanForm.Phase">
+                                <option value="Giai đoạn cấp (Tuần 1-2)">Giai đoạn cấp (Tuần 1-2)</option>
+                                <option value="Giai đoạn phục hồi tích cực (Tuần 3-8)">Giai đoạn phục hồi tích cực (Tuần 3-8)</option>
+                                <option value="Giai đoạn củng cố & duy trì">Giai đoạn củng cố & duy trì</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold small text-dark">Kcal/ngày</label>
+                            <input type="number" class="form-control rounded-3" @bind="mealPlanForm.CaloriesTarget" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold small text-dark">Đạm (g)</label>
+                            <input type="number" class="form-control rounded-3" @bind="mealPlanForm.ProteinGrams" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold small text-dark">Canxi (mg)</label>
+                            <input type="number" class="form-control rounded-3" @bind="mealPlanForm.CalciumMg" />
+                        </div>
+
+                        <!-- 4 bữa -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Bữa Sáng <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3" @bind="mealPlanForm.BreakfastMenu" placeholder="Ví dụ: Yến mạch nấu sữa hạnh nhân, 1 quả trứng luộc, 1 quả chuối" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Bữa Trưa <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3" @bind="mealPlanForm.LunchMenu" placeholder="Ví dụ: Cơm gạo lứt, 150g ức gà áp chảo, bông cải xanh luộc, canh rau ngót" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Bữa Tối <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3" @bind="mealPlanForm.DinnerMenu" placeholder="Ví dụ: Cá hồi nướng măng tây, salad rau củ dầu ô liu, đậu phụ non" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Bữa Phụ</label>
+                            <input type="text" class="form-control rounded-3" @bind="mealPlanForm.SnacksMenu" placeholder="Ví dụ: 1 hộp sữa chua Hy Lạp, nắm hạt óc chó/hạnh nhân" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Lưu ý y tế lâm sàng</label>
+                            <textarea class="form-control rounded-3" rows="2" @bind="mealPlanForm.ClinicalNotes" placeholder="Uống đủ 2 lít nước, hạn chế đường tinh luyện, bổ sung Vitamin D3 tắm nắng sớm..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @onclick="() => showMealPlanFormModal = false">Hủy</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 fw-semibold" @onclick="SaveMealPlan">
+                        <i class="bi bi-check2-circle me-1"></i> Lưu Thực Đơn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .article-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .article-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important;
+    }
+    .text-truncate-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+
+@code {
+    private string activeMainTab = "Articles"; // "Articles" hoặc "MealPlans"
+    private bool isDoctorOrAdmin = false;
+    private int currentUserId = 0;
+    private string currentUserRole = "Patient";
+    private string alertMessage = string.Empty;
+    private bool isSuccessAlert = true;
+
+    // Tab Articles state
+    private List<NutritionArticle> articles = new();
+    private bool isLoadingArticles = true;
+    private string searchKeyword = "";
+    private string selectedCategory = "";
+    private string selectedComorbidity = "";
+    private NutritionArticle? selectedArticle = null;
+    private bool showArticleFormModal = false;
+    private UpsertArticleRequest articleForm = new();
+
+    // Tab MealPlans state
+    private List<DietaryMealPlan> mealPlans = new();
+    private bool isLoadingMealPlans = false;
+    private string selectedMealCondition = "";
+    private string selectedMealPhase = "";
+    private bool showMealPlanFormModal = false;
+    private UpsertMealPlanRequest mealPlanForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var roleClaim = user.FindFirst(ClaimTypes.Role)?.Value;
+            currentUserRole = roleClaim ?? "Patient";
+            isDoctorOrAdmin = currentUserRole == "Doctor" || currentUserRole == "Admin";
+
+            var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(idClaim, out currentUserId);
+        }
+
+        await LoadArticles();
+    }
+
+    private async Task SwitchMainTab(string tab)
+    {
+        activeMainTab = tab;
+        if (tab == "MealPlans" && mealPlans.Count == 0)
+        {
+            await LoadMealPlans();
+        }
+    }
+
+    private async Task LoadArticles()
+    {
+        isLoadingArticles = true;
+        try
+        {
+            articles = await KnowledgeService.GetArticlesAsync(searchKeyword, selectedCategory, selectedComorbidity);
+        }
+        finally
+        {
+            isLoadingArticles = false;
+        }
+    }
+
+    private async Task FilterArticles()
+    {
+        await LoadArticles();
+    }
+
+    private void OpenCreateArticleModal()
+    {
+        articleForm = new UpsertArticleRequest
+        {
+            ArticleId = 0,
+            AuthorDoctor = currentUserRole == "Doctor" ? "Bác sĩ Chuyên khoa STEP" : "Ban Y Khoa STEP",
+            ReadTimeMinutes = 5
+        };
+        showArticleFormModal = true;
+    }
+
+    private void OpenEditArticleModal(NutritionArticle a)
+    {
+        articleForm = new UpsertArticleRequest
+        {
+            ArticleId = a.ArticleId,
+            Title = a.Title,
+            Category = a.Category,
+            ComorbidityTags = a.ComorbidityTags,
+            Summary = a.Summary,
+            ContentHtml = a.ContentHtml,
+            CoverImageUrl = a.CoverImageUrl,
+            AuthorDoctor = a.AuthorDoctor,
+            ReadTimeMinutes = a.ReadTimeMinutes,
+            IsFeatured = a.IsFeatured
+        };
+        showArticleFormModal = true;
+    }
+
+    private async Task SaveArticle()
+    {
+        if (string.IsNullOrWhiteSpace(articleForm.Title) || string.IsNullOrWhiteSpace(articleForm.Summary))
+        {
+            alertMessage = "Vui lòng nhập đầy đủ tiêu đề và tóm tắt bài viết.";
+            isSuccessAlert = false;
+            return;
+        }
+
+        await KnowledgeService.UpsertArticleAsync(articleForm, currentUserId, currentUserRole);
+        alertMessage = articleForm.ArticleId == 0 ? "Tạo bài viết mới thành công!" : "Cập nhật bài viết thành công!";
+        isSuccessAlert = true;
+        showArticleFormModal = false;
+        await LoadArticles();
+    }
+
+    private async Task DeleteArticle(int id)
+    {
+        await KnowledgeService.DeleteArticleAsync(id, currentUserId, currentUserRole);
+        alertMessage = "Đã xóa bài viết cẩm nang thành công.";
+        isSuccessAlert = true;
+        await LoadArticles();
+    }
+
+    // MealPlans
+    private async Task LoadMealPlans()
+    {
+        isLoadingMealPlans = true;
+        try
+        {
+            mealPlans = await KnowledgeService.GetMealPlansAsync(selectedMealCondition, selectedMealPhase);
+        }
+        finally
+        {
+            isLoadingMealPlans = false;
+        }
+    }
+
+    private async Task FilterMealPlans()
+    {
+        await LoadMealPlans();
+    }
+
+    private void OpenCreateMealPlanModal()
+    {
+        mealPlanForm = new UpsertMealPlanRequest
+        {
+            MealPlanId = 0,
+            AuthorDoctor = "BS. CKII Trần Minh Khoa",
+            CaloriesTarget = 1800,
+            ProteinGrams = 85,
+            CalciumMg = 1000
+        };
+        showMealPlanFormModal = true;
+    }
+
+    private void OpenEditMealPlanModal(DietaryMealPlan p)
+    {
+        mealPlanForm = new UpsertMealPlanRequest
+        {
+            MealPlanId = p.MealPlanId,
+            Title = p.Title,
+            TargetCondition = p.TargetCondition,
+            Phase = p.Phase,
+            CaloriesTarget = p.CaloriesTarget,
+            ProteinGrams = p.ProteinGrams,
+            CalciumMg = p.CalciumMg,
+            BreakfastMenu = p.BreakfastMenu,
+            LunchMenu = p.LunchMenu,
+            DinnerMenu = p.DinnerMenu,
+            SnacksMenu = p.SnacksMenu,
+            ClinicalNotes = p.ClinicalNotes,
+            AuthorDoctor = p.AuthorDoctor
+        };
+        showMealPlanFormModal = true;
+    }
+
+    private async Task SaveMealPlan()
+    {
+        if (string.IsNullOrWhiteSpace(mealPlanForm.Title) || string.IsNullOrWhiteSpace(mealPlanForm.BreakfastMenu))
+        {
+            alertMessage = "Vui lòng nhập đầy đủ tiêu đề và thực đơn các bữa ăn.";
+            isSuccessAlert = false;
+            return;
+        }
+
+        await KnowledgeService.UpsertMealPlanAsync(mealPlanForm, currentUserId, currentUserRole);
+        alertMessage = mealPlanForm.MealPlanId == 0 ? "Tạo thực đơn mẫu thành công!" : "Cập nhật thực đơn mẫu thành công!";
+        isSuccessAlert = true;
+        showMealPlanFormModal = false;
+        await LoadMealPlans();
+    }
+
+    private async Task DeleteMealPlan(int id)
+    {
+        await KnowledgeService.DeleteMealPlanAsync(id, currentUserId, currentUserRole);
+        alertMessage = "Đã xóa thực đơn mẫu thành công.";
+        isSuccessAlert = true;
+        await LoadMealPlans();
+    }
+}

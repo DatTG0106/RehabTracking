@@ -1,0 +1,44 @@
+@page "/patient/ai-assistant"
+@page "/ai-assistant"
+@rendermode InteractiveServer
+
+<PageTitle>Trợ Lý Sức Khỏe AI – Sắp Ra Mắt | STEP</PageTitle>
+
+<div class="container py-5" style="max-width: 800px;">
+    <div class="card border-0 shadow-sm rounded-4 text-center p-5 bg-white">
+        <div class="mx-auto rounded-circle d-flex align-items-center justify-content-center mb-4"
+             style="width: 96px; height: 96px; background-color: #F0FDF4; color: #16A34A; border: 2px dashed #86EFAC;">
+            <i class="bi bi-robot fs-1"></i>
+        </div>
+
+        <span class="badge rounded-pill px-3 py-2 mb-3 fw-bold align-self-center" style="background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
+            <i class="bi bi-stars me-1"></i> Đang được nâng cấp • Sắp ra mắt
+        </span>
+
+        <h1 class="fw-bold fs-2 text-dark mb-3">Trợ Lý Sức Khỏe AI (STEP AI)</h1>
+        
+        <p class="text-muted fs-5 mb-4 lh-base" style="max-width: 620px; margin: 0 auto;">
+            Tính năng Trợ lý Ảo AI hỗ trợ hỏi đáp y khoa tự động đang được hoàn thiện thuật toán và kiểm định y khoa để đảm bảo an toàn tuyệt đối cho người bệnh.
+        </p>
+
+        <div class="p-4 rounded-4 bg-light text-start mb-4 border border-light-subtle">
+            <h6 class="fw-bold text-dark mb-2">
+                <i class="bi bi-shield-check text-primary me-2"></i>Trong lúc chờ đợi, bạn có thể:
+            </h6>
+            <ul class="text-muted small mb-0 ps-3 lh-lg">
+                <li>Tra cứu các hướng dẫn chườm nóng/lạnh, chế độ dinh dưỡng trong mục <strong>Cẩm nang Y khoa</strong>.</li>
+                <li>Ghi nhận cơn đau hoặc diễn biến tập luyện vào <strong>Nhật ký phục hồi</strong> để Bác sĩ xem và nhận xét trực tiếp.</li>
+                <li>Liên hệ với Bác sĩ điều trị qua <strong>Lịch hẹn khám</strong> hoặc Tổng đài y tế nếu có triệu chứng khẩn cấp.</li>
+            </ul>
+        </div>
+
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+            <a href="/patient-dashboard" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                <i class="bi bi-house-door me-2"></i>Về Bảng điều khiển
+            </a>
+            <a href="/knowledge" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
+                <i class="bi bi-journal-medical me-2"></i>Xem Cẩm nang Y khoa
+            </a>
+        </div>
+    </div>
+</div>

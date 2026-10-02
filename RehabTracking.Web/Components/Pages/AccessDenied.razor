@@ -1,0 +1,26 @@
+@page "/access-denied"
+@layout RehabTracking.Web.Components.Layout.MainLayout
+
+<PageTitle>Từ chối truy cập (403) – STEP Phục hồi chức năng</PageTitle>
+
+<div class="container py-5 text-center" style="max-width: 650px;">
+    <div class="card border-0 shadow-sm rounded-4 p-5 bg-white">
+        <div class="mb-4">
+            <span class="badge rounded-circle bg-danger-subtle text-danger p-4" style="font-size: 3rem;">
+                <i class="bi bi-shield-lock-fill"></i>
+            </span>
+        </div>
+        <h2 class="fw-bold text-dark mb-3">Truy cập Bị Hạn Chế (403)</h2>
+        <p class="text-secondary mb-4 leading-relaxed">
+            Bạn không có quyền truy cập vào hồ sơ y tế hoặc khu vực quản trị này. Nhằm tuân thủ quy định bảo mật dữ liệu sức khỏe, hồ sơ bệnh nhân chỉ được phép xem bởi chính bệnh nhân đó và Bác sĩ được chỉ định phụ trách.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+                <i class="bi bi-house-door me-2"></i>Về Trang Chủ
+            </a>
+            <a href="/login" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Đổi Tài Khoản
+            </a>
+        </div>
+    </div>
+</div>

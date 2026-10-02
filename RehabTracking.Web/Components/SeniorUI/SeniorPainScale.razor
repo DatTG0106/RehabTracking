@@ -1,0 +1,114 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="senior-pain-scale-container my-3" role="group" aria-label="Thang đo mức độ đau từ 0 đến 10">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <label class="senior-form-label mb-0 fs-5">
+            <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
+            <strong>Mức độ đau hiện tại của Bác:</strong>
+        </label>
+        <span class="badge rounded-pill px-3 py-2 fs-6 fw-bold @GetBadgeClass(Value)">
+            @GetPainDescription(Value) (Mức @Value / 10)
+        </span>
+    </div>
+
+    <!-- 11 Nút Bấm Tròn To Tương Ứng 0 - 10 -->
+    <div class="senior-pain-scale" role="radiogroup" aria-label="Chọn mức độ đau từ 0 đến 10">
+        @for (int i = 0; i <= 10; i++)
+        {
+            var level = i;
+            var isSelected = Value == level;
+            <button type="button"
+                    class="senior-pain-btn @GetLevelClass(level) @(isSelected ? "active" : "")"
+                    @onclick="() => SelectPainLevel(level)"
+                    role="radio"
+                    aria-checked="@isSelected.ToString().ToLower()"
+                    aria-label="Mức đau @level: @GetPainDescription(level)"
+                    title="Mức @level - @GetPainDescription(level)">
+                @level
+            </button>
+        }
+    </div>
+
+    <!-- 5 Nút Lựa Chọn Nhanh Bằng Chữ To -->
+    <div class="d-flex flex-wrap gap-2 justify-content-center mt-3">
+        <button type="button" 
+                class="senior-btn senior-btn-secondary py-2 px-3 @(Value == 0 ? "border-success fw-bold text-success" : "")"
+                @onclick="() => SelectPainLevel(0)"
+                style="min-height: 48px;">
+            <i class="bi bi-emoji-smile-fill text-success fs-5"></i> 0: Rất thoải mái (Không đau)
+        </button>
+
+        <button type="button" 
+                class="senior-btn senior-btn-secondary py-2 px-3 @(Value == 3 ? "border-warning fw-bold text-warning-emphasis" : "")"
+                @onclick="() => SelectPainLevel(3)"
+                style="min-height: 48px;">
+            <i class="bi bi-emoji-neutral-fill text-warning fs-5"></i> 3: Đau nhẹ (Vẫn chịu tốt)
+        </button>
+
+        <button type="button" 
+                class="senior-btn senior-btn-secondary py-2 px-3 @(Value == 5 ? "border-warning fw-bold text-danger-emphasis" : "")"
+                @onclick="() => SelectPainLevel(5)"
+                style="min-height: 48px;">
+            <i class="bi bi-emoji-frown-fill text-warning fs-5"></i> 5: Đau vừa (Hơi khó chịu)
+        </button>
+
+        <button type="button" 
+                class="senior-btn senior-btn-secondary py-2 px-3 @(Value == 8 ? "border-danger fw-bold text-danger" : "")"
+                @onclick="() => SelectPainLevel(8)"
+                style="min-height: 48px;">
+            <i class="bi bi-emoji-grimacing-fill text-danger fs-5"></i> 8: Khá đau (Cần nghỉ)
+        </button>
+
+        <button type="button" 
+                class="senior-btn senior-btn-secondary py-2 px-3 @(Value == 10 ? "border-danger fw-bold text-danger" : "")"
+                @onclick="() => SelectPainLevel(10)"
+                style="min-height: 48px;">
+            <i class="bi bi-emoji-dizzy-fill text-danger fs-5"></i> 10: Rất đau (Dừng tập ngay)
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Value { get; set; } = 0;
+
+    [Parameter]
+    public EventCallback<int> ValueChanged { get; set; }
+
+    private async Task SelectPainLevel(int level)
+    {
+        Value = level;
+        await ValueChanged.InvokeAsync(level);
+    }
+
+    private string GetLevelClass(int level) => level switch
+    {
+        0 => "pain-level-none",
+        >= 1 and <= 3 => "pain-level-mild",
+        >= 4 and <= 6 => "pain-level-mod",
+        >= 7 and <= 9 => "pain-level-sev",
+        _ => "pain-level-max"
+    };
+
+    private string GetBadgeClass(int level) => level switch
+    {
+        0 => "bg-success text-white",
+        >= 1 and <= 3 => "bg-warning-subtle text-dark border border-warning",
+        >= 4 and <= 6 => "bg-warning text-dark",
+        >= 7 and <= 9 => "bg-danger-subtle text-danger border border-danger",
+        _ => "bg-danger text-white"
+    };
+
+    private string GetPainDescription(int level) => level switch
+    {
+        0 => "Rất thoải mái (Không đau)",
+        1 or 2 => "Hơi nhức nhẹ",
+        3 => "Đau nhẹ",
+        4 or 5 => "Đau vừa",
+        6 => "Khá nhức mỏi",
+        7 or 8 => "Đau nhiều",
+        9 => "Đau dữ dội",
+        10 => "Đau rất nặng (Cần gặp Bác sĩ)",
+        _ => "Bình thường"
+    };
+}

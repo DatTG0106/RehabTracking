@@ -1,0 +1,735 @@
+@page "/patient/ehr"
+@page "/doctor/ehr"
+@page "/ehr"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using System.Text.Json
+@using Microsoft.EntityFrameworkCore
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Services
+@attribute [Authorize]
+@inject RehabTrackingContext Db
+@inject EhrService EhrService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+
+<PageTitle>Hồ Sơ Sức Khỏe Điện Tử (EHR) & Dòng Thời Gian Phục Hồi – STEP</PageTitle>
+
+<div class="container py-4">
+    <!-- Header Thân Thiện Người Cao Tuổi -->
+    <div class="senior-card p-4 mb-4" style="background-color: var(--color-primary-surface); border: 2px solid var(--color-primary-light);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="senior-badge senior-badge-success mb-2">
+                    <i class="bi bi-shield-lock-fill"></i> Tiêu Chuẩn Bảo Mật Y Tế & Kiểm Toán
+                </span>
+                <h1 class="fw-bold text-dark fs-2 mb-1">
+                    <i class="bi bi-file-earmark-medical-fill text-success me-2"></i>Hồ Sơ Sức Khỏe Điện Tử (EHR)
+                </h1>
+                <p class="text-muted fs-5 mb-0">Hồ sơ bệnh án phục hồi chức năng, hình ảnh chẩn đoán X-quang/MRI và dòng thời gian tiến triển lâm sàng.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                @if (isDoctorOrAdmin && allPatients.Count > 1)
+                {
+                    <select class="senior-select py-2 px-3 fw-bold" style="max-width: 260px;"
+                            aria-label="Chọn bệnh nhân để xem hồ sơ bệnh án"
+                            @bind="selectedPatientId" @bind:after="OnPatientSelectionChanged">
+                        @foreach (var p in allPatients)
+                        {
+                            <option value="@p.PatientId">BN: @p.User?.FullName (ID: @p.PatientId)</option>
+                        }
+                    </select>
+                }
+                <button class="senior-btn senior-btn-secondary" @onclick="PrintReport">
+                    <i class="bi bi-printer-fill fs-5"></i> In Bệnh Án
+                </button>
+                @if (isDoctorOrAdmin)
+                {
+                    <button class="senior-btn senior-btn-primary" @onclick="OpenEditEhrModal">
+                        <i class="bi bi-pencil-square fs-5"></i> Cập Nhật
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(alertMessage))
+    {
+        <div class="alert @(isSuccessAlert ? "alert-success border-success-subtle" : "alert-danger border-danger-subtle") alert-dismissible fade show rounded-4 p-3 mb-4 shadow-sm" role="alert">
+            <i class="bi @(isSuccessAlert ? "bi-check-circle-fill text-success" : "bi-exclamation-triangle-fill text-danger") me-2"></i>
+            @alertMessage
+            <button type="button" class="btn-close" @onclick="() => alertMessage = string.Empty"></button>
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">Đang tải hồ sơ sức khỏe điện tử...</p>
+        </div>
+    }
+    else if (currentPatient == null)
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white my-3">
+            <i class="bi bi-person-x fs-1 text-muted opacity-50 mb-2"></i>
+            <h5 class="fw-bold text-dark">Chưa tìm thấy hồ sơ bệnh nhân</h5>
+            <p class="text-muted">Hồ sơ bệnh án điện tử chưa được khởi tạo cho tài khoản này.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Patient Identity & Baseline Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-start border-4 border-primary">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-2 text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center text-primary fw-bold" style="width: 80px; height: 80px; font-size: 2rem;">
+                        @(currentPatient.User?.FullName?.FirstOrDefault() ?? 'P')
+                    </div>
+                </div>
+                <div class="col-md-5 border-end-md">
+                    <h4 class="fw-bold text-dark mb-1">@(currentPatient.User?.FullName ?? "Bệnh nhân")</h4>
+                    <div class="text-muted small mb-2">Mã bệnh án điện tử: <strong>STEP-EHR-@(currentPatient.PatientId.ToString("D5"))</strong></div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-dark border">Giới tính: @(currentPatient.Gender ?? "Nam")</span>
+                        <span class="badge bg-light text-dark border">Ngày sinh: @(currentPatient.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</span>
+                        <span class="badge bg-light text-dark border">SĐT: @(currentPatient.User?.PhoneNumber ?? "0900000000")</span>
+                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle fw-semibold">Nhóm máu: O+</span>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="p-3 bg-light rounded-3">
+                        <div class="small text-muted mb-1">Bác sĩ chuyên khoa phụ trách:</div>
+                        <div class="fw-bold text-dark fs-6">
+                            <i class="bi bi-person-badge-fill text-primary me-2"></i>@(ehr?.DoctorInCharge?.FullName ?? currentPatient.Doctor?.FullName ?? "BS. CKII Trần Minh Khoa")
+                        </div>
+                        <div class="small text-muted mt-1">Khoa Phục hồi chức năng & Chấn thương chỉnh hình – STEP Clinic</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs: Hồ sơ | Dòng thời gian | Nhật ký kiểm toán -->
+        <div class="card border-0 shadow-sm rounded-4 p-2 mb-4 bg-white">
+            <ul class="nav nav-pills nav-fill gap-2">
+                <li class="nav-item">
+                    <button class="nav-link rounded-pill fw-semibold py-2.5 @(activeTab == "ClinicalRecord" ? "active bg-primary text-white" : "text-secondary")"
+                            @onclick='() => SwitchTab("ClinicalRecord")'>
+                        <i class="bi bi-clipboard2-pulse me-1.5"></i> Bệnh Án & Chẩn Đoán Hình Ảnh
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link rounded-pill fw-semibold py-2.5 @(activeTab == "Timeline" ? "active bg-primary text-white" : "text-secondary")"
+                            @onclick='() => SwitchTab("Timeline")'>
+                        <i class="bi bi-clock-history me-1.5"></i> Dòng Thời Gian Phục Hồi (Timeline)
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link rounded-pill fw-semibold py-2.5 @(activeTab == "AuditLog" ? "active bg-primary text-white" : "text-secondary")"
+                            @onclick='() => SwitchTab("AuditLog")'>
+                        <i class="bi bi-shield-check me-1.5"></i> Nhật Ký Kiểm Toán (Audit Log)
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- TAB 1: BỆNH ÁN & CHẨN ĐOÁN HÌNH ẢNH -->
+        @if (activeTab == "ClinicalRecord")
+        {
+            <div class="row g-4 mb-4">
+                <!-- Chẩn đoán & Chống chỉ định -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">
+                                <i class="bi bi-heart-pulse-fill text-danger me-2"></i>Chẩn Đoán Lâm Sàng
+                            </h5>
+                            <span class="badge bg-light text-muted small">Cập nhật: @(ehr?.UpdatedAt?.ToString("dd/MM/yyyy") ?? ehr?.CreatedAt.ToString("dd/MM/yyyy"))</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-muted small d-block">Chẩn đoán xác định:</label>
+                            <div class="p-3 bg-danger-subtle text-danger-emphasis rounded-3 fw-semibold">
+                                @(ehr?.InitialDiagnosis ?? "Chưa có chẩn đoán xác định.")
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-muted small d-block">Vùng giải phẫu tổn thương:</label>
+                            <div class="fw-bold text-dark">
+                                <i class="bi bi-geo-alt-fill text-primary me-1"></i>@(ehr?.AffectedAnatomy ?? "Khớp gối phải, Dây chằng chéo trước (ACL)")
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-muted small d-block">Mục tiêu điều trị phục hồi:</label>
+                            <div class="p-3 bg-primary-subtle text-primary-emphasis rounded-3 small">
+                                <i class="bi bi-bullseye me-1"></i>@(ehr?.TreatmentGoals ?? "Khôi phục biên độ vận động khớp 120 độ, giảm đau sau tập VAS < 3.")
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-muted small d-block">Tiền sử bệnh lý & Dị ứng:</label>
+                            <div class="text-secondary small">
+                                @(ehr?.MedicalHistory ?? currentPatient.MedicalHistory ?? "Không có tiền sử dị ứng thuốc; Không có bệnh lý tim mạch mãn tính.")
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-warning-subtle text-warning-emphasis rounded-3 border border-warning-subtle">
+                            <div class="fw-bold small mb-1"><i class="bi bi-exclamation-octagon-fill me-1"></i>Chống chỉ định vận động đặc biệt:</div>
+                            <div class="small">
+                                @(ehr?.Contraindications ?? "Tránh các động tác vặn xoắn gối đột ngột, không nhảy tiếp đất bằng 1 chân, không gập góc sâu quá 90 độ.")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hình ảnh chẩn đoán & Đơn thuốc -->
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">
+                                <i class="bi bi-images text-primary me-2"></i>Hình Ảnh Cận Lâm Sàng & Phim Chụp
+                            </h5>
+                            <span class="badge bg-primary-subtle text-primary small">@diagnosticImages.Count tệp đính kèm</span>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            @foreach (var img in diagnosticImages)
+                            {
+                                <div class="col-6">
+                                    <div class="border rounded-4 p-2.5 text-center bg-light transition-hover position-relative" style="cursor: pointer;"
+                                         @onclick="() => OpenImagePreview(img)">
+                                        <div class="position-relative overflow-hidden rounded-3 mb-2" style="height: 120px;">
+                                            <img src="@img.ImageUrl" 
+                                                 alt="@img.Title" 
+                                                 class="w-100 h-100" 
+                                                 style="object-fit: cover;"
+                                                 onerror="this.src='https://images.unsplash.com/photo-1516549655169-df83a0774514?w=500&auto=format&fit=crop&q=80'" />
+                                            <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-1.5 small">
+                                                @img.ImageType
+                                            </span>
+                                        </div>
+                                        <div class="fw-bold text-dark small text-truncate" title="@img.Title">@img.Title</div>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">@img.TakenDate.ToString("dd/MM/yyyy")</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <h6 class="fw-bold text-dark mb-2">
+                            <i class="bi bi-capsule text-success me-2"></i>Thuốc & Dược phẩm bổ sung đi kèm:
+                        </h6>
+                        <ul class="list-group list-group-flush small mb-0">
+                            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="text-dark">Glucosamine Sulfate 1500mg</strong>
+                                    <small class="text-muted d-block">Uống 1 viên sau bữa ăn sáng (Kháng viêm & tái tạo dịch khớp)</small>
+                                </div>
+                                <span class="badge bg-success-subtle text-success-emphasis rounded-pill">Đang dùng</span>
+                            </li>
+                            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="text-dark">Calcium Carbonate + Vitamin D3 + K2</strong>
+                                    <small class="text-muted d-block">Uống 1 viên vào bữa trưa cùng nhiều nước</small>
+                                </div>
+                                <span class="badge bg-success-subtle text-success-emphasis rounded-pill">Đang dùng</span>
+                            </li>
+                            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="text-dark">Gel giảm đau kháng viêm bôi ngoài da Diclofenac</strong>
+                                    <small class="text-muted d-block">Thoa nhẹ nhàng quanh khớp khi đau nhức sau buổi tập</small>
+                                </div>
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill">Khi cần</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- TAB 2: DÒNG THỜI GIAN PHỤC HỒI (RECOVERY TIMELINE) -->
+        @if (activeTab == "Timeline")
+        {
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">
+                            <i class="bi bi-diagram-3-fill text-primary me-2"></i>Dòng Thời Gian Tiến Triển Lâm Sàng (Timeline)
+                        </h5>
+                        <p class="text-muted small mb-0">Ghi nhận liên tục toàn bộ cột mốc điều trị, góc vận động (ROM) và các đợt tái khám.</p>
+                    </div>
+                </div>
+
+                @if (isLoadingTimeline)
+                {
+                    <div class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-primary"></div>
+                        <span class="ms-2 small text-muted">Đang tổng hợp dòng thời gian...</span>
+                    </div>
+                }
+                else if (timelineEvents.Count == 0)
+                {
+                    <div class="text-center py-4 text-muted small">Chưa có cột mốc dòng thời gian nào.</div>
+                }
+                else
+                {
+                    <div class="timeline-container position-relative ps-4 ps-md-5">
+                        <div class="timeline-line"></div>
+                        @foreach (var ev in timelineEvents)
+                        {
+                            <div class="timeline-item position-relative mb-4 pb-2">
+                                <div class="timeline-badge bg-@ev.ColorClass text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center">
+                                    <i class="bi @ev.IconClass small"></i>
+                                </div>
+                                <div class="card border-0 bg-light rounded-4 p-3 shadow-none">
+                                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-1 mb-1.5">
+                                        <h6 class="fw-bold text-dark mb-0">@ev.Title</h6>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if (!string.IsNullOrEmpty(ev.MetricBadge))
+                                            {
+                                                <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1 small fw-semibold">
+                                                    @ev.MetricBadge
+                                                </span>
+                                            }
+                                            <span class="text-muted small" style="font-size: 0.8rem;">
+                                                <i class="bi bi-calendar3 me-1"></i>@ev.EventDate.ToString("dd/MM/yyyy HH:mm")
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p class="text-secondary small mb-1" style="line-height: 1.5;">@ev.Description</p>
+                                    @if (!string.IsNullOrEmpty(ev.DoctorName))
+                                    {
+                                        <small class="text-muted" style="font-size: 0.75rem;">
+                                            <i class="bi bi-person-check-fill text-primary me-1"></i>Bác sĩ: @ev.DoctorName
+                                        </small>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- TAB 3: NHẬT KÝ KIỂM TOÁN (AUDIT LOG VIEWER) -->
+        @if (activeTab == "AuditLog")
+        {
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+                <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">
+                            <i class="bi bi-shield-shaded text-success me-2"></i>Nhật Ký Kiểm Toán Y Tế (Audit Trail)
+                        </h5>
+                        <p class="text-muted small mb-0">Theo dõi toàn bộ lịch sử ai đã xem, chỉnh sửa hồ sơ bệnh án hoặc can thiệp y khoa (Tuân thủ HIPAA/GDPR).</p>
+                    </div>
+                    <span class="badge bg-success-subtle text-success-emphasis rounded-pill px-3 py-1.5 fw-semibold small">
+                        Bảo mật cấp độ y tế
+                    </span>
+                </div>
+
+                @if (isLoadingAuditLogs)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="text-muted mt-2">Đang tải nhật ký kiểm toán...</p>
+                    </div>
+                }
+                else if (auditLogs.Count == 0)
+                {
+                    <div class="text-center py-5 text-muted small">Chưa có nhật ký kiểm toán nào được ghi nhận cho hồ sơ này.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Thời gian</th>
+                                    <th>Người thực hiện</th>
+                                    <th>Vai trò</th>
+                                    <th>Hành động</th>
+                                    <th>IP Address</th>
+                                    <th class="pe-4">Chi tiết thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var log in auditLogs)
+                                {
+                                    <tr>
+                                        <td class="ps-4 text-nowrap fw-semibold text-dark">
+                                            @log.Timestamp.ToString("dd/MM/yyyy HH:mm:ss")
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">@(log.User?.FullName ?? $"User #{log.UserId}")</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge @GetRoleBadgeClass(log.UserRole) rounded-pill px-2.5 py-1">
+                                                @log.UserRole
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border rounded px-2 py-1 font-monospace">
+                                                @log.Action
+                                            </span>
+                                        </td>
+                                        <td class="text-muted font-monospace">
+                                            @log.IpAddress
+                                        </td>
+                                        <td class="pe-4 text-secondary text-truncate" style="max-width: 320px;" title="@log.Details">
+                                            @log.Details
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+<!-- Modal Phóng To Ảnh Chẩn Đoán (Lightbox) -->
+@if (activePreviewImage != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px); z-index: 1060;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-dark text-white">
+                <div class="modal-header border-bottom border-secondary px-4 py-3">
+                    <div>
+                        <span class="badge bg-primary rounded-pill px-2.5 py-1 mb-1">@activePreviewImage.ImageType</span>
+                        <h5 class="modal-title fw-bold">@activePreviewImage.Title</h5>
+                        <small class="text-white-50">Ngày chụp: @activePreviewImage.TakenDate.ToString("dd/MM/yyyy")</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" @onclick="() => activePreviewImage = null"></button>
+                </div>
+                <div class="modal-body p-0 text-center bg-black">
+                    <img src="@activePreviewImage.ImageUrl" 
+                         alt="@activePreviewImage.Title" 
+                         class="img-fluid" 
+                         style="max-height: 520px; object-fit: contain;"
+                         onerror="this.src='https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&auto=format&fit=crop&q=80'" />
+                </div>
+                <div class="modal-footer border-top border-secondary px-4 py-3 bg-dark d-flex justify-content-between text-start">
+                    <div class="small text-white-75 flex-grow-1">
+                        <strong>Kết luận chẩn đoán hình ảnh:</strong> @(string.IsNullOrEmpty(activePreviewImage.Findings) ? "Không ghi nhận tổn thương xương bất thường." : activePreviewImage.Findings)
+                    </div>
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" @onclick="() => activePreviewImage = null">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal Cập Nhật Bệnh Án Điện Tử (Bác sĩ) -->
+@if (showEditEhrModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 1050;">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="bi bi-pencil-square text-primary me-2"></i>Cập Nhật Hồ Sơ Bệnh Án Điện Tử
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="() => showEditEhrModal = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Chẩn đoán xác định <span class="text-danger">*</span></label>
+                            <textarea class="form-control rounded-3" rows="2" @bind="editEhrForm.InitialDiagnosis"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Vùng giải phẫu tổn thương <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3" @bind="editEhrForm.AffectedAnatomy" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small text-dark">Tiền sử bệnh & Dị ứng</label>
+                            <input type="text" class="form-control rounded-3" @bind="editEhrForm.MedicalHistory" />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Chống chỉ định vận động đặc biệt</label>
+                            <textarea class="form-control rounded-3" rows="2" @bind="editEhrForm.Contraindications"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small text-dark">Mục tiêu điều trị ngắn hạn & dài hạn</label>
+                            <textarea class="form-control rounded-3" rows="2" @bind="editEhrForm.TreatmentGoals"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @onclick="() => showEditEhrModal = false">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" @onclick="SaveEhrRecord">
+                        <i class="bi bi-check2-circle me-1"></i> Lưu Bệnh Án
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .transition-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+    }
+
+    /* Vertical Timeline Styles */
+    .timeline-container {
+        position: relative;
+    }
+    .timeline-line {
+        position: absolute;
+        top: 10px;
+        bottom: 10px;
+        left: 17px;
+        width: 3px;
+        background: #e2e8f0;
+    }
+    .timeline-badge {
+        position: absolute;
+        left: -33px;
+        top: 12px;
+        width: 34px;
+        height: 34px;
+        z-index: 2;
+    }
+    @@media (min-width: 768px) {
+        .timeline-line {
+            left: 21px;
+        }
+        .timeline-badge {
+            left: -41px;
+            width: 38px;
+            height: 38px;
+        }
+    }
+
+    /* Print styles */
+    @@media print {
+        body {
+            background: white !important;
+        }
+        .navbar, .btn, .nav-pills, .badge.bg-success-subtle, footer {
+            display: none !important;
+        }
+        .card {
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private bool isDoctorOrAdmin = false;
+    private int currentUserId = 0;
+    private string currentUserRole = "Patient";
+    private int selectedPatientId = 0;
+    private string activeTab = "ClinicalRecord"; // "ClinicalRecord", "Timeline", "AuditLog"
+
+    private string alertMessage = string.Empty;
+    private bool isSuccessAlert = true;
+
+    private PatientProfile? currentPatient;
+    private ElectronicHealthRecord? ehr;
+    private List<PatientProfile> allPatients = new();
+    private List<DiagnosticImageDto> diagnosticImages = new();
+
+    // Timeline state
+    private List<RecoveryTimelineEventDto> timelineEvents = new();
+    private bool isLoadingTimeline = false;
+
+    // Audit logs state
+    private List<AuditLog> auditLogs = new();
+    private bool isLoadingAuditLogs = false;
+
+    // Modal state
+    private DiagnosticImageDto? activePreviewImage = null;
+    private bool showEditEhrModal = false;
+    private UpdateEhrRequest editEhrForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var roleClaim = user.FindFirst(ClaimTypes.Role)?.Value;
+            currentUserRole = roleClaim ?? "Patient";
+            isDoctorOrAdmin = currentUserRole == "Doctor" || currentUserRole == "Admin";
+
+            var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(idClaim, out currentUserId);
+        }
+
+        await LoadPatientAndEhrData();
+    }
+
+    private async Task LoadPatientAndEhrData()
+    {
+        isLoading = true;
+        try
+        {
+            if (isDoctorOrAdmin)
+            {
+                allPatients = await Db.PatientProfiles
+                    .Include(p => p.User)
+                    .OrderBy(p => p.User.FullName)
+                    .ToListAsync();
+
+                if (selectedPatientId == 0 && allPatients.Count > 0)
+                {
+                    selectedPatientId = allPatients[0].PatientId;
+                }
+
+                currentPatient = allPatients.FirstOrDefault(p => p.PatientId == selectedPatientId);
+            }
+            else
+            {
+                currentPatient = await Db.PatientProfiles
+                    .Include(p => p.User)
+                    .Include(p => p.Doctor)
+                    .FirstOrDefaultAsync(p => p.UserId == currentUserId);
+
+                if (currentPatient != null)
+                {
+                    selectedPatientId = currentPatient.PatientId;
+                }
+            }
+
+            if (selectedPatientId > 0)
+            {
+                ehr = await EhrService.GetEhrByPatientIdAsync(selectedPatientId, currentUserId, currentUserRole);
+                if (ehr != null && !string.IsNullOrEmpty(ehr.DiagnosticImagingJson))
+                {
+                    try
+                    {
+                        diagnosticImages = JsonSerializer.Deserialize<List<DiagnosticImageDto>>(ehr.DiagnosticImagingJson) ?? new();
+                    }
+                    catch
+                    {
+                        diagnosticImages = new();
+                    }
+                }
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnPatientSelectionChanged()
+    {
+        currentPatient = allPatients.FirstOrDefault(p => p.PatientId == selectedPatientId);
+        await LoadPatientAndEhrData();
+        if (activeTab == "Timeline") await LoadTimeline();
+        if (activeTab == "AuditLog") await LoadAuditLogs();
+    }
+
+    private async Task SwitchTab(string tab)
+    {
+        activeTab = tab;
+        if (tab == "Timeline" && timelineEvents.Count == 0)
+        {
+            await LoadTimeline();
+        }
+        else if (tab == "AuditLog" && auditLogs.Count == 0)
+        {
+            await LoadAuditLogs();
+        }
+    }
+
+    private async Task LoadTimeline()
+    {
+        if (selectedPatientId <= 0) return;
+        isLoadingTimeline = true;
+        try
+        {
+            timelineEvents = await EhrService.GetRecoveryTimelineAsync(selectedPatientId);
+        }
+        finally
+        {
+            isLoadingTimeline = false;
+        }
+    }
+
+    private async Task LoadAuditLogs()
+    {
+        if (selectedPatientId <= 0) return;
+        isLoadingAuditLogs = true;
+        try
+        {
+            auditLogs = await Db.AuditLogs
+                .AsNoTracking()
+                .Include(a => a.User)
+                .Where(a => a.TargetPatientId == selectedPatientId || a.EntityName == "ElectronicHealthRecord")
+                .OrderByDescending(a => a.Timestamp)
+                .Take(40)
+                .ToListAsync();
+        }
+        finally
+        {
+            isLoadingAuditLogs = false;
+        }
+    }
+
+    private void OpenImagePreview(DiagnosticImageDto img)
+    {
+        activePreviewImage = img;
+    }
+
+    private void OpenEditEhrModal()
+    {
+        if (ehr == null) return;
+        editEhrForm = new UpdateEhrRequest
+        {
+            RecordId = ehr.RecordId,
+            PatientId = ehr.PatientId,
+            InitialDiagnosis = ehr.InitialDiagnosis,
+            AffectedAnatomy = ehr.AffectedAnatomy,
+            MedicalHistory = ehr.MedicalHistory,
+            Contraindications = ehr.Contraindications,
+            TreatmentGoals = ehr.TreatmentGoals,
+            DiagnosticImages = diagnosticImages
+        };
+        showEditEhrModal = true;
+    }
+
+    private async Task SaveEhrRecord()
+    {
+        if (string.IsNullOrWhiteSpace(editEhrForm.InitialDiagnosis) || string.IsNullOrWhiteSpace(editEhrForm.AffectedAnatomy))
+        {
+            alertMessage = "Vui lòng nhập đầy đủ Chẩn đoán xác định và Vùng giải phẫu tổn thương.";
+            isSuccessAlert = false;
+            return;
+        }
+
+        ehr = await EhrService.UpdateEhrAsync(editEhrForm, currentUserId, currentUserRole);
+        alertMessage = "Cập nhật hồ sơ bệnh án điện tử thành công! Đã ghi vết kiểm toán.";
+        isSuccessAlert = true;
+        showEditEhrModal = false;
+        await LoadPatientAndEhrData();
+        if (activeTab == "AuditLog") await LoadAuditLogs();
+    }
+
+    private async Task PrintReport()
+    {
+        await JS.InvokeVoidAsync("window.print");
+    }
+
+    private static string GetRoleBadgeClass(string role) => role switch
+    {
+        "Doctor" => "bg-danger text-white",
+        "Admin" => "bg-primary text-white",
+        "Patient" => "bg-success text-white",
+        _ => "bg-secondary text-white"
+    };
+}

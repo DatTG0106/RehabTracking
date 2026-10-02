@@ -2,150 +2,139 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<PageTitle>Đăng nhập - STEP</PageTitle>
+<PageTitle>Đăng nhập - STEP Phục Hồi Chức Năng</PageTitle>
 
-<div class="login-page d-flex align-items-center justify-content-center" style="min-height: calc(100vh - 70px); background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);">
-    <div class="container">
+<div class="py-5" style="min-height: calc(100vh - 120px); background-color: var(--color-bg-app);">
+    <div class="container py-3">
         <div class="row justify-content-center">
-            <div class="col-md-5 col-lg-4">
-                <!-- Logo / Brand -->
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <!-- Tiêu đề trang trọng, ấm áp -->
                 <div class="text-center mb-4">
-                    <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3" style="width:72px;height:72px;">
-                        <i class="bi bi-activity text-primary" style="font-size:2rem;"></i>
-                    </div>
-                    <h2 class="fw-bold text-dark">Chào mừng trở lại</h2>
-                    <p class="text-muted">Đăng nhập vào tài khoản STEP của bạn</p>
+                    <img src="/images/logo/logo.png" alt="STEP Logo" style="height: 68px; width: auto; object-fit: contain;" class="mb-3" />
+                    <h1 class="fw-bold text-dark fs-2 mb-2">Đăng Nhập Tài Khoản</h1>
+                    <p class="fs-6" style="color: #334155;">Hệ thống theo dõi và hỗ trợ phục hồi chức năng STEP</p>
                 </div>
 
-                <div class="card border-0 shadow-lg rounded-4">
-                    <div class="card-body p-4 p-md-5">
-                        @if (!string.IsNullOrEmpty(errorMessage))
-                        {
-                            <div class="alert alert-danger border-0 rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
-                                <span>@errorMessage</span>
-                            </div>
-                        }
+                <!-- Thẻ đăng nhập lớn, viền rõ nét -->
+                <div class="senior-card p-4 mb-4">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3 border border-danger-subtle bg-danger-subtle text-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill fs-3 flex-shrink-0"></i>
+                            <div class="fs-6 fw-bold">@errorMessage</div>
+                        </div>
+                    }
 
-                        @if (showSuccessMessage)
-                        {
-                            <div class="alert alert-success border-0 rounded-3 d-flex align-items-center gap-2 mb-4" role="alert">
-                                <i class="bi bi-check-circle-fill flex-shrink-0"></i>
-                                <span>@RehabTracking.Web.Constants.AppMessages.RegisterSuccess</span>
-                            </div>
-                        }
+                    @if (showSuccessMessage)
+                    {
+                        <div class="p-3 mb-4 rounded-3 d-flex align-items-center gap-3 border border-success-subtle bg-success-subtle text-success" role="alert">
+                            <i class="bi bi-check-circle-fill fs-3 flex-shrink-0"></i>
+                            <div class="fs-6 fw-bold">@RehabTracking.Web.Constants.AppMessages.RegisterSuccess</div>
+                        </div>
+                    }
 
-                        <form method="post" action="/api/auth/login">
-                            <input type="hidden" name="ReturnUrl" value="@returnUrl" />
-                            <div class="mb-3">
-                                <label for="email" class="form-label fw-semibold text-dark">Email</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
-                                        <i class="bi bi-envelope text-muted"></i>
-                                    </span>
-                                    <input type="email" id="email" name="Email" class="form-control bg-light border-start-0 rounded-end-3"
-                                           placeholder="email@example.com"
-                                           value="@demoEmail"
-                                           @oninput="e => demoEmail = e.Value?.ToString() ?? string.Empty"
-                                           required />
-                                </div>
-                            </div>
+                    <form method="post" action="/api/auth/login">
+                        <input type="hidden" name="ReturnUrl" value="@returnUrl" />
 
-                            <div class="mb-4">
-                                <label for="password" class="form-label fw-semibold text-dark mb-1">Mật khẩu</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 rounded-start-3">
-                                        <i class="bi bi-lock text-muted"></i>
-                                    </span>
-                                    <input type="@(showPassword ? "text" : "password")" id="password" name="Password"
-                                           class="form-control bg-light border-start-0"
-                                           placeholder="••••••••"
-                                           value="@demoPwd"
-                                           @oninput="e => demoPwd = e.Value?.ToString() ?? string.Empty"
-                                           required />
-                                    <button type="button" class="input-group-text bg-light border-start-0 rounded-end-3"
-                                            @onclick="TogglePassword" style="cursor:pointer;" title="@(showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu")">
-                                        <i class="bi @(showPassword ? "bi-eye-slash" : "bi-eye") text-muted"></i>
-                                    </button>
-                                </div>
-                            </div>
+                        <!-- Ô nhập Email / Số điện thoại -->
+                        <div class="senior-form-group mb-4">
+                            <label for="email" class="senior-form-label">
+                                <i class="bi bi-envelope-fill text-primary me-2"></i>Địa chỉ Email hoặc Tên đăng nhập
+                            </label>
+                            <input type="email" id="email" name="Email" class="senior-input"
+                                   placeholder="Ví dụ: benhnhan@gmail.com"
+                                   value="@demoEmail"
+                                   @oninput="e => demoEmail = e.Value?.ToString() ?? string.Empty"
+                                   required 
+                                   aria-required="true" />
+                            <small class="senior-form-hint">Nhập đúng email Bác đã đăng ký với bệnh viện hoặc kỹ thuật viên</small>
+                        </div>
 
-                            <div class="d-grid mb-3">
-                                <button type="submit" class="btn btn-modern-primary btn-lg rounded-pill fw-semibold shadow-sm">
-                                    <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+                        <!-- Ô nhập Mật khẩu -->
+                        <div class="senior-form-group mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="password" class="senior-form-label mb-0">
+                                    <i class="bi bi-lock-fill text-primary me-2"></i>Mật khẩu
+                                </label>
+                                <button type="button" class="btn btn-link text-decoration-none p-0 small" style="color: #475569;"
+                                        @onclick="TogglePassword" aria-label="Xem mật khẩu">
+                                    <i class="bi @(showPassword ? "bi-eye-slash-fill" : "bi-eye-fill") me-1"></i>
+                                    @(showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu")
                                 </button>
                             </div>
-                        </form>
-
-                        <div class="text-center">
-                            <span class="text-muted">Chưa có tài khoản?</span>
-                            <a href="/register" class="text-primary fw-semibold ms-1">Đăng ký ngay</a>
+                            <div class="position-relative">
+                                <input type="@(showPassword ? "text" : "password")" id="password" name="Password"
+                                       class="senior-input pe-5"
+                                       placeholder="Nhập mật khẩu của Bác"
+                                       value="@demoPwd"
+                                       @oninput="e => demoPwd = e.Value?.ToString() ?? string.Empty"
+                                       required 
+                                       aria-required="true" />
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Demo accounts -->
-                <div class="card border-0 shadow-sm rounded-4 mt-3">
-                    <div class="card-body p-3">
-                        <p class="text-muted small text-center mb-2 fw-semibold">
-                            <i class="bi bi-info-circle me-1"></i>Tài khoản demo (click để điền tự động)
+                        <!-- Nút Đăng nhập to, nổi bật -->
+                        <div class="d-grid mt-4 mb-3">
+                            <button type="submit" class="senior-btn senior-btn-accent senior-btn-hero w-100">
+                                <i class="bi bi-box-arrow-in-right fs-4"></i> ĐĂNG NHẬP VÀO HỆ THỐNG
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Trợ giúp người lớn tuổi -->
+                    <div class="text-center pt-3 border-top mt-3">
+                        <p class="mb-2 fs-6">
+                            Bác chưa có tài khoản? 
+                            <a href="/register" class="fw-bold" style="color: var(--color-primary);">Đăng ký tài khoản mới</a>
                         </p>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <button type="button" class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("doctor@test.com", "123456")'>
-                                    <i class="bi bi-person-badge text-primary me-1"></i>
-                                    <span class="fw-semibold small">Bác sĩ</span><br/>
-                                    <span class="text-muted" style="font-size:0.7rem;">doctor@test.com</span>
-                                </button>
+                        <p class="small mb-0" style="color: #475569;">
+                            Bác quên mật khẩu hoặc cần hỗ trợ đăng nhập? Gọi ngay 
+                            <a href="tel:0787775716" class="text-danger fw-bold text-decoration-none">0787.775.716</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Thẻ tài khoản mẫu để Bác hoặc người nhà thử nghiệm nhanh -->
+                <div class="senior-card p-4">
+                    <h3 class="fs-6 fw-bold text-center text-uppercase mb-3" style="color: #334155;">
+                        <i class="bi bi-person-badge me-2 text-primary"></i>Chọn nhanh tài khoản mẫu để dùng thử
+                    </h3>
+                    <div class="d-flex flex-column gap-2">
+                        <button type="button" class="senior-btn senior-btn-secondary text-start justify-content-start py-2 px-3" 
+                                @onclick='() => FillDemo("patient@test.com", "123")'
+                                aria-label="Điền thông tin tài khoản Bệnh nhân">
+                            <i class="bi bi-person-heart text-success fs-3 me-2"></i>
+                            <div>
+                                <div class="fw-bold text-dark fs-6">Bệnh nhân phục hồi: <span class="fw-bold" style="color: #15803d;">patient@test.com</span></div>
+                                <small style="color: #475569;">Xem bài tập hôm nay, nhật ký cơn đau và bảng vàng</small>
                             </div>
-                            <div class="col-6">
-                                <button type="button" class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("patient@test.com", "123456")'>
-                                    <i class="bi bi-person-heart text-success me-1"></i>
-                                    <span class="fw-semibold small">Bệnh nhân</span><br/>
-                                    <span class="text-muted" style="font-size:0.7rem;">patient@test.com</span>
-                                </button>
+                        </button>
+
+                        <button type="button" class="senior-btn senior-btn-secondary text-start justify-content-start py-2 px-3" 
+                                @onclick='() => FillDemo("doctor@test.com", "123")'
+                                aria-label="Điền thông tin tài khoản Bác sĩ">
+                            <i class="bi bi-heart-pulse-fill text-danger fs-3 me-2"></i>
+                            <div>
+                                <div class="fw-bold text-dark fs-6">Bác sĩ chuyên khoa: <span class="fw-bold" style="color: #b91c1c;">doctor@test.com</span></div>
+                                <small style="color: #475569;">Quản lý bệnh nhân, kê giáo án và phản hồi nhật ký</small>
                             </div>
-                            <div class="col-12">
-                                <button type="button" class="btn btn-light btn-sm w-100 rounded-3 text-start py-2 demo-btn" @onclick='() => FillDemo("admin@test.com", "123456")'>
-                                    <i class="bi bi-speedometer2 text-danger me-1"></i>
-                                    <span class="fw-semibold small">Admin / Nhân viên kho</span>
-                                    <span class="text-muted ms-1" style="font-size:0.7rem;">admin@test.com</span>
-                                </button>
+                        </button>
+
+                        <button type="button" class="senior-btn senior-btn-secondary text-start justify-content-start py-2 px-3" 
+                                @onclick='() => FillDemo("admin@test.com", "123")'
+                                aria-label="Điền thông tin tài khoản Quản trị viên">
+                            <i class="bi bi-shield-lock-fill text-primary fs-3 me-2"></i>
+                            <div>
+                                <div class="fw-bold text-dark fs-6">Quản trị viên / Kho: <span class="fw-bold" style="color: #1d4ed8;">admin@test.com</span></div>
+                                <small style="color: #475569;">Quản lý đơn hàng thiết bị và kiểm toán hệ thống</small>
                             </div>
-                        </div>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    /* Override card hover lift for login card */
-    .login-page .card.rounded-4:hover {
-        transform: none !important;
-    }
-    .input-group-text {
-        border-color: #dee2e6;
-    }
-    .input-group .form-control {
-        border-color: #dee2e6;
-    }
-    .input-group .form-control:focus {
-        border-color: #4f46e5;
-        box-shadow: none;
-    }
-    .input-group:focus-within .input-group-text {
-        border-color: #4f46e5;
-    }
-    .demo-btn {
-        transition: all 0.15s ease;
-    }
-    .demo-btn:hover {
-        background: rgba(79,70,229,0.06) !important;
-        border-color: rgba(79,70,229,0.3) !important;
-    }
-</style>
 
 @code {
     private string errorMessage = string.Empty;
@@ -179,28 +168,17 @@
         {
             returnUrl = rUrl!;
         }
-        // Demo pre-fill from query (email only, no password in URL)
         if (query.TryGetValue("demo_email", out var dEmail))
         {
             demoEmail = dEmail!;
         }
-        // Note: demo_pwd is no longer passed via URL for security reasons
     }
 
-    private void TogglePassword()
-    {
-        showPassword = !showPassword;
-    }
+    private void TogglePassword() => showPassword = !showPassword;
 
-    /// <summary>
-    /// FillDemo: điền thông tin demo vào form bằng Blazor state,
-    /// không lộ password qua URL/browser history.
-    /// </summary>
     private void FillDemo(string email, string password)
     {
         demoEmail = email;
         demoPwd = password;
-        // No navigation needed - Blazor state binding updates the form inputs directly
-        // Email is still passed via URL for returnUrl support but password is NOT
     }
 }

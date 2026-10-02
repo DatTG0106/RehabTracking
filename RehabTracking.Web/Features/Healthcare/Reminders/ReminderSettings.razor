@@ -1,0 +1,297 @@
+@page "/patient/schedule"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using RehabTracking.Web.Services
+@attribute [Authorize(Roles = "Patient")]
+@inject ReminderService ReminderService
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Cài Đặt Lịch Nhắc Nhở – STEP</PageTitle>
+
+<div class="container py-4" style="max-width: 900px;">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <span class="badge rounded-pill px-3 py-1.5 fw-bold mb-2" style="background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
+                <i class="bi bi-alarm-fill me-1"></i> Thiết Lập Thói Quen Phục Hồi
+            </span>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-bell text-warning me-2"></i>Cài Đặt Lịch Nhắc Nhở Cá Nhân
+            </h2>
+            <p class="text-muted mb-0">Hệ thống sẽ gửi thông báo tự động đúng khung giờ để bạn không bỏ lỡ bài tập hoặc cữ đo ROM.</p>
+        </div>
+        <div>
+            <button class="btn btn-warning rounded-pill px-4 py-2.5 fw-semibold shadow-sm text-dark" @onclick="OpenAddModal">
+                <i class="bi bi-plus-circle-fill me-2"></i> Thêm Lịch Nhắc Mới
+            </button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(alertMessage))
+    {
+        <div class="alert @(isSuccessAlert ? "alert-success border-success-subtle" : "alert-danger border-danger-subtle") alert-dismissible fade show rounded-4 p-3 mb-4 shadow-sm" role="alert">
+            <i class="bi @(isSuccessAlert ? "bi-check-circle-fill text-success" : "bi-exclamation-triangle-fill text-danger") me-2"></i>
+            @alertMessage
+            <button type="button" class="btn-close" @onclick="() => alertMessage = string.Empty"></button>
+        </div>
+    }
+
+    <!-- Danh sách lịch nhắc -->
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-warning" role="status"></div>
+            <p class="text-muted mt-2">Đang tải cấu hình lịch nhắc...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var rem in schedules)
+            {
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4 p-3.5 bg-white d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 border-start border-4 @(rem.IsActive ? "border-warning" : "border-secondary-subtle")">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle p-3 d-flex align-items-center justify-content-center flex-shrink-0 @(rem.IsActive ? "bg-warning-subtle text-warning-emphasis" : "bg-light text-muted")"
+                                 style="width: 52px; height: 52px; font-size: 1.3rem;">
+                                <i class="bi @GetReminderIcon(rem.ReminderType)"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <h5 class="fw-bold text-dark mb-0 @(!rem.IsActive ? "text-muted" : "")">
+                                        @rem.Title
+                                    </h5>
+                                    <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #f1f5f9; color: #334155; border: 1px solid #e2e8f0;">
+                                        @GetReminderTypeLabel(rem.ReminderType)
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 mt-1 text-muted small">
+                                    <span class="fw-semibold text-primary fs-6">
+                                        <i class="bi bi-clock me-1"></i>@rem.TimeOfDay.ToString(@"hh\:mm")
+                                    </span>
+                                    <span>•</span>
+                                    <span>Lặp lại: @FormatDaysOfWeek(rem.DaysOfWeek)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3 justify-content-end">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" role="switch" style="width: 2.7em; height: 1.4em; cursor: pointer;"
+                                       checked="@rem.IsActive"
+                                       aria-label="@($"Bật hoặc tắt lịch nhắc {rem.Title}")"
+                                       @onchange="() => ToggleSchedule(rem.ReminderId)" />
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger rounded-circle p-2" 
+                                    style="width: 36px; height: 36px;"
+                                    title="Xóa lịch nhắc"
+                                    aria-label="@($"Xóa lịch nhắc {rem.Title}")"
+                                    @onclick="() => DeleteSchedule(rem.ReminderId)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Lời khuyên lâm sàng -->
+    <div class="card border-0 bg-primary-subtle text-primary-emphasis rounded-4 p-4 mt-4 shadow-sm">
+        <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-info-circle-fill fs-3 text-primary mt-1"></i>
+            <div>
+                <h6 class="fw-bold mb-1">Lời khuyên từ Bác sĩ Vật lý trị liệu:</h6>
+                <p class="mb-0 small" style="line-height: 1.6;">
+                    Nên duy trì thói quen tập luyện vào cùng một khung giờ cố định trong ngày (ví dụ: sau khi thức dậy hoặc trước bữa tối). Đo tầm vận động (ROM) và ghi lại cảm giác đau vào cuối ngày giúp bác sĩ điều trị đánh giá chính xác hiệu quả phục hồi.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Lịch Nhắc -->
+@if (showAddModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="bi bi-alarm text-warning me-2"></i>Thêm Mốc Nhắc Nhở Mới
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddModal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Tiêu đề nhắc nhở <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control rounded-3" 
+                               placeholder="Ví dụ: Tập co duỗi gối buổi chiều"
+                               @bind="newTitle" />
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Loại hoạt động</label>
+                            <select class="form-select rounded-3" @bind="newType">
+                                <option value="Exercise">Tập vật lý trị liệu</option>
+                                <option value="Measurement">Đo góc ROM & Ghi nhật ký</option>
+                                <option value="Medication">Uống thuốc theo toa</option>
+                                <option value="Hydration">Bổ sung nước & Giãn cơ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Thời gian nhắc <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control rounded-3" @bind="newTimeOfDay" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Ngày lặp lại</label>
+                        <select class="form-select rounded-3" @bind="newDays">
+                            <option value="Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday">Mỗi ngày (Thứ 2 đến Chủ nhật)</option>
+                            <option value="Monday,Wednesday,Friday">Thứ 2, 4, 6</option>
+                            <option value="Tuesday,Thursday,Saturday">Thứ 3, 5, 7</option>
+                            <option value="Monday,Tuesday,Wednesday,Thursday,Friday">Các ngày trong tuần (T2 - T6)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @onclick="CloseAddModal">Hủy</button>
+                    <button type="button" class="btn btn-warning rounded-pill px-4 fw-semibold text-dark" @onclick="SaveSchedule">
+                        <i class="bi bi-check2-circle me-1"></i> Lưu Lịch Nhắc
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private int currentUserId = 0;
+    private bool isLoading = true;
+    private bool showAddModal = false;
+    private string alertMessage = string.Empty;
+    private bool isSuccessAlert = true;
+
+    private List<ReminderScheduleDto> schedules = new();
+
+    // Modal inputs
+    private string newTitle = "Tập vật lý trị liệu";
+    private string newType = "Exercise";
+    private DateTime newTimeOfDay = DateTime.Today.AddHours(8).AddMinutes(30);
+    private string newDays = "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(idClaim, out int id))
+            {
+                currentUserId = id;
+                await LoadData();
+            }
+        }
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            schedules = await ReminderService.GetPatientSchedulesAsync(currentUserId);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OpenAddModal()
+    {
+        newTitle = "Tập vật lý trị liệu buổi chiều";
+        newType = "Exercise";
+        newTimeOfDay = DateTime.Today.AddHours(16).AddMinutes(0);
+        showAddModal = true;
+    }
+
+    private void CloseAddModal()
+    {
+        showAddModal = false;
+    }
+
+    private async Task SaveSchedule()
+    {
+        if (string.IsNullOrWhiteSpace(newTitle))
+        {
+            alertMessage = "Vui lòng nhập tiêu đề nhắc nhở.";
+            isSuccessAlert = false;
+            return;
+        }
+
+        var req = new UpsertReminderScheduleRequest
+        {
+            ReminderId = 0,
+            PatientId = currentUserId,
+            Title = newTitle,
+            ReminderType = newType,
+            TimeOfDay = newTimeOfDay.TimeOfDay,
+            DaysOfWeek = newDays,
+            IsActive = true
+        };
+
+        await ReminderService.UpsertScheduleAsync(req);
+        alertMessage = "Đã lưu lịch nhắc nhở thành công!";
+        isSuccessAlert = true;
+        showAddModal = false;
+        await LoadData();
+    }
+
+    private async Task ToggleSchedule(int id)
+    {
+        await ReminderService.ToggleScheduleAsync(id, currentUserId);
+        await LoadData();
+    }
+
+    private async Task DeleteSchedule(int id)
+    {
+        await ReminderService.DeleteScheduleAsync(id, currentUserId);
+        alertMessage = "Đã xóa lịch nhắc nhở.";
+        isSuccessAlert = true;
+        await LoadData();
+    }
+
+    private string GetReminderIcon(string type) => type switch
+    {
+        "Exercise" => "bi-heart-pulse-fill",
+        "Measurement" => "bi-activity",
+        "Medication" => "bi-capsule",
+        "Hydration" => "bi-droplet-fill",
+        _ => "bi-bell-fill"
+    };
+
+    private string GetReminderTypeLabel(string type) => type switch
+    {
+        "Exercise" => "Tập luyện",
+        "Measurement" => "Đo chỉ số",
+        "Medication" => "Uống thuốc",
+        "Hydration" => "Uống nước",
+        _ => type
+    };
+
+    private string FormatDaysOfWeek(string days)
+    {
+        if (days.Contains("Monday") && days.Contains("Sunday") && days.Split(',').Length >= 7)
+            return "Hằng ngày";
+        if (days == "Monday,Wednesday,Friday")
+            return "Thứ 2, 4, 6";
+        if (days == "Tuesday,Thursday,Saturday")
+            return "Thứ 3, 5, 7";
+        return "Tùy chỉnh";
+    }
+}

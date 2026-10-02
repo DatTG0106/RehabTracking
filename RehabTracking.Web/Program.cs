@@ -19,8 +19,33 @@ builder.Services.AddDbContext<RehabTrackingContext>(options =>
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Hệ thống Phục hồi Chức năng Y tế STEP API",
+        Version = "v1",
+        Description = "Nền tảng Y tế Số Phục hồi Chức năng & Theo dõi Tập luyện Thông minh (STEP). Hỗ trợ bác sĩ và bệnh nhân."
+    });
+});
+
 builder.Services.AddScoped<RehabTracking.Web.Features.ECommerce.Cart.CartState>(); // Scoped: mỗi Blazor circuit (tab/user) có giỏ hàng riêng
+builder.Services.AddScoped<RehabTracking.Web.Services.GamificationService>();
+builder.Services.AddScoped<RehabTracking.Web.Services.RecoveryTrackingService>();
+builder.Services.AddScoped<RehabTracking.Web.Services.AiHealthAssistantService>();
+builder.Services.AddScoped<RehabTracking.Web.Services.AuditService>();
+builder.Services.AddScoped<RehabTracking.Web.Services.AppNotificationService>();
+builder.Services.AddScoped<RehabTracking.Web.Services.AppointmentService>();
+builder.Services.AddScoped<RehabTracking.Web.Services.ReminderService>();
+builder.Services.AddScoped<RehabTracking.Web.Services.KnowledgeService>();
+builder.Services.AddScoped<RehabTracking.Web.Services.EhrService>();
+builder.Services.AddHostedService<RehabTracking.Web.Services.ReminderBackgroundService>();
 builder.Services.AddRadzenComponents();
 builder.Services.AddSignalR();
 
@@ -28,8 +53,8 @@ builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.C
     .AddCookie(options =>
     {
         options.LoginPath = "/login";
-        options.AccessDeniedPath = "/login"; // Or /access-denied
-        options.ExpireTimeSpan = TimeSpan.FromHours(1);
+        options.AccessDeniedPath = "/access-denied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(2);
     });
 
 if (builder.Environment.IsDevelopment())
@@ -49,13 +74,28 @@ builder.Services.AddRazorComponents()
 var app = builder.Build();
 
 // ================================================================
-// 3. SEED DỮ LIỆU MẪU (chỉ chạy trong môi trường Development)
-//    An toàn: mỗi phương thức kiểm tra AnyAsync() trước khi insert
+// 3. TỰ ĐỘNG MIGRATE VÀ SEED DỮ LIỆU MẪU
+//    An toàn: Tự động tạo bảng & seed nếu chưa có dữ liệu
 // ================================================================
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    await DbInitializer.SeedAsync(app.Services);
+    var services = scope.ServiceProvider;
+    try
+    {
+        var db = services.GetRequiredService<RehabTrackingContext>();
+        if (db.Database.IsSqlServer())
+        {
+            await db.Database.MigrateAsync();
+        }
+        await DbInitializer.SeedAsync(app.Services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Lỗi khi tự động cập nhật CSDL trên Server: {Message}", ex.Message);
+    }
 }
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -66,12 +106,20 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStatusCodePagesWithReExecute("/404");
 
 app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "STEP Rehab Tracking API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

@@ -22,6 +22,94 @@ namespace RehabTracking.Web.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("RehabTracking.Web.Entities.AuditLog", b =>
+                {
+                    b.Property<int>("AuditLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AuditLogId"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RecordId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("TargetPatientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Timestamp")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserRole")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("AuditLogId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.Badge", b =>
+                {
+                    b.Property<int>("BadgeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BadgeId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IconClass")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("XPBonus")
+                        .HasColumnType("int");
+
+                    b.HasKey("BadgeId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Badges");
+                });
+
             modelBuilder.Entity("RehabTracking.Web.Entities.DailyHealthMetric", b =>
                 {
                     b.Property<int>("MetricId")
@@ -108,6 +196,277 @@ namespace RehabTracking.Web.Migrations
                     b.ToTable("Devices");
                 });
 
+            modelBuilder.Entity("RehabTracking.Web.Entities.DietaryMealPlan", b =>
+                {
+                    b.Property<int>("MealPlanId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MealPlanId"));
+
+                    b.Property<string>("AuthorDoctor")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("BreakfastMenu")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CalciumMg")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CaloriesTarget")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ClinicalNotes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<string>("DinnerMenu")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LunchMenu")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phase")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ProteinGrams")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SnacksMenu")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TargetCondition")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("MealPlanId");
+
+                    b.ToTable("DietaryMealPlans");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.DoctorAppointment", b =>
+                {
+                    b.Property<int>("AppointmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AppointmentId"));
+
+                    b.Property<DateTime>("AppointmentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AppointmentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<int>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DoctorNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MeetingLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PatientReason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.HasKey("AppointmentId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("DoctorAppointments");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.ElectronicHealthRecord", b =>
+                {
+                    b.Property<int>("RecordId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RecordId"));
+
+                    b.Property<string>("AffectedAnatomy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Contraindications")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<string>("DiagnosticImagingJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DoctorInChargeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("InitialDiagnosis")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("MedicalHistory")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MedicationScheduleJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TreatmentGoals")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("RecordId");
+
+                    b.HasIndex("DoctorInChargeId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("ElectronicHealthRecords");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.Exercise", b =>
+                {
+                    b.Property<int>("ExerciseId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExerciseId"));
+
+                    b.Property<string>("ApplicableConditions")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CommonMistakesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Contraindications")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<int>("DefaultDurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DefaultReps")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DefaultSets")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Difficulty")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Equipment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HoldSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RecommendedPainMax")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RecoveryPhase")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RedFlagWarnings")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RestSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StepInstructionsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TargetArea")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TherapeuticBenefits")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("VideoUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ExerciseId");
+
+                    b.ToTable("Exercises");
+                });
+
             modelBuilder.Entity("RehabTracking.Web.Entities.ExerciseSession", b =>
                 {
                     b.Property<int>("SessionId")
@@ -154,6 +513,57 @@ namespace RehabTracking.Web.Migrations
                     b.ToTable("ExerciseSessions");
                 });
 
+            modelBuilder.Entity("RehabTracking.Web.Entities.GamificationProfile", b =>
+                {
+                    b.Property<int>("ProfileId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProfileId"));
+
+                    b.Property<string>("AnonymousDisplayName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("CurrentStreak")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CurrentTier")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsAnonymousLeaderboard")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastActivityDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LongestStreak")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StreakShieldCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalXP")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProfileId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("GamificationProfiles");
+                });
+
             modelBuilder.Entity("RehabTracking.Web.Entities.HotelReservation", b =>
                 {
                     b.Property<int>("Id")
@@ -188,6 +598,101 @@ namespace RehabTracking.Web.Migrations
                         .HasName("PK__HotelRes__3214EC2730249E15");
 
                     b.ToTable("HotelReservation", (string)null);
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.InAppNotification", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
+
+                    b.Property<string>("ActionUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("InAppNotifications");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.NutritionArticle", b =>
+                {
+                    b.Property<int>("ArticleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ArticleId"));
+
+                    b.Property<string>("AuthorDoctor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ComorbidityTags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContentHtml")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CoverImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<bool>("IsFeatured")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ReadTimeMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("ArticleId");
+
+                    b.ToTable("NutritionArticles");
                 });
 
             modelBuilder.Entity("RehabTracking.Web.Entities.Order", b =>
@@ -406,6 +911,127 @@ namespace RehabTracking.Web.Migrations
                     b.ToTable("ProductVariants");
                 });
 
+            modelBuilder.Entity("RehabTracking.Web.Entities.RecoveryLog", b =>
+                {
+                    b.Property<int>("LogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LogId"));
+
+                    b.Property<double>("CompletionRate")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<string>("DoctorFeedback")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ExerciseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FatigueLevel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FeedbackAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LogDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<string>("MediaUrlsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MoodLevel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PainPreWorkout")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PainScoreVAS")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PatientNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("ROMMeasurement")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("SleepHours")
+                        .HasColumnType("float");
+
+                    b.HasKey("LogId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("RecoveryLogs");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.ReminderSchedule", b =>
+                {
+                    b.Property<int>("ReminderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReminderId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<string>("DaysOfWeek")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastTriggeredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReminderType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<TimeSpan>("TimeOfDay")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("ReminderId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("ReminderSchedules");
+                });
+
             modelBuilder.Entity("RehabTracking.Web.Entities.Review", b =>
                 {
                     b.Property<int>("ReviewId")
@@ -569,6 +1195,89 @@ namespace RehabTracking.Web.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("RehabTracking.Web.Entities.UserBadge", b =>
+                {
+                    b.Property<int>("UserBadgeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserBadgeId"));
+
+                    b.Property<int>("BadgeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UnlockedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("(getutcdate())");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserBadgeId");
+
+                    b.HasIndex("BadgeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserBadges");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.UserQuest", b =>
+                {
+                    b.Property<int>("QuestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CycleDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsClaimed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Progress")
+                        .HasColumnType("int");
+
+                    b.Property<string>("QuestType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Target")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("XPBonus")
+                        .HasColumnType("int");
+
+                    b.HasKey("QuestId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserQuests");
+                });
+
             modelBuilder.Entity("RehabTracking.Web.Entities.Voucher", b =>
                 {
                     b.Property<int>("VoucherId")
@@ -602,6 +1311,17 @@ namespace RehabTracking.Web.Migrations
                     b.ToTable("Vouchers");
                 });
 
+            modelBuilder.Entity("RehabTracking.Web.Entities.AuditLog", b =>
+                {
+                    b.HasOne("RehabTracking.Web.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("RehabTracking.Web.Entities.DailyHealthMetric", b =>
                 {
                     b.HasOne("RehabTracking.Web.Entities.PatientProfile", "Patient")
@@ -623,6 +1343,43 @@ namespace RehabTracking.Web.Migrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("RehabTracking.Web.Entities.DoctorAppointment", b =>
+                {
+                    b.HasOne("RehabTracking.Web.Entities.User", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RehabTracking.Web.Entities.User", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.ElectronicHealthRecord", b =>
+                {
+                    b.HasOne("RehabTracking.Web.Entities.User", "DoctorInCharge")
+                        .WithMany()
+                        .HasForeignKey("DoctorInChargeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("RehabTracking.Web.Entities.PatientProfile", "Patient")
+                        .WithMany("ElectronicHealthRecords")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DoctorInCharge");
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("RehabTracking.Web.Entities.ExerciseSession", b =>
                 {
                     b.HasOne("RehabTracking.Web.Entities.PatientProfile", "Patient")
@@ -632,6 +1389,28 @@ namespace RehabTracking.Web.Migrations
                         .HasConstraintName("FK_ExerciseSessions_PatientProfiles");
 
                     b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.GamificationProfile", b =>
+                {
+                    b.HasOne("RehabTracking.Web.Entities.User", "User")
+                        .WithOne()
+                        .HasForeignKey("RehabTracking.Web.Entities.GamificationProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.InAppNotification", b =>
+                {
+                    b.HasOne("RehabTracking.Web.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RehabTracking.Web.Entities.Order", b =>
@@ -704,6 +1483,42 @@ namespace RehabTracking.Web.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("RehabTracking.Web.Entities.RecoveryLog", b =>
+                {
+                    b.HasOne("RehabTracking.Web.Entities.User", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("RehabTracking.Web.Entities.Exercise", "Exercise")
+                        .WithMany("RecoveryLogs")
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("RehabTracking.Web.Entities.PatientProfile", "Patient")
+                        .WithMany("RecoveryLogs")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Exercise");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.ReminderSchedule", b =>
+                {
+                    b.HasOne("RehabTracking.Web.Entities.User", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("RehabTracking.Web.Entities.Review", b =>
                 {
                     b.HasOne("RehabTracking.Web.Entities.User", "Customer")
@@ -753,6 +1568,46 @@ namespace RehabTracking.Web.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("RehabTracking.Web.Entities.UserBadge", b =>
+                {
+                    b.HasOne("RehabTracking.Web.Entities.Badge", "Badge")
+                        .WithMany("UserBadges")
+                        .HasForeignKey("BadgeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RehabTracking.Web.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Badge");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.UserQuest", b =>
+                {
+                    b.HasOne("RehabTracking.Web.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.Badge", b =>
+                {
+                    b.Navigation("UserBadges");
+                });
+
+            modelBuilder.Entity("RehabTracking.Web.Entities.Exercise", b =>
+                {
+                    b.Navigation("RecoveryLogs");
+                });
+
             modelBuilder.Entity("RehabTracking.Web.Entities.Order", b =>
                 {
                     b.Navigation("OrderDetails");
@@ -764,7 +1619,11 @@ namespace RehabTracking.Web.Migrations
 
                     b.Navigation("Devices");
 
+                    b.Navigation("ElectronicHealthRecords");
+
                     b.Navigation("ExerciseSessions");
+
+                    b.Navigation("RecoveryLogs");
 
                     b.Navigation("TreatmentPlans");
                 });

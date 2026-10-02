@@ -1,0 +1,62 @@
+@page "/terms"
+@page "/privacy"
+@layout RehabTracking.Web.Components.Layout.MainLayout
+
+<PageTitle>Điều Khoản Sử Dụng & Chính Sách Bảo Mật Y Tế – STEP</PageTitle>
+
+<div class="container py-5" style="max-width: 900px;">
+    <!-- Breadcrumb & Header -->
+    <div class="mb-4">
+        <a href="/" class="btn btn-outline-secondary rounded-pill btn-sm px-3 mb-3">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại Trang Chủ
+        </a>
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold">
+                <i class="bi bi-shield-check me-1"></i> Quy Chuẩn Pháp Lý & Y Tế
+            </span>
+            <span class="text-muted small">Cập nhật lần cuối: Tháng 10/2026</span>
+        </div>
+        <h1 class="fw-bold text-dark display-6 mb-3">Điều Khoản Sử Dụng & Chính Sách Bảo Mật Y Khoa</h1>
+        <p class="lead text-muted fs-6" style="line-height: 1.8;">
+            Chào mừng bạn đến với Nền tảng Phục hồi Chức năng & Vật lý Trị liệu Thông minh STEP. Chúng tôi cam kết bảo vệ tuyệt đối quyền riêng tư và dữ liệu sức khỏe của người bệnh theo các tiêu chuẩn y tế quốc gia và quốc tế.
+        </p>
+    </div>
+
+    <!-- Main Content Cards -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white mb-4">
+        <h3 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-medical text-primary me-2"></i>1. Phạm Vi & Mục Đích Y Tế</h3>
+        <p class="text-secondary mb-3 leading-relaxed">
+            Hệ thống STEP cung cấp giải pháp hỗ trợ đo lường tầm vận động (ROM), ghi nhận nhật ký triệu chứng đau (VAS) và đồng bộ dữ liệu phục hồi từ thiết bị đeo y sinh đến bác sĩ chuyên khoa phụ trách.
+        </p>
+        <div class="alert alert-info border-0 rounded-3 p-3 mb-4">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>Lưu ý lâm sàng:</strong> Ứng dụng là công cụ hỗ trợ theo dõi và phục hồi theo phác đồ của bác sĩ. Không thay thế các chẩn đoán hoặc can thiệp cấp cứu y khoa trực tiếp.
+        </div>
+
+        <h3 class="fw-bold text-dark mb-3 mt-4"><i class="bi bi-lock-fill text-primary me-2"></i>2. Bảo Mật Thông Tin & Hồ Sơ Bệnh Án (EHR)</h3>
+        <ul class="text-secondary mb-4 ps-3 d-flex flex-column gap-2 leading-relaxed">
+            <li><strong>Mã hóa đầu cuối:</strong> Dữ liệu chỉ số sinh hiệu và góc khớp được truyền tải qua giao thức TLS 1.3 và mã hóa chuẩn AES-256.</li>
+            <li><strong>Chống truy cập trái phép (IDOR Prevention):</strong> Hồ sơ bệnh án điện tử, kết quả chẩn đoán hình ảnh (X-Quang, MRI) và tiến trình phục hồi được phân quyền nghiêm ngặt. Bệnh nhân chỉ xem được dữ liệu của chính mình; Bác sĩ chỉ xem được bệnh nhân được phân công phụ trách.</li>
+            <li><strong>Quyền riêng tư trên Bảng xếp hạng:</strong> Bệnh nhân có quyền bật tính năng "Ẩn danh" bất kỳ lúc nào để không hiển thị tên thật hay thông tin điều trị trên bảng vàng kiên trì.</li>
+            <li><strong>Nhật ký kiểm toán y tế (Audit Log):</strong> Mọi thao tác cập nhật phác đồ hoặc tra cứu bệnh án đều được hệ thống ghi nhận vết kiểm toán bất biến phục vụ đối soát y khoa.</li>
+        </ul>
+
+        <h3 class="fw-bold text-dark mb-3 mt-4"><i class="bi bi-person-check-fill text-primary me-2"></i>3. Quyền & Trách Nhiệm Của Người Dùng</h3>
+        <ul class="text-secondary mb-4 ps-3 d-flex flex-column gap-2 leading-relaxed">
+            <li>Cung cấp thông tin triệu chứng, mức độ đau trung thực để thuật toán lâm sàng hỗ trợ cảnh báo bác sĩ kịp thời khi phát hiện chỉ số bất thường.</li>
+            <li>Bảo mật tài khoản cá nhân, không chia sẻ mật khẩu đăng nhập cho người khác.</li>
+            <li>Liên hệ ngay hotline y tế chuyên trách hoặc cơ sở y tế gần nhất nếu gặp cơn đau đột ngột hoặc dấu hiệu nguy hiểm trong khi tập luyện.</li>
+        </ul>
+
+        <h3 class="fw-bold text-dark mb-3 mt-4"><i class="bi bi-headset text-primary me-2"></i>4. Hỗ Trợ & Khiếu Nại Y Tế</h3>
+        <p class="text-secondary mb-0 leading-relaxed">
+            Nếu có bất kỳ thắc mắc nào về quyền riêng tư hoặc cần hỗ trợ thao tác trên hệ thống, vui lòng liên hệ:
+            <br />
+            <strong>Đơn vị điều hành:</strong> Dự án STEP – Đại học FPT Cần Thơ & Đơn vị hợp tác chuyên môn Bệnh viện Hoàn Mỹ Cửu Long.
+            <br />
+            <strong>Hotline hỗ trợ miễn phí:</strong> <a href="tel:0787775716" class="text-danger fw-bold text-decoration-none">0787.775.716</a>
+            <br />
+            <strong>Email bảo mật:</strong> <a href="mailto:hotro@step.vn" class="text-primary fw-bold text-decoration-none">hotro@step.vn</a>
+        </p>
+    </div>
+</div>

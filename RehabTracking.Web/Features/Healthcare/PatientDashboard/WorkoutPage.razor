@@ -5,15 +5,21 @@
 @using MediatR
 @using RehabTracking.Web.Entities
 @using RehabTracking.Web.Features.Healthcare.PatientDashboard
+@using RehabTracking.Web.Services
 @using System.Text.Json
 @attribute [Authorize(Roles = "Patient")]
+@using Microsoft.EntityFrameworkCore
 @inject IMediator Mediator
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject RehabTrackingContext Db
+@inject RehabTracking.Web.Services.RecoveryTrackingService RecoveryService
+@inject RehabTracking.Web.Services.GamificationService GamificationService
 @implements IDisposable
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage ProtectedSessionStore
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Bài tập hôm nay – STEP</PageTitle>
 
@@ -152,6 +158,65 @@
                 </div>
             }
 
+            <!-- Khảo sát Mức Đau Trước Tập (Rule-based Pre-Workout Check-in) -->
+            @if (!isPreWorkoutChecked)
+            {
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white border-start border-4 border-primary">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-shield-plus text-primary me-2"></i>1. Khảo Sát Mức Đau Trước Khi Tập (Pre-Workout Check-in)
+                        </h5>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1.5 fw-semibold">
+                            Chuẩn an toàn Y khoa
+                        </span>
+                    </div>
+                    <p class="text-secondary small mb-3">
+                        Vui lòng đánh giá cảm giác đau tại vùng khớp/cơ tổn thương ở thời điểm hiện tại để hệ thống tự động tối ưu giáo án an toàn nhất cho bạn.
+                    </p>
+
+                    <!-- Thang đo mức đau thân thiện người lớn tuổi -->
+                    <SeniorPainScale @bind-Value="preWorkoutPain" />
+
+                    <!-- Phân tích & Khuyến nghị lâm sàng theo luật thông minh -->
+                    @if (preWorkoutPain >= 7)
+                    {
+                        <div class="alert alert-danger rounded-3 mb-3 small shadow-sm">
+                            <i class="bi bi-exclamation-octagon-fill me-2 fs-6"></i>
+                            <strong>CẢNH BÁO Y KHOA:</strong> Mức đau trước tập quá cao (VAS @preWorkoutPain/10). Hệ thống khuyến nghị <strong>KHÔNG NÊN TẬP</strong> hôm nay để tránh làm tổn thương thêm dây chằng và sụn khớp. Hãy nghỉ ngơi, chườm lạnh 15 phút và liên hệ Bác sĩ chuyên khoa nếu cơn đau kéo dài.
+                        </div>
+                    }
+                    else if (preWorkoutPain >= 4)
+                    {
+                        <div class="alert alert-warning rounded-3 mb-3 small shadow-sm">
+                            <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
+                            <strong>ĐIỀU CHỈNH THÔNG MINH:</strong> Ngưỡng đau ở mức vừa (VAS @preWorkoutPain/10). Khi bắt đầu, hệ thống sẽ <strong>tự động giảm 30% số lần lặp (reps)</strong> của mỗi bài tập để bảo vệ ổ khớp.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success rounded-3 mb-3 small shadow-sm">
+                            <i class="bi bi-check-circle-fill me-2 fs-6"></i>
+                            <strong>TRẠNG THÁI TỐT:</strong> Khớp và cơ bắp đang ở mức đau an toàn (VAS @preWorkoutPain/10). Bạn đã sẵn sàng thực hiện toàn bộ phác đồ hôm nay!
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-end gap-2">
+                        @if (preWorkoutPain >= 7)
+                        {
+                            <button class="btn btn-outline-danger rounded-pill px-4 fw-bold" @onclick="OpenEmergencyPainModal">
+                                <i class="bi bi-telephone-outbound-fill me-1"></i> Báo Cáo Bác Sĩ & Nghỉ Tập
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" @onclick="ConfirmPreWorkoutCheckin">
+                                <i class="bi bi-play-circle-fill me-2"></i> Xác Nhận & Vào Bài Tập
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+
             <!-- Overall Progress -->
             <div class="p-4 mb-4 bg-white rounded-4 shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -237,15 +302,11 @@
                         <div class="flex-shrink-0">
                             @if (isDone)
                             {
-                                <span class="badge rounded-pill px-3 py-2 fw-bold" style="background:#dcfce7;color:#15803d;">
-                                    <i class="bi bi-check-circle-fill me-1"></i>Hoàn thành
-                                </span>
+                                <span class="badge rounded-pill px-3 py-2 fw-bold d-inline-flex align-items-center" style="background:#dcfce7;color:#15803d;"><i class="bi bi-check-circle-fill me-1"></i>Hoàn thành</span>
                             }
                             else if (isLocked)
                             {
-                                <span class="badge rounded-pill px-3 py-2" style="background:#f1f5f9;color:#94a3b8;">
-                                    <i class="bi bi-lock me-1"></i>Chờ
-                                </span>
+                                <span class="badge rounded-pill px-3 py-2 d-inline-flex align-items-center" style="background:#f1f5f9;color:#94a3b8;"><i class="bi bi-lock me-1"></i>Chờ</span>
                             }
                             else if (!isActive)
                             {
@@ -336,30 +397,39 @@
                             }
 
                             <!-- Control buttons -->
-                            <div class="d-flex gap-2 flex-wrap">
+                            <div class="d-flex gap-2 flex-wrap align-items-center">
                                 @if (!isTimerRunning && !isResting)
                                 {
-                                    <button class="btn btn-go" @onclick="StartTimer">
-                                        <i class="bi bi-play-fill me-2"></i>
-                                        @(currentSet == 1 && currentCountdown == ex.DurationSeconds ? "Bắt đầu" : "Tiếp tục")
+                                    <button class="senior-btn senior-btn-accent" @onclick="StartTimer">
+                                        <i class="bi bi-play-circle-fill fs-4"></i>
+                                        @(currentSet == 1 && currentCountdown == ex.DurationSeconds ? "Bắt Đầu Hiệp Này" : "Tiếp Tục Đếm Giờ")
                                     </button>
                                 }
 
                                 @if (isTimerRunning)
                                 {
-                                    <button class="btn btn-pause" @onclick="PauseTimer">
-                                        <i class="bi bi-pause-fill me-2"></i>Tạm dừng
+                                    <button class="senior-btn senior-btn-secondary border-warning" @onclick="PauseTimer">
+                                        <i class="bi bi-pause-circle-fill fs-4 text-warning"></i> Tạm Dừng
                                     </button>
                                 }
 
-                                <button class="btn btn-finish" @onclick="() => CompleteExercise(i)">
-                                    <i class="bi bi-check-lg me-2"></i>Hoàn thành bài
+                                <button class="senior-btn senior-btn-primary" @onclick="() => CompleteExercise(i)">
+                                    <i class="bi bi-check-circle-fill fs-4"></i> Hoàn Thành Bài Này
+                                </button>
+
+                                <!-- Nút đọc to hướng dẫn cho người cao tuổi -->
+                                <button type="button" class="senior-btn senior-btn-secondary" @onclick="() => SpeakInstructions(string.IsNullOrWhiteSpace(ex.Notes) ? ex.Name : ex.Notes)">
+                                    <i class="bi bi-volume-up-fill fs-4 text-primary"></i> Đọc Hướng Dẫn
+                                </button>
+
+                                <button class="senior-btn border-danger text-danger bg-white" @onclick="OpenEmergencyPainModal">
+                                    <i class="bi bi-shield-fill-exclamation fs-4"></i> Đau Nhói / Dừng Tập
                                 </button>
 
                                 @if (!isTimerRunning && !isResting && currentSet > 1)
                                 {
-                                    <button class="btn btn-outline-primary rounded-pill fw-semibold px-3" @onclick="NextSet">
-                                        <i class="bi bi-skip-forward me-1"></i>Hiệp tiếp
+                                    <button class="senior-btn senior-btn-secondary" @onclick="NextSet">
+                                        <i class="bi bi-skip-forward-circle-fill fs-4"></i> Hiệp Tiếp
                                     </button>
                                 }
                             </div>
@@ -422,6 +492,181 @@
     </div>
 }
 
+<!-- Emergency Pain Modal -->
+@if (showEmergencyModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px); z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="p-4 bg-danger text-white text-center">
+                    <i class="bi bi-shield-fill-x display-4 mb-2"></i>
+                    <h4 class="fw-bold mb-1">Cảnh Báo Đau Nhói & Dừng Khẩn Cấp</h4>
+                    <p class="small mb-0 opacity-90">Hệ thống đã tự động tạm dừng đồng hồ và các bài tập tiếp theo vì sự an toàn của bạn.</p>
+                </div>
+                <div class="p-4 bg-white">
+                    @if (isEmergencyReported)
+                    {
+                        <div class="alert alert-success rounded-3 mb-3">
+                            <i class="bi bi-check-circle-fill me-2"></i><strong>Đã ghi nhận vào hồ sơ điều trị!</strong> Bác sĩ của bạn sẽ được thông báo về cơn đau này.
+                        </div>
+                        <div class="p-3 bg-light rounded-3 mb-4">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-heart-pulse-fill text-danger me-1"></i>Nguyên tắc xử lý ngay:</h6>
+                            <ul class="small mb-0 ps-3">
+                                <li>Nghỉ ngơi hoàn toàn, kê cao chân/vùng khớp đau.</li>
+                                <li>Chườm lạnh 15-20 phút nếu có biểu hiện sưng nóng.</li>
+                                <li>Nếu đau dữ dội kéo dài quá 30 phút, hãy liên hệ ngay với Bác sĩ hoặc Trung tâm Y tế.</li>
+                            </ul>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="/patient-dashboard" class="btn btn-outline-secondary rounded-pill w-100">Về Bảng điều khiển</a>
+                            <a href="/knowledge" class="btn btn-primary rounded-pill w-100"><i class="bi bi-book me-1"></i> Cẩm nang giảm đau</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label class="form-label fw-bold d-flex justify-content-between">
+                                <span>Mức độ đau hiện tại (VAS):</span>
+                                <span class="badge bg-danger rounded-pill px-3 py-1">@emergencyPainScore / 10</span>
+                            </label>
+                            <input type="range" class="form-range" min="1" max="10" step="1" @bind="emergencyPainScore" />
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span>1: Đau nhẹ</span>
+                                <span>5: Đau vừa</span>
+                                <span>10: Rất dữ dội</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold">Mô tả vị trí đau hoặc cảm giác (Ví dụ: Đau nhói khớp gối, buốt gân...):</label>
+                            <textarea class="form-control rounded-3" rows="2" placeholder="Nhập cảm nhận của bạn..." @bind="emergencyNote"></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light rounded-pill px-3 flex-grow-1" @onclick="CloseEmergencyPainModal">Đóng (Không sao, tiếp tục)</button>
+                            <button class="btn btn-danger rounded-pill px-3 fw-bold flex-grow-1" @onclick="ConfirmEmergencyStop">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Xác Nhận Dừng & Gửi Cảnh Báo
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Post-Workout Recovery & Gamification Reward Modal -->
+@if (showRewardModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(6px); z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="p-4 text-white text-center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <div style="font-size: 3rem;">🎉</div>
+                    <h4 class="fw-bold mb-1">Ghi Nhận Buổi Tập & Nhận Thưởng XP!</h4>
+                    <p class="small mb-0 opacity-90">Đánh giá nhanh tình trạng sau tập để hoàn thành mục tiêu ngày.</p>
+                </div>
+                <div class="p-4 bg-white">
+                    @if (isRewardClaimed && rewardResult != null)
+                    {
+                        <div class="text-center py-2 mb-3">
+                            <div class="display-6 fw-bold text-primary mb-1">+@rewardResult.XPEarned XP</div>
+                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1.5 fs-6 mb-2">
+                                <i class="bi bi-fire me-1"></i> Chuỗi Streak: @rewardResult.CurrentStreak Ngày Liên Tục
+                            </span>
+
+                            <!-- Bảng So Sánh Chỉ Số Đau Trước vs Sau Tập -->
+                            <div class="p-3 bg-light rounded-3 text-start small mb-3 border">
+                                <div class="fw-bold text-dark mb-2"><i class="bi bi-graph-up-arrow text-primary me-1"></i>Đánh giá biến thiên cơn đau (Rule-based):</div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Mức đau trước khi tập:</span>
+                                    <span class="fw-bold">VAS @preWorkoutPain / 10</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Mức đau sau khi tập:</span>
+                                    <span class="fw-bold">VAS @sessionPainScore / 10</span>
+                                </div>
+                                <div class="p-2 rounded-2 @(isHighPainAlertTriggered ? "bg-danger-subtle text-danger" : (sessionPainScore - preWorkoutPain >= 3 ? "bg-warning-subtle text-warning-emphasis" : "bg-success-subtle text-success"))">
+                                    <i class="bi bi-info-circle-fill me-1"></i>
+                                    <strong>Nhận xét:</strong> @clinicalAdviceMessage
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-light rounded-3 text-secondary small mb-3">
+                                @rewardResult.EncouragementMessage
+                            </div>
+
+                            @if (rewardResult.NewlyUnlockedBadges.Any())
+                            {
+                                <div class="mb-3 p-3 bg-warning-subtle text-warning-emphasis rounded-3 border border-warning-subtle">
+                                    <div class="fw-bold small mb-1">🏆 Huy hiệu mới mở khóa:</div>
+                                    @foreach (var badge in rewardResult.NewlyUnlockedBadges)
+                                    {
+                                        <span class="badge bg-warning text-dark me-1">@badge</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="/patient/recovery-diary" class="btn btn-outline-primary rounded-pill w-100 fw-semibold">Xem Nhật Ký Phục Hồi</a>
+                            <a href="/patient/ranking" class="btn btn-primary rounded-pill w-100 fw-semibold">Bảng Xếp Hạng</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- So sánh mức đau trước tập -->
+                        <div class="p-2.5 bg-light rounded-3 mb-3 small d-flex justify-content-between align-items-center">
+                            <span class="text-secondary"><i class="bi bi-arrow-left-right text-primary me-1"></i>Đau trước khi tập ghi nhận:</span>
+                            <span class="badge bg-secondary rounded-pill px-2.5 py-1">VAS @preWorkoutPain / 10</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold d-flex justify-content-between">
+                                <span>Thang điểm đau sau khi tập (VAS):</span>
+                                <span class="badge @GetVasBadgeClass(sessionPainScore) rounded-pill px-3 py-1">
+                                    @sessionPainScore / 10 - @GetVasDescription(sessionPainScore)
+                                </span>
+                            </label>
+                            <input type="range" class="form-range" min="0" max="10" step="1" @bind="sessionPainScore" @bind:event="oninput" />
+                            <div class="d-flex justify-content-between text-muted small" style="font-size:0.75rem;">
+                                <span>0: Êm dịu</span>
+                                <span>5: Đau vừa</span>
+                                <span>10: Rất đau</span>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Biên độ ROM đạt được (°):</label>
+                                <input type="number" class="form-control rounded-3" min="0" max="180" @bind="sessionROM" placeholder="Ví dụ: 120" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Mức độ mỏi cơ:</label>
+                                <select class="form-select rounded-3" @bind="sessionFatigue">
+                                    <option value="1">1 - Rất nhẹ</option>
+                                    <option value="2">2 - Bình thường</option>
+                                    <option value="3">3 - Hơi mỏi</option>
+                                    <option value="4">4 - Khá mỏi</option>
+                                    <option value="5">5 - Kiệt sức</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Cảm nhận hoặc ghi chú thêm:</label>
+                            <input type="text" class="form-control rounded-3" placeholder="Ví dụ: Khớp chuyển động êm hơn, không đau nhói..." @bind="sessionNote" />
+                        </div>
+
+                        <button class="btn btn-success rounded-pill w-100 py-2.5 fw-bold shadow-sm" @onclick="ClaimWorkoutRewards">
+                            <i class="bi bi-gift-fill me-2"></i> Lưu Nhật Ký & Nhận Điểm XP (+50 XP)
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     // ── State ──────────────────────────────────────────────────────
     private List<ExerciseRoutineItem> exercises = new();
@@ -429,6 +674,27 @@
     private HashSet<int> completedExercises = new();
     private int activeExerciseIndex = 0;
     private bool isLoading = true;
+
+    // Pre-Workout Check-in State (Rule-based Clinical Check)
+    private bool isPreWorkoutChecked = false;
+    private int preWorkoutPain = 2;
+
+    // Emergency Pain State
+    private bool showEmergencyModal = false;
+    private int emergencyPainScore = 7;
+    private string emergencyNote = "";
+    private bool isEmergencyReported = false;
+
+    // Post-Workout Reward State
+    private bool showRewardModal = false;
+    private int sessionPainScore = 2;
+    private double? sessionROM = 115;
+    private int sessionFatigue = 2;
+    private string sessionNote = "";
+    private string clinicalAdviceMessage = "";
+    private bool isHighPainAlertTriggered = false;
+    private GamificationRewardResult? rewardResult;
+    private bool isRewardClaimed = false;
 
     // Timer
     private int currentCountdown = 0;
@@ -681,6 +947,8 @@
         activeExerciseIndex = nextIdx;
         if (nextIdx >= 0)
             ResetForExercise(nextIdx);
+        else
+            showRewardModal = true;
 
         StateHasChanged();
         
@@ -697,6 +965,8 @@
         completedExercises.Clear();
         activeExerciseIndex = 0;
         ResetForExercise(0);
+        isRewardClaimed = false;
+        showRewardModal = false;
         StateHasChanged();
         
         try 
@@ -704,6 +974,113 @@
             await ProtectedSessionStore.DeleteAsync("CompletedExercises");
             await ProtectedSessionStore.DeleteAsync("ActiveExerciseIndex");
         } catch { }
+    }
+
+    // ── Emergency Pain Stop & Rewards ──────────────────────────────
+    private void OpenEmergencyPainModal()
+    {
+        PauseTimer();
+        showEmergencyModal = true;
+        isEmergencyReported = false;
+    }
+
+    private void CloseEmergencyPainModal()
+    {
+        showEmergencyModal = false;
+    }
+
+    private void ConfirmPreWorkoutCheckin()
+    {
+        isPreWorkoutChecked = true;
+
+        // Luật lâm sàng thông minh (Rule-based adjustment):
+        // Nếu đau trước tập ở mức vừa (VAS 4 - 6), tự động giảm 30% reps của các bài tập để giảm áp lực ổ khớp
+        if (preWorkoutPain >= 4 && preWorkoutPain <= 6)
+        {
+            foreach (var ex in exercises)
+            {
+                ex.Reps = Math.Max(1, (int)Math.Round(ex.Reps * 0.7));
+            }
+        }
+        StateHasChanged();
+    }
+
+    private static string GetVasBadgeClass(int vas) => vas switch
+    {
+        <= 2 => "bg-success text-white",
+        <= 4 => "bg-info text-dark",
+        <= 6 => "bg-warning text-dark",
+        _ => "bg-danger text-white"
+    };
+
+    private static string GetVasDescription(int vas) => vas switch
+    {
+        0 => "Không đau",
+        1 or 2 => "Đau rất nhẹ",
+        3 or 4 => "Đau nhẹ / Khó chịu nhẹ",
+        5 or 6 => "Đau vừa phải",
+        7 or 8 => "Đau nhiều / Khó chịu",
+        _ => "Đau dữ dội / Nguy cấp"
+    };
+
+    private async Task ConfirmEmergencyStop()
+    {
+        StopAllTimers();
+        var pId = await GetCurrentPatientIdAsync();
+        var res = await RecoveryService.LogSessionProgressAsync(
+            pId,
+            null,
+            emergencyPainScore,
+            null,
+            4,
+            completedExercises.Count * 100.0 / Math.Max(exercises.Count, 1),
+            10,
+            $"[DỪNG KHẨN CẤP] {emergencyNote}",
+            null,
+            painPreWorkout: preWorkoutPain
+        );
+        isEmergencyReported = true;
+        clinicalAdviceMessage = res.ClinicalAdvice;
+        isHighPainAlertTriggered = true;
+        StateHasChanged();
+    }
+
+    private async Task ClaimWorkoutRewards()
+    {
+        var pId = await GetCurrentPatientIdAsync();
+        var res = await RecoveryService.LogSessionProgressAsync(
+            patientId: pId,
+            exerciseId: null,
+            painVAS: sessionPainScore,
+            rom: sessionROM,
+            fatigueLevel: sessionFatigue,
+            completionRate: 100.0,
+            durationMinutes: EstimateDurationMinutes(),
+            note: sessionNote,
+            mediaUrlsJson: null,
+            painPreWorkout: preWorkoutPain
+        );
+        rewardResult = res.Reward;
+        clinicalAdviceMessage = res.ClinicalAdvice;
+        isHighPainAlertTriggered = res.HighPainAlert;
+        isRewardClaimed = true;
+        StateHasChanged();
+    }
+
+    private async Task<int> GetCurrentPatientIdAsync()
+    {
+        try
+        {
+            var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var email = auth.User.FindFirst(ClaimTypes.Email)?.Value;
+            if (!string.IsNullOrEmpty(email))
+            {
+                var user = await Db.Users.Include(u => u.PatientProfileUser).FirstOrDefaultAsync(u => u.Email == email);
+                if (user?.PatientProfileUser != null) return user.PatientProfileUser.PatientId;
+            }
+        }
+        catch { }
+        return 1;
     }
 
     // ── Timer helpers ──────────────────────────────────────────────
@@ -769,8 +1146,24 @@
         return null;
     }
 
+    private async Task SpeakInstructions(string text)
+    {
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("speakSeniorText", text);
+            }
+            catch {}
+        }
+    }
+
     // ── Dispose ────────────────────────────────────────────────────
-    public void Dispose() => StopAllTimers();
+    public void Dispose()
+    {
+        try { JSRuntime.InvokeVoidAsync("stopSeniorSpeech"); } catch {}
+        StopAllTimers();
+    }
 
     // Local DTO for JSON parsing
     private class TreatmentPlanData

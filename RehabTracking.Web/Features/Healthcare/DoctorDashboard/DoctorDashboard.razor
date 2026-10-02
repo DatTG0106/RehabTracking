@@ -14,15 +14,19 @@
 <PageTitle>Bảng điều khiển Bác sĩ - STEP</PageTitle>
 
 <div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div>
-                <h2 class="fw-bold text-dark mb-1" style="font-size: 2rem;">Trung tâm Theo dõi Bệnh nhân</h2>
-                <p class="text-muted mb-0">Theo dõi tiến trình phục hồi trực tiếp và điều chỉnh phác đồ từ xa.</p>
+    <!-- Header Bác Sĩ Chuẩn Y Khoa -->
+    <div class="senior-card p-4 mb-4" style="background-color: var(--color-primary-surface); border: 2px solid var(--color-primary-light);">
+        <div class="row align-items-center justify-content-between g-3">
+            <div class="col-md-8">
+                <span class="senior-badge senior-badge-success mb-2">
+                    <i class="bi bi-heart-pulse-fill"></i> Cổng Điều Trị Lâm Sàng & Phục Hồi Chức Năng
+                </span>
+                <h1 class="fw-bold text-dark fs-2 mb-1">Trung Tâm Theo Dõi Bệnh Nhân</h1>
+                <p class="text-muted fs-5 mb-0">Theo dõi góc gập khớp ROM trực tiếp qua thiết bị đeo và điều chỉnh phác đồ tập luyện.</p>
             </div>
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="/doctor/exercise-plans" class="btn btn-modern-primary rounded-pill px-4 py-2 shadow-sm fw-semibold">
-                    <i class="bi bi-journal-medical me-2"></i>Lộ trình Bài tập
+            <div class="col-md-4 text-md-end">
+                <a href="/doctor/exercise-plans" class="senior-btn senior-btn-primary shadow-sm">
+                    <i class="bi bi-journal-medical fs-5"></i> Lộ Trình Bài Tập
                 </a>
             </div>
         </div>
@@ -32,46 +36,46 @@
     @if (patients != null && patients.Any())
     {
         <div class="row g-3 mb-4">
-            <div class="col-sm-6 col-xl-3">
+            <div class="col-6 col-xl-3">
                 <div class="modern-card p-3 d-flex align-items-center gap-3">
-                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex justify-content-center align-items-center flex-shrink-0" style="width:48px;height:48px;">
-                        <i class="bi bi-people-fill fs-4"></i>
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 d-flex justify-content-center align-items-center flex-shrink-0" style="width:44px;height:44px;">
+                        <i class="bi bi-people-fill fs-5"></i>
                     </div>
                     <div>
-                        <div class="fw-bold text-dark" style="font-size:1.6rem;line-height:1;">@patients.Count</div>
+                        <div class="fw-bold text-dark fs-4 mb-0" style="line-height:1;">@patients.Count</div>
                         <div class="text-muted small fw-semibold">Bệnh nhân</div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-xl-3">
+            <div class="col-6 col-xl-3">
                 <div class="modern-card p-3 d-flex align-items-center gap-3">
-                    <div class="bg-success bg-opacity-10 text-success rounded-3 d-flex justify-content-center align-items-center flex-shrink-0" style="width:48px;height:48px;">
-                        <i class="bi bi-calendar-check-fill fs-4"></i>
+                    <div class="bg-success bg-opacity-10 text-success rounded-3 d-flex justify-content-center align-items-center flex-shrink-0" style="width:44px;height:44px;">
+                        <i class="bi bi-calendar-check-fill fs-5"></i>
                     </div>
                     <div>
-                        <div class="fw-bold text-dark" style="font-size:1.6rem;line-height:1;">@patients.SelectMany(p => p.ExerciseSessions ?? new List<ExerciseSession>()).Count(s => s.StartTime.Date == DateTime.UtcNow.Date)</div>
+                        <div class="fw-bold text-dark fs-4 mb-0" style="line-height:1;">@patients.SelectMany(p => p.ExerciseSessions ?? new List<ExerciseSession>()).Count(s => s.StartTime.Date == DateTime.UtcNow.Date)</div>
                         <div class="text-muted small fw-semibold">Buổi tập hôm nay</div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-xl-3">
+            <div class="col-6 col-xl-3">
                 <div class="modern-card p-3 d-flex align-items-center gap-3">
-                    <div class="bg-info bg-opacity-10 text-info rounded-3 d-flex justify-content-center align-items-center flex-shrink-0" style="width:48px;height:48px;">
-                        <i class="bi bi-clipboard2-pulse-fill fs-4"></i>
+                    <div class="bg-info bg-opacity-10 text-info rounded-3 d-flex justify-content-center align-items-center flex-shrink-0" style="width:44px;height:44px;">
+                        <i class="bi bi-clipboard2-pulse-fill fs-5"></i>
                     </div>
                     <div>
-                        <div class="fw-bold text-dark" style="font-size:1.6rem;line-height:1;">@patients.Count(p => p.TreatmentPlans?.Any() == true)</div>
+                        <div class="fw-bold text-dark fs-4 mb-0" style="line-height:1;">@patients.Count(p => p.TreatmentPlans?.Any() == true)</div>
                         <div class="text-muted small fw-semibold">Có phác đồ</div>
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6 col-xl-3">
+            <div class="col-6 col-xl-3">
                 <div class="modern-card p-3 d-flex align-items-center gap-3">
-                    <div class="@(liveData.Any() ? "bg-success" : "bg-secondary") bg-opacity-10 @(liveData.Any() ? "text-success" : "text-secondary") rounded-3 d-flex justify-content-center align-items-center flex-shrink-0" style="width:48px;height:48px;">
-                        <i class="bi bi-wifi fs-4"></i>
+                    <div class="@(liveData.Any() ? "bg-success" : "bg-secondary") bg-opacity-10 @(liveData.Any() ? "text-success" : "text-secondary") rounded-3 d-flex justify-content-center align-items-center flex-shrink-0" style="width:44px;height:44px;">
+                        <i class="bi bi-wifi fs-5"></i>
                     </div>
                     <div>
-                        <div class="fw-bold text-dark" style="font-size:1.6rem;line-height:1;">@(liveData.Any() ? "Live" : "---")</div>
+                        <div class="fw-bold text-dark fs-4 mb-0" style="line-height:1;">@(liveData.Any() ? "Live" : "---")</div>
                         <div class="text-muted small fw-semibold">Kết nối thiết bị</div>
                     </div>
                 </div>
@@ -117,21 +121,21 @@
                             <i class="bi bi-search me-1"></i>Không tìm thấy "@searchQuery"
                         </div>
                     }
-                    <div class="patient-list d-flex flex-lg-column gap-3 overflow-auto pb-2 pb-lg-0" style="max-height: calc(100vh - 250px);">
+                    <div class="patient-list d-flex flex-row flex-lg-column gap-3 overflow-auto pb-2 pb-lg-0">
                         @if (filteredPatients != null)
                         {
                             @foreach (var patient in filteredPatients)
                             {
                             bool isSelected = selectedPatient?.PatientId == patient.PatientId;
-                            <div class="modern-card p-3 cursor-pointer @(isSelected ? "border-primary border-2" : "border-0")" 
-                                 style="cursor: pointer; min-width: 250px; transition: all 0.2s; @(isSelected ? "box-shadow: 0 0 0 0.25rem rgba(79,70,229,0.25);" : "")"
+                            <div class="modern-card p-3 cursor-pointer flex-shrink-0 @(isSelected ? "border-primary border-2" : "border-0")" 
+                                 style="cursor: pointer; min-width: 220px; width: 240px; transition: all 0.2s; @(isSelected ? "box-shadow: 0 0 0 0.25rem rgba(79,70,229,0.25);" : "")"
                                  @onclick="() => SelectPatient(patient)">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center text-primary fw-bold" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle d-flex justify-content-center align-items-center text-primary fw-bold flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.1rem;">
                                         @(patient.User?.FullName?.Substring(0, 1).ToUpper() ?? "P")
                                     </div>
-                                    <div>
-                                        <h6 class="fw-bold mb-0 text-dark">@patient.User?.FullName</h6>
+                                    <div class="overflow-hidden">
+                                        <h6 class="fw-bold mb-0 text-dark text-truncate">@patient.User?.FullName</h6>
                                         <span class="text-muted small">@patient.Gender • @(patient.DateOfBirth.HasValue ? (DateTime.Now.Year - patient.DateOfBirth.Value.Year) : 0) tuổi</span>
                                     </div>
                                 </div>
@@ -160,15 +164,15 @@
                 <div class="row g-4 mb-4">
                     <!-- Profile Summary Card -->
                     <div class="col-md-7">
-                        <div class="modern-card p-4 h-100">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h4 class="fw-bold text-dark mb-1">@selectedPatient.User?.FullName</h4>
-                                    <span class="badge badge-soft-warning px-3 py-2 rounded-pill">
-                                        <i class="bi bi-file-medical"></i> @selectedPatient.MedicalHistory
-                                    </span>
+                        <div class="modern-card p-3 p-sm-4 h-100">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                                <div class="flex-grow-1" style="min-width: 200px;">
+                                    <h4 class="fw-bold text-dark mb-2">@selectedPatient.User?.FullName</h4>
+                                    <div class="badge badge-soft-warning px-3 py-2 rounded-3 text-wrap text-start lh-base d-inline-block" style="white-space: normal !important; max-width: 100%;">
+                                        <i class="bi bi-file-medical me-1"></i> @selectedPatient.MedicalHistory
+                                    </div>
                                 </div>
-                                <button class="btn btn-modern-primary rounded-pill btn-sm px-4 py-2" @onclick="ShowTreatmentModal">
+                                <button class="btn btn-modern-primary rounded-pill btn-sm px-3 px-sm-4 py-2 flex-shrink-0" @onclick="ShowTreatmentModal">
                                     <i class="bi bi-sliders me-1"></i> Điều chỉnh Phác đồ
                                 </button>
                             </div>
@@ -183,27 +187,27 @@
                             
                             <hr class="text-muted opacity-25">
                             
-                            <div class="row mt-4">
-                                <div class="col-6">
+                            <div class="row g-3 mt-2">
+                                <div class="col-12 col-sm-6">
                                     <p class="text-muted small text-uppercase mb-1 fw-semibold">Liên hệ</p>
-                                    <div class="d-flex align-items-center gap-2">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
                                         <span class="fw-medium">@selectedPatient.User?.PhoneNumber</span>
-                                        <div class="d-inline-flex gap-1 ms-2">
-                                            <a href="javascript:void(0)" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center animate-hover" style="width:26px; height:26px;" title="Chat trực tuyến">
+                                        <div class="d-inline-flex gap-1">
+                                            <a href="javascript:void(0)" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center animate-hover" style="width:28px; height:28px;" title="Chat trực tuyến">
                                                 <i class="bi bi-chat-text-fill" style="font-size: 0.75rem;"></i>
                                             </a>
-                                            <a href="https://zalo.me/@(selectedPatient.User?.PhoneNumber)" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center animate-hover bg-white border" style="width:26px; height:26px;" title="Zalo Bệnh nhân">
+                                            <a href="https://zalo.me/@(selectedPatient.User?.PhoneNumber)" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center animate-hover bg-white border" style="width:28px; height:28px;" title="Zalo Bệnh nhân">
                                                 <img src="https://page.widget.zalo.me/static/images/2.0/Logo.svg" style="width:14px; height:14px;" alt="Zalo" />
                                             </a>
-                                            <a href="https://www.facebook.com/profile.php?id=61590138553379" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center animate-hover" style="width:26px; height:26px;" title="Facebook Bệnh nhân">
+                                            <a href="https://www.facebook.com/profile.php?id=61590138553379" target="_blank" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center animate-hover" style="width:28px; height:28px;" title="Facebook Bệnh nhân">
                                                 <i class="bi bi-facebook" style="font-size: 0.75rem;"></i>
                                             </a>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-12 col-sm-6">
                                     <p class="text-muted small text-uppercase mb-1 fw-semibold">Tuổi / Giới tính</p>
-                                    <p class="fw-medium">@(selectedPatient.DateOfBirth.HasValue ? (DateTime.Now.Year - selectedPatient.DateOfBirth.Value.Year) : 0) tuổi / @selectedPatient.Gender</p>
+                                    <p class="fw-medium mb-0">@(selectedPatient.DateOfBirth.HasValue ? (DateTime.Now.Year - selectedPatient.DateOfBirth.Value.Year) : 0) tuổi / @selectedPatient.Gender</p>
                                 </div>
                             </div>
                         </div>
@@ -211,23 +215,23 @@
                     
                     <!-- Live Status Card -->
                     <div class="col-md-5">
-                        <div class="modern-card glow-card p-4 h-100 d-flex flex-column justify-content-center align-items-center text-center position-relative overflow-hidden">
+                        <div class="modern-card glow-card p-4 h-100 d-flex flex-column justify-content-center align-items-center text-center position-relative overflow-hidden" style="min-height: 180px;">
                             @if (liveData.Any())
                             {
                                 <div class="position-absolute top-0 end-0 m-3 d-flex align-items-center gap-2">
                                     <span class="live-indicator"></span>
                                     <span class="text-success fw-bold small text-uppercase" style="letter-spacing: 1px;">Live</span>
                                 </div>
-                                <h2 class="fw-bold text-dark mb-0" style="font-size: 4rem; color: var(--primary-color) !important;">@(liveData.Last().ROMValue.ToString("0"))°</h2>
-                                <p class="text-muted fw-semibold mt-2">Góc gập cổ tay trực tiếp (ROM)</p>
+                                <h2 class="fw-bold text-dark mb-0" style="font-size: clamp(2.5rem, 8vw, 4rem); color: var(--primary-color) !important;">@(liveData.Last().ROMValue.ToString("0"))°</h2>
+                                <p class="text-muted fw-semibold mt-2 mb-0">Góc gập cổ tay trực tiếp (ROM)</p>
                             }
                             else
                             {
-                                <div class="bg-light rounded-circle d-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px;">
-                                    <i class="bi bi-wifi-off text-muted fs-1"></i>
+                                <div class="bg-light rounded-circle d-flex justify-content-center align-items-center mb-3" style="width: 64px; height: 64px;">
+                                    <i class="bi bi-wifi-off text-muted fs-3"></i>
                                 </div>
-                                <h5 class="fw-bold">Thiết bị ngoại tuyến</h5>
-                                <p class="text-muted small">Đang chờ bệnh nhân kết nối thiết bị và tập luyện...</p>
+                                <h5 class="fw-bold mb-1">Thiết bị ngoại tuyến</h5>
+                                <p class="text-muted small mb-0">Đang chờ bệnh nhân kết nối thiết bị và tập luyện...</p>
                             }
                         </div>
                     </div>
@@ -473,6 +477,12 @@
         });
 
         await hubConnection.StartAsync();
+
+        // Auto-select first patient if available to bypass the empty state
+        if (patients != null && patients.Any())
+        {
+            await SelectPatient(patients.First());
+        }
     }
 
     private bool _isSelectingPatient = false;

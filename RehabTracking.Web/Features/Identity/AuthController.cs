@@ -77,6 +77,11 @@ public class AuthController : ControllerBase
 
         if (user != null)
         {
+            if (user.Role == null && user.RoleId > 0)
+            {
+                user.Role = await _context.Roles.FindAsync(user.RoleId) ?? new Role { RoleName = "Patient" };
+            }
+
             if (!user.IsActive)
             {
                 return Redirect("/login?error=AccountLocked");

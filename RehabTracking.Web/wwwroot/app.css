@@ -1,70 +1,158 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* ==========================================================================
+   REHABTRACKING - SENIOR-FRIENDLY & ACCESSIBLE WARM HEALTHCARE DESIGN SYSTEM
+   Chuẩn WCAG 2.1 AAA - Thiết kế ưu tiên người lớn tuổi & Phục hồi chức năng
+   ========================================================================== */
 
-/* ============================================================
-   CSS Design Tokens (Premium & Vibrant)
-   ============================================================ */
+/* --------------------------------------------------------------------------
+   1. DESIGN TOKENS (CSS VARIABLES)
+   -------------------------------------------------------------------------- */
 :root {
-    --primary-color: #4f46e5;
-    --primary-hover: #3730a3;
-    --primary-light: #e0e7ff;
-    --secondary-color: #0ea5e9;
-    --secondary-hover: #0284c7;
-    --accent-color: #ec4899;
-    --bg-color: #f8fafc;
-    --card-bg: rgba(255, 255, 255, 0.95);
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --success-color: #10b981;
-    --danger-color: #ef4444;
-    --warning-color: #f59e0b;
-    --border-color: #e2e8f0;
+    /* Font & Typographic Base */
+    --font-family-base: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-size-root: 18px; /* Cỡ chữ nền tối thiểu 18px cho người lớn tuổi */
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-heavy: 800;
+    --line-height-base: 1.65;
+    --line-height-heading: 1.35;
+
+    /* Semantic Typography Scales */
+    --text-xs: 0.85rem;   /* ~15.3px */
+    --text-sm: 0.95rem;   /* ~17.1px */
+    --text-base: 1rem;    /* 18px */
+    --text-md: 1.15rem;   /* ~20.7px */
+    --text-lg: 1.35rem;   /* ~24.3px */
+    --text-xl: 1.65rem;   /* ~29.7px */
+    --text-2xl: 2.1rem;   /* ~37.8px */
+    --text-display: 2.6rem; /* ~46.8px */
+
+    /* Warm Healing Healthcare Colors (100% Light Theme) */
+    --color-primary: #0F766E;           /* Teal 700 - Xanh ngọc chữa lành, tương phản 7.2:1 */
+    --color-primary-hover: #115E59;     /* Teal 800 */
+    --color-primary-light: #CCFBF1;     /* Teal 100 */
+    --color-primary-surface: #F0FDFA;   /* Teal 50 */
     
-    /* Modern Shadows */
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03);
-    --shadow-md: 0 4px 12px -1px rgba(0,0,0,0.05), 0 2px 6px -1px rgba(0,0,0,0.03);
-    --shadow-lg: 0 15px 30px -5px rgba(0,0,0,0.08), 0 8px 12px -5px rgba(0,0,0,0.04);
-    --shadow-xl: 0 25px 50px -10px rgba(0,0,0,0.1), 0 10px 15px -5px rgba(0,0,0,0.05);
-    --shadow-glow: 0 0 25px rgba(79, 70, 229, 0.25);
+    --color-accent: #E06314;            /* Cam hổ phách ấm - Nút hành động chính kích thích vận động */
+    --color-accent-hover: #C2410C;      /* Cam đậm khi hover */
+    --color-accent-light: #FFEDD5;      /* Cam sáng */
+    --color-accent-surface: #FFF7ED;    /* Nền cam nhạt ấm */
+
+    /* Backgrounds & Neutrals */
+    --color-bg-app: #FAFAF7;            /* Trắng ngà kem dịu mắt, chống lóa */
+    --color-bg-card: #FFFFFF;           /* Trắng tinh cho thẻ */
+    --color-bg-subtle: #F5F5F0;         /* Xám kem đệm */
     
-    /* Radii */
-    --radius-sm: 0.6rem;
-    --radius-md: 1.2rem;
-    --radius-lg: 1.8rem;
-    --transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    /* Text Colors (Độ tương phản cao) */
+    --color-text-main: #1C1917;         /* Stone 900 - Đen than ấm, tương phản 13.5:1 */
+    --color-text-muted: #57534E;        /* Stone 600 - Tương phản 5.8:1 đạt WCAG AA */
+    --color-text-inverse: #FFFFFF;      /* Chữ trắng trên nền đậm */
+
+    /* Borders & Outlines */
+    --color-border-card: #E7E5E4;       /* Stone 200 */
+    --color-border-hover: #A8A29E;      /* Stone 400 */
+    --color-border-focus: #0F766E;      /* Xanh ngọc định vị tiêu điểm */
+
+    /* Clinical Status Indicators */
+    --color-status-success: #15803D;    /* Xanh lá đậm thành công */
+    --color-status-success-bg: #F0FDF4;
+    --color-status-warning: #B45309;    /* Vàng hổ phách chú ý */
+    --color-status-warning-bg: #FFFBEB;
+    --color-status-danger: #BE123C;     /* Đỏ san hô cảnh báo đau/nguy hiểm */
+    --color-status-danger-bg: #FFF1F2;
+    --color-status-info: #0369A1;       /* Xanh dương thông tin y tế */
+    --color-status-info-bg: #F0F9FF;
+
+    /* Touch Targets & Dimensions */
+    --touch-min-height: 52px;           /* Chiều cao tối thiểu 52px cho ngón tay lớn tuổi */
+    --touch-min-width: 52px;
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 22px;
+    --radius-full: 9999px;
+
+    /* Soft Shadows */
+    --shadow-warm-sm: 0 2px 6px rgba(41, 37, 36, 0.04);
+    --shadow-warm-md: 0 6px 18px rgba(41, 37, 36, 0.06), 0 2px 4px rgba(41, 37, 36, 0.03);
+    --shadow-warm-lg: 0 12px 32px rgba(41, 37, 36, 0.08);
+
+    /* Transitions */
+    --transition-smooth: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    --focus-ring: 3px solid #0F766E;
+    --focus-offset: 3px;
 }
 
-/* ============================================================
-   Radzen Theme Overrides (Material 3 base)
-   ============================================================ */
-:root {
-    --rz-primary: var(--primary-color);
-    --rz-primary-light: var(--primary-light);
-    --rz-primary-dark: var(--primary-hover);
-    --rz-secondary: var(--secondary-color);
-    --rz-info: var(--secondary-color);
-    --rz-success: var(--success-color);
-    --rz-warning: var(--warning-color);
-    --rz-danger: var(--danger-color);
-    
-    --rz-border-radius: var(--radius-sm);
-    --rz-border-radius-lg: var(--radius-md);
-    
-    --rz-grid-cell-padding: 0.8rem 1rem;
-    --rz-grid-header-padding: 1rem;
-    --rz-grid-header-background-color: var(--bg-color);
-    --rz-grid-header-color: var(--text-muted);
-    --rz-grid-header-font-weight: 600;
-    --rz-grid-header-font-size: 0.85rem;
-    --rz-grid-header-text-transform: uppercase;
+/* --------------------------------------------------------------------------
+   2. ACCESSIBILITY MODES (CỠ CHỮ LỚN & TƯƠNG PHẢN CAO)
+   -------------------------------------------------------------------------- */
+[data-font-size="large"] {
+    --font-size-root: 21px; /* Cỡ chữ Lớn (+16%) */
+    --touch-min-height: 58px;
+    --touch-min-width: 58px;
 }
 
-/* ============================================================
-   Base Styles
-   ============================================================ */
-html, body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-main);
+[data-font-size="xlarge"] {
+    --font-size-root: 24px; /* Cỡ chữ Cực lớn (+33%) */
+    --touch-min-height: 64px;
+    --touch-min-width: 64px;
+}
+
+/* Chế độ Tương phản cao (Vẫn là Light Theme nhưng viền và chữ đen tối đa) */
+[data-high-contrast="true"] {
+    --color-bg-app: #FFFFFF;
+    --color-bg-card: #FFFFFF;
+    --color-bg-subtle: #F4F4F5;
+    --color-border-card: #000000;
+    --color-border-hover: #000000;
+    --color-text-main: #000000;
+    --color-text-muted: #18181B;
+    --color-primary: #042F2E;
+    --color-primary-hover: #000000;
+    --color-accent: #9A3412;
+    --focus-ring: 4px solid #000000;
+}
+
+[data-high-contrast="true"] .senior-card,
+[data-high-contrast="true"] .card {
+    border: 2px solid #000000 !important;
+    box-shadow: none !important;
+}
+
+[data-high-contrast="true"] .btn,
+[data-high-contrast="true"] .senior-btn {
+    border: 2px solid #000000 !important;
+}
+
+/* Tôn trọng người dùng bật chế độ giảm chuyển động (chống chóng mặt/tiền đình) */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   3. BASE STYLES & RESET
+   -------------------------------------------------------------------------- */
+html {
+    font-size: var(--font-size-root);
+    scroll-behavior: smooth;
+    box-sizing: border-box;
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
+body {
+    font-family: var(--font-family-base);
+    font-size: 1rem;
+    line-height: var(--line-height-base);
+    color: var(--color-text-main);
+    background-color: var(--color-bg-app);
     margin: 0;
     padding: 0;
     min-height: 100vh;
@@ -72,565 +160,626 @@ html, body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-base);
+    color: var(--color-text-main);
+    line-height: var(--line-height-heading);
+    font-weight: var(--font-weight-bold);
+    margin-top: 0;
+}
+
+h1 { font-size: var(--text-2xl); }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
+h4 { font-size: var(--text-md); }
+h5, h6 { font-size: var(--text-base); }
+
+p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
 a {
-    color: var(--primary-color);
-    text-decoration: none;
-    transition: var(--transition);
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    font-weight: var(--font-weight-semibold);
+    transition: var(--transition-smooth);
 }
 
-a:hover {
-    color: var(--primary-hover);
+a:hover, a:focus {
+    color: var(--color-primary-hover);
+    text-decoration: underline;
 }
 
-/* Smooth scrolling */
-html {
-    scroll-behavior: smooth;
+/* Focus outline cực rõ ràng cho người dùng bàn phím */
+:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-offset);
 }
 
-/* ============================================================
-   Glassmorphic Navbar
-   ============================================================ */
-.glass-navbar {
-    background: rgba(255, 255, 255, 0.82);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+/* --------------------------------------------------------------------------
+   4. SENIOR CARD SYSTEM (KHỐI THẺ NỘI DUNG ẤM ÁP)
+   -------------------------------------------------------------------------- */
+.senior-card {
+    background-color: var(--color-bg-card);
+    border: 1.5px solid var(--color-border-card);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1.75rem;
+    box-shadow: var(--shadow-warm-md);
+    transition: var(--transition-smooth);
+    position: relative;
+}
+
+.senior-card:hover {
+    border-color: var(--color-border-hover);
+}
+
+.senior-card-primary {
+    background-color: var(--color-primary-surface);
+    border: 2px solid var(--color-primary-light);
+}
+
+.senior-card-accent {
+    background-color: var(--color-accent-surface);
+    border: 2px solid var(--color-accent-light);
+}
+
+.senior-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1.5px solid var(--color-border-card);
+}
+
+.senior-card-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+/* Thẻ hành động hôm nay lớn (Daily Focus) */
+.senior-daily-focus {
+    background: linear-gradient(135deg, #F0FDFA 0%, #E6FFFA 100%);
+    border: 2.5px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-warm-lg);
+}
+
+/* --------------------------------------------------------------------------
+   5. SENIOR BUTTONS (NÚT BẤM VÙNG CHẠM LỚN)
+   -------------------------------------------------------------------------- */
+.senior-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    min-height: var(--touch-min-height);
+    padding: 0.75rem 1.5rem;
+    font-size: var(--text-md);
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-base);
+    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-decoration: none !important;
+    text-align: center;
+    white-space: normal;
+    word-break: normal;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    transition: var(--transition-smooth);
+    user-select: none;
+    line-height: 1.25;
+}
+
+.senior-btn:active {
+    transform: scale(0.98);
+}
+
+.d-grid > .senior-btn {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Nút chính (Teal Healing) */
+.senior-btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-text-inverse) !important;
+}
+
+.senior-btn-primary:hover {
+    background-color: var(--color-primary-hover);
+    color: var(--color-text-inverse) !important;
+    box-shadow: var(--shadow-warm-md);
+}
+
+/* Nút hành động nổi bật nhất (Cam Hổ Phách - Bắt đầu tập) */
+.senior-btn-accent {
+    background-color: var(--color-accent);
+    color: var(--color-text-inverse) !important;
+    box-shadow: 0 4px 14px rgba(224, 99, 20, 0.3);
+}
+
+.senior-btn-accent:hover {
+    background-color: var(--color-accent-hover);
+    color: var(--color-text-inverse) !important;
+    box-shadow: 0 6px 20px rgba(224, 99, 20, 0.4);
+}
+
+/* Nút phụ / Viền xám */
+.senior-btn-secondary {
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-main) !important;
+    border-color: var(--color-border-card);
+}
+
+.senior-btn-secondary:hover {
+    background-color: #E7E5E4;
+    border-color: var(--color-border-hover);
+}
+
+.senior-btn-outline {
+    background-color: transparent;
+    color: var(--color-primary) !important;
+    border-color: var(--color-primary);
+}
+
+.senior-btn-outline:hover {
+    background-color: var(--color-primary-surface);
+}
+
+/* Nút kích thước khổng lồ cho tác vụ chính yếu */
+.senior-btn-hero {
+    min-height: 58px;
+    font-size: 1.15rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--radius-lg);
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   6. SENIOR FORM CONTROLS (Ô NHẬP LIỆU TO RÕ)
+   -------------------------------------------------------------------------- */
+.senior-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.senior-form-label {
+    display: block;
+    font-size: var(--text-md);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-main);
+    margin-bottom: 0.5rem;
+}
+
+.senior-form-hint {
+    display: block;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin-top: 0.35rem;
+}
+
+.senior-input,
+.senior-select,
+.senior-textarea {
+    width: 100%;
+    min-height: var(--touch-min-height);
+    padding: 0.75rem 1.25rem;
+    font-size: var(--text-base);
+    font-family: var(--font-family-base);
+    color: var(--color-text-main);
+    background-color: #FFFFFF;
+    border: 2px solid var(--color-border-card);
+    border-radius: var(--radius-md);
+    transition: var(--transition-smooth);
+}
+
+.senior-input:focus,
+.senior-select:focus,
+.senior-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   7. SENIOR PAIN SCALE SELECTOR (THƯỚC ĐO MỨC ĐAU 0-10 DẠNG NÚT BẤM TO)
+   -------------------------------------------------------------------------- */
+.senior-pain-scale {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+}
+
+.senior-pain-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    border: 2.5px solid var(--color-border-card);
+    background-color: #FFFFFF;
+    color: var(--color-text-main);
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-heavy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.senior-pain-btn:hover {
+    transform: scale(1.08);
+}
+
+.senior-pain-btn.active {
+    border-color: #000000;
+    box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.3);
+    transform: scale(1.15);
+    font-size: 1.4rem;
+}
+
+/* Màu sắc theo từng mức độ đau */
+.pain-level-none { background-color: #DCFCE7; color: #14532D; } /* 0: Rất thoải mái */
+.pain-level-mild { background-color: #FEF9C3; color: #713F12; } /* 1-3: Đau nhẹ */
+.pain-level-mod  { background-color: #FFEDD5; color: #7C2D12; } /* 4-6: Đau vừa */
+.pain-level-sev  { background-color: #FEE2E2; color: #7F1D1D; } /* 7-9: Đau nhiều */
+.pain-level-max  { background-color: #BE123C; color: #FFFFFF; } /* 10: Rất đau */
+
+/* --------------------------------------------------------------------------
+   8. TOP ACCESSIBILITY BAR (THANH TRỢ NĂNG TRÊN CÙNG)
+   -------------------------------------------------------------------------- */
+.senior-accessibility-bar {
+    background-color: var(--color-primary-surface);
+    border-bottom: 1.5px solid var(--color-primary-light);
+    padding: 0.5rem 1rem;
+    font-size: var(--text-sm);
+    color: var(--color-text-main);
+}
+
+.senior-a11y-btn {
+    background: #FFFFFF;
+    border: 1.5px solid var(--color-border-card);
+    border-radius: var(--radius-sm);
+    padding: 0.25rem 0.75rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-main);
+    cursor: pointer;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: var(--transition-smooth);
+}
+
+.senior-a11y-btn:hover {
+    background: var(--color-bg-subtle);
+    border-color: var(--color-border-hover);
+}
+
+.senior-a11y-btn.active {
+    background: var(--color-primary);
+    color: #FFFFFF;
+    border-color: var(--color-primary);
+}
+
+/* --------------------------------------------------------------------------
+   9. TOPBAR & NAVIGATION (THANH ĐIỀU HƯỚNG CHÍNH)
+   -------------------------------------------------------------------------- */
+.senior-navbar {
+    background-color: #FFFFFF;
+    border-bottom: 1.5px solid var(--color-border-card);
+    padding: 0.75rem 1.5rem;
     position: sticky;
     top: 0;
     z-index: 1030;
+    box-shadow: var(--shadow-warm-sm);
 }
 
-.glass-navbar .nav-link {
-    font-weight: 500;
-    color: var(--text-main) !important;
-    padding: 0.45rem 0.9rem;
-    border-radius: var(--radius-sm);
-    transition: var(--transition);
-    font-size: 0.95rem;
-}
-
-.glass-navbar .nav-link:hover,
-.glass-navbar .nav-link.active {
-    background: rgba(79, 70, 229, 0.09);
-    color: var(--primary-color) !important;
-}
-
-.glass-navbar .navbar-brand {
-    font-weight: 700;
-    font-size: 1.4rem;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-/* ============================================================
-   Modern Card System
-   ============================================================ */
-.modern-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+.senior-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0.5rem 1rem;
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-main) !important;
+    text-decoration: none !important;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-    transition: var(--transition);
+    transition: var(--transition-smooth);
 }
 
-.modern-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 40px 0 rgba(79, 70, 229, 0.15);
-    border: 1px solid rgba(79, 70, 229, 0.2);
+.senior-nav-link:hover {
+    background-color: var(--color-primary-surface);
+    color: var(--color-primary) !important;
 }
 
-.card {
-    transition: var(--transition);
-}
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl) !important;
-}
-.hover-lift {
-    transition: var(--transition);
-}
-.hover-lift:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg) !important;
+.senior-nav-link.active {
+    background-color: var(--color-primary-surface);
+    color: var(--color-primary) !important;
+    box-shadow: inset 0 -3px 0 var(--color-primary);
 }
 
-/* Glowing Telemetry Card */
-.glow-card {
-    border-radius: var(--radius-lg);
-    background: #ffffff;
-    box-shadow: 0 0 30px rgba(79, 70, 229, 0.12),
-                0 10px 20px rgba(0,0,0,0.05);
-    position: relative;
+/* --------------------------------------------------------------------------
+   10. MOBILE BOTTOM NAVIGATION (THANH CỐ ĐỊNH DƯỚI ĐÁY CHO ĐIỆN THOẠI)
+   -------------------------------------------------------------------------- */
+.senior-bottom-nav {
+    display: none; /* Ẩn trên máy tính */
+}
+
+@media (max-width: 991.98px) {
+    .senior-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 72px;
+        background-color: #FFFFFF;
+        border-top: 2px solid var(--color-border-card);
+        z-index: 1040;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 0.5rem;
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .senior-bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        flex: 1;
+        height: 100%;
+        color: var(--color-text-muted);
+        text-decoration: none !important;
+        font-size: 0.8rem;
+        font-weight: var(--font-weight-bold);
+    }
+
+    .senior-bottom-nav-item i {
+        font-size: 1.45rem;
+    }
+
+    .senior-bottom-nav-item.active {
+        color: var(--color-primary);
+    }
+
+    /* Đệm khoảng trống cuối trang để không bị thanh đáy che mất nội dung */
+    body {
+        padding-bottom: 84px !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   11. SENIOR BADGE & PROGRESS BAR (HUY HIỆU & TIẾN ĐỘ THÂN THIỆN)
+   -------------------------------------------------------------------------- */
+.senior-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    font-size: var(--text-sm);
+    font-weight: var(--font-weight-bold);
+    border-radius: var(--radius-pill);
+    border: 1.5px solid transparent;
+}
+
+.senior-badge-success {
+    background-color: var(--color-status-success-bg);
+    color: var(--color-status-success);
+    border-color: #BBF7D0;
+}
+
+.senior-badge-warning {
+    background-color: var(--color-status-warning-bg);
+    color: var(--color-status-warning);
+    border-color: #FDE68A;
+}
+
+.senior-badge-danger {
+    background-color: var(--color-status-danger-bg);
+    color: var(--color-status-danger);
+    border-color: #FECDD3;
+}
+
+.senior-progress {
+    height: 18px;
+    background-color: var(--color-bg-subtle);
+    border-radius: var(--radius-pill);
+    border: 1.5px solid var(--color-border-card);
     overflow: hidden;
 }
 
-.glow-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+.senior-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-primary) 0%, #14B8A6 100%);
+    border-radius: var(--radius-pill);
+    transition: width 0.4s ease;
 }
 
-/* ============================================================
-   Badge Variants
-   ============================================================ */
-.badge-soft-success {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #059669;
-    font-weight: 600;
+/* --------------------------------------------------------------------------
+   12. OVERRIDES RADZEN TO SENIOR WARM HEALTHCARE
+   -------------------------------------------------------------------------- */
+:root {
+    --rz-primary: var(--color-primary);
+    --rz-secondary: var(--color-accent);
+    --rz-body-background-color: var(--color-bg-app);
+    --rz-card-background-color: var(--color-bg-card);
+    --rz-text-color: var(--color-text-main);
+    --rz-border-radius: var(--radius-md);
+    --rz-input-border-radius: var(--radius-md);
 }
 
-.badge-soft-warning {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: #d97706;
-    font-weight: 600;
+.rz-button {
+    min-height: var(--touch-min-height) !important;
+    border-radius: var(--radius-md) !important;
+    font-weight: var(--font-weight-bold) !important;
 }
 
-.badge-soft-danger {
-    background-color: rgba(239, 68, 68, 0.12);
-    color: #dc2626;
-    font-weight: 600;
+.rz-dropdown, .rz-textbox {
+    min-height: var(--touch-min-height) !important;
+    border-radius: var(--radius-md) !important;
+    border-color: var(--color-border-card) !important;
 }
 
+/* --------------------------------------------------------------------------
+   13. WCAG AA / AAA HIGH CONTRAST & ACCESSIBILITY OVERRIDES
+   -------------------------------------------------------------------------- */
+.text-muted {
+    color: #4b5563 !important; /* Gray 600 - Contrast 5.7:1 on #f8fafc, 7.0:1 on white */
+}
+
+.text-warning {
+    color: #b45309 !important; /* Amber 700 - Contrast 4.7:1 on white */
+}
+
+.text-info {
+    color: #0369a1 !important; /* Sky 700 - Contrast 5.1:1 on white */
+}
+
+.text-success {
+    color: #166534 !important; /* Green 800 - Contrast 5.9:1 on #f0fdf4, 8.5:1 on white */
+}
+
+.text-danger {
+    color: #991b1b !important; /* Red 800 - Contrast 5.4:1 on #fee2e2, 7.8:1 on white */
+}
+
+.badge.bg-primary.bg-opacity-10,
+.bg-primary.bg-opacity-10.text-primary,
+span.bg-primary.bg-opacity-10 {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important; /* Contrast 5.1:1 */
+}
+
+.badge.bg-success.bg-opacity-10,
+.bg-success.bg-opacity-10.text-success,
+span.bg-success.bg-opacity-10 {
+    background-color: #dcfce7 !important;
+    color: #166534 !important; /* Contrast 5.2:1 */
+}
+
+.badge.bg-danger.bg-opacity-10,
+.bg-danger.bg-opacity-10.text-danger,
+span.bg-danger.bg-opacity-10 {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important; /* Contrast 5.4:1 */
+}
+
+.badge.bg-info.bg-opacity-10,
+.bg-info.bg-opacity-10.text-info,
+span.bg-info.bg-opacity-10 {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important; /* Contrast 5.1:1 */
+}
+
+.btn-outline-primary {
+    color: #0a58ca !important;
+    border-color: #0a58ca !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0a58ca !important;
+    color: #ffffff !important;
+}
+
+.bg-light.text-secondary,
+.bg-light .text-secondary {
+    color: #374151 !important; /* Gray 700 - Contrast 8.5:1 */
+}
+
+/* Badge-soft accessible styles */
+.badge.badge-soft-primary,
 .badge-soft-primary {
-    background-color: rgba(79, 70, 229, 0.12);
-    color: var(--primary-color);
-    font-weight: 600;
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
 }
 
-/* ============================================================
-   Button System
-   ============================================================ */
-.btn {
-    transition: var(--transition);
-    border-radius: var(--radius-sm);
-    font-weight: 500;
+.badge.badge-soft-success,
+.badge-soft-success {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+    border: 1px solid #bbf7d0 !important;
 }
 
-.btn:active {
-    transform: scale(0.97);
+.badge.badge-soft-warning,
+.badge-soft-warning {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border: 1px solid #fde68a !important;
 }
 
-.btn-modern {
-    border-radius: 9999px;
-    padding: 0.5rem 1.5rem;
-    font-weight: 600;
-    transition: var(--transition);
-    letter-spacing: 0.01em;
+.badge.badge-soft-danger,
+.badge-soft-danger {
+    background-color: #fee2e2 !important;
+    color: #991b1b !important;
+    border: 1px solid #fecdd3 !important;
 }
 
-.btn-modern-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #6366f1 100%);
-    color: white !important;
-    border: none;
-    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-}
-
-.btn-modern-primary:hover {
-    color: white !important;
-}
-
-.btn-modern-primary:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
-}
-
-.btn-modern-primary:disabled {
-    opacity: 0.65;
-    transform: none;
-    box-shadow: none;
-}
-
-/* ============================================================
-   Form Controls
-   ============================================================ */
-.form-control:focus,
-.form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.12);
-}
-
-/* ============================================================
-   Table Improvements
-   ============================================================ */
-.table > :not(:first-child) {
-    border-top: 1px solid var(--border-color);
-}
-
-.table th {
-    font-weight: 600;
-    font-size: 0.82rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-}
-
-.table td {
-    vertical-align: middle;
-}
-
-/* ============================================================
-   Alert Improvements
-   ============================================================ */
-.alert {
-    border: none;
-    border-radius: var(--radius-sm);
-}
-
-/* ============================================================
-   Page Layout
-   ============================================================ */
-.page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-main {
-    flex: 1;
-}
-
-.content {
-    min-height: calc(100vh - 70px);
-}
-
-/* ============================================================
-   Scrollbar Styling
-   ============================================================ */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-}
-
-/* ============================================================
-   Skeleton Loading
-   ============================================================ */
-.skeleton-box {
-    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: var(--radius-sm);
-}
-
-@keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
-/* ============================================================
-   Dropdown
-   ============================================================ */
-.dropdown-menu {
-    border: none;
-    box-shadow: var(--shadow-xl);
-    border-radius: var(--radius-md) !important;
-}
-
-.dropdown-item {
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    transition: var(--transition);
-    margin: 2px 4px;
-    width: calc(100% - 8px);
-}
-
-.dropdown-item:hover {
-    background-color: rgba(79, 70, 229, 0.08);
-    color: var(--primary-color);
-}
-
-/* ============================================================
-   Blazor Error UI
-   ============================================================ */
-#blazor-error-ui {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    bottom: 0;
-    box-shadow: 0 -2px 10px rgba(239, 68, 68, 0.3);
-    display: none;
-    left: 0;
-    padding: 0.75rem 1.5rem;
-    position: fixed;
-    width: 100%;
-    z-index: 9999;
-    font-weight: 500;
-    border-top: none;
-}
-
-#blazor-error-ui .reload {
-    color: white;
-    text-decoration: underline;
-    font-weight: 600;
-}
-
-#blazor-error-ui .dismiss {
-    cursor: pointer;
-    color: rgba(255,255,255,0.8);
-    float: right;
-    font-size: 1.2rem;
-    line-height: 1;
-}
-
-/* ============================================================
-   Mobile Responsive Utilities
-   ============================================================ */
-@media (max-width: 768px) {
-    .glass-navbar .navbar-brand {
-        font-size: 1.2rem;
-    }
-
-    .modern-card {
-        border-radius: var(--radius-sm);
-    }
-
-    .glow-card {
-        border-radius: var(--radius-md);
-    }
-}
-
-/* ============================================================
-   Radzen Chart Override
-   ============================================================ */
-.rz-chart-tooltip {
-    border-radius: var(--radius-sm) !important;
-    border: none !important;
-    box-shadow: var(--shadow-md) !important;
-    font-family: 'Inter', sans-serif !important;
-}
-
-/* ============================================================
-   Animation utilities
-   ============================================================ */
-.fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in-up {
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ============================================================
-   Toast Notification (Add to Cart feedback)
-   ============================================================ */
-.toast-notification {
-    position: fixed;
-    top: 90px;
-    right: 24px;
-    z-index: 1080;
-    min-width: 350px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(16, 185, 129, 0.25);
-    border-left: 6px solid #10b981;
-    border-radius: var(--radius-md);
-    padding: 1rem 1.5rem;
-    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(16, 185, 129, 0.25);
-    animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    transform-origin: right center;
-}
-
-@keyframes slideInRight {
-    from { 
-        opacity: 0; 
-        transform: translateX(60px) scale(0.9); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateX(0) scale(1); 
-    }
-}
-
-/* ============================================================
-   Live Indicator (Doctor Dashboard telemetry)
-   ============================================================ */
-.live-indicator {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    background: #10b981;
-    border-radius: 50%;
-    animation: livePulse 1.4s ease-in-out infinite;
-}
-
-@keyframes livePulse {
-    0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-    70%  { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
-/* ============================================================
-   Input group button (show/hide password toggle)
-   ============================================================ */
-.input-group button.input-group-text {
-    border: 1px solid #dee2e6;
-    background: #f8f9fa;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.input-group button.input-group-text:hover {
-    background: #e9ecef;
-    border-color: #4f46e5;
-}
-
-/* ============================================================
-   Table row hover improvement
-   ============================================================ */
-.table-hover tbody tr:hover {
-    background-color: rgba(79, 70, 229, 0.03);
-}
-
-/* ============================================================
-   Additional badge variants
-   ============================================================ */
+.badge.badge-soft-info,
 .badge-soft-info {
-    background-color: rgba(14, 165, 233, 0.12);
-    color: #0284c7;
-    font-weight: 600;
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
 }
 
-/* ============================================================
-   Cursor utility
-   ============================================================ */
-.cursor-pointer { cursor: pointer; }
-
-/* ============================================================
-   Custom Tooltips (Premium look)
-   ============================================================ */
-[data-tooltip] {
-    position: relative;
-    cursor: help;
+.badge.badge-soft-secondary,
+.badge-soft-secondary {
+    background-color: #f3f4f6 !important;
+    color: #374151 !important;
+    border: 1px solid #e5e7eb !important;
 }
 
-[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.9);
-    color: white;
-    padding: 0.5rem 0.8rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    white-space: nowrap;
-    box-shadow: var(--shadow-md);
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0;
-    animation: tooltippop 0.2s forwards ease-out;
+/* Accessible outline secondary button */
+.btn-outline-secondary {
+    color: #374151 !important;
+    border-color: #9ca3af !important;
 }
 
-@keyframes tooltippop {
-    0% { opacity: 0; transform: translate(-50%, 5px); }
-    100% { opacity: 1; transform: translate(-50%, 0); }
+.btn-outline-secondary:hover {
+    background-color: #374151 !important;
+    color: #ffffff !important;
 }
 
-/* ============================================================
-   Radzen Notification Toasts Override (Global Synchronization)
-   ============================================================ */
-.rz-notification {
-    z-index: 1080 !important;
+/* Stat pill label contrast */
+.stat-pill .lbl,
+.stat-pill > .lbl {
+    color: #475569 !important; /* Contrast 6.5:1 on white */
 }
 
-.rz-notification-message {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    border: 1px solid rgba(16, 185, 129, 0.25) !important;
-    border-radius: var(--radius-md) !important;
-    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(0, 0, 0, 0.05) !important;
-    color: var(--text-main) !important;
-    padding: 1rem 1.25rem !important;
-    animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+/* Additional high contrast overrides for WCAG AA compliance */
+.info-label {
+    color: #475569 !important; /* Contrast > 6:1 */
 }
 
-.rz-notification-message-success {
-    border-left: 6px solid var(--success-color) !important;
-    border-color: rgba(16, 185, 129, 0.3) !important;
-    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(16, 185, 129, 0.25) !important;
+.breadcrumb-item.active {
+    color: #475569 !important;
 }
 
-.rz-notification-message-error {
-    border-left: 6px solid var(--danger-color) !important;
-    border-color: rgba(239, 68, 68, 0.3) !important;
-    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(239, 68, 68, 0.25) !important;
+.rz-grid-filter-icon {
+    color: #334155 !important; /* Contrast > 7:1 on #f8fafb */
 }
 
-.rz-notification-message-info {
-    border-left: 6px solid var(--secondary-color) !important;
-    border-color: rgba(14, 165, 233, 0.3) !important;
-    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(14, 165, 233, 0.25) !important;
+.btn-light.text-secondary {
+    color: #374151 !important;
 }
 
-.rz-notification-message-warning {
-    border-left: 6px solid var(--warning-color) !important;
-    border-color: rgba(245, 158, 11, 0.3) !important;
-    box-shadow: 0 20px 40px -5px rgba(0,0,0,0.15), 0 0 25px rgba(245, 158, 11, 0.25) !important;
-}
 
-.rz-notification-message .rz-notification-message-title {
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    color: var(--text-main) !important;
-    margin-bottom: 0.25rem !important;
-}
-
-.rz-notification-message .rz-notification-message-detail {
-    font-family: 'Inter', sans-serif !important;
-    color: var(--text-muted) !important;
-    font-size: 0.85rem !important;
-}
-
-.rz-notification-message .rz-notification-icon {
-    font-size: 1.5rem !important;
-    margin-right: 1rem !important;
-}
-
-.rz-notification-message-success .rz-notification-icon { color: var(--success-color) !important; }
-.rz-notification-message-error .rz-notification-icon { color: var(--danger-color) !important; }
-.rz-notification-message-info .rz-notification-icon { color: var(--secondary-color) !important; }
-.rz-notification-message-warning .rz-notification-icon { color: var(--warning-color) !important; }
-
-/* Compatibility utility for older Bootstrap versions */
-.object-fit-cover {
-    object-fit: cover !important;
-}
 

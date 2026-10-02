@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace RehabTracking.Web.Entities;
@@ -26,6 +26,10 @@ public partial class PatientProfile
     public virtual ICollection<ExerciseSession> ExerciseSessions { get; set; } = new List<ExerciseSession>();
 
     public virtual ICollection<TreatmentPlan> TreatmentPlans { get; set; } = new List<TreatmentPlan>();
+
+    public virtual ICollection<RecoveryLog> RecoveryLogs { get; set; } = new List<RecoveryLog>();
+
+    public virtual ICollection<ElectronicHealthRecord> ElectronicHealthRecords { get; set; } = new List<ElectronicHealthRecord>();
 
     public virtual User User { get; set; } = null!;
 }

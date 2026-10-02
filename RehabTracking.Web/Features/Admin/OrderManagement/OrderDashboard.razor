@@ -78,16 +78,17 @@
                                 </span>
                                 <input type="text" class="form-control bg-light border-start-0 rounded-end-3"
                                        placeholder="Tìm kiếm..."
+                                       aria-label="Tìm kiếm đơn hàng"
                                        @bind="orderSearch" @bind:event="oninput" />
                             </div>
                             <!-- Status Filter -->
-                            <select class="form-select rounded-3" style="width: 160px;" @bind="statusFilter">
+                            <select class="form-select rounded-3" style="width: 160px;" aria-label="Lọc theo trạng thái đơn hàng" @bind="statusFilter">
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="Pending">Chờ xử lý</option>
                                 <option value="Shipped">Giao thành công</option>
                                 <option value="Processing">Trong kho</option>
                             </select>
-                            <button class="btn btn-light rounded-3 px-3" @onclick="LoadOrders" disabled="@isRefreshing" title="Làm mới">
+                            <button class="btn btn-light rounded-3 px-3" @onclick="LoadOrders" disabled="@isRefreshing" title="Làm mới" aria-label="Làm mới danh sách đơn hàng">
                                 @if (isRefreshing)
                                 {
                                     <span class="spinner-border spinner-border-sm" role="status"></span>

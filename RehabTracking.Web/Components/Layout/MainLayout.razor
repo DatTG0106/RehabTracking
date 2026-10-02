@@ -1,89 +1,94 @@
 @inherits LayoutComponentBase
 @using Radzen.Blazor
+@using RehabTracking.Web.Components.SeniorUI
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
-<div class="page">
-    <NavMenu/>
+<div class="page min-vh-100 d-flex flex-column">
+    <!-- Thanh điều hướng chính (SeniorNavbar) -->
+    <NavMenu />
 
-    <main class="flex-grow-1 d-flex flex-column">
+    <!-- 3. Nội dung trang chính -->
+    <main class="flex-grow-1 d-flex flex-column" role="main">
         <article class="content p-0 flex-grow-1">
             @Body
         </article>
         
-        <!-- Footer -->
-        <footer class="bg-white py-5 mt-auto border-top" style="background: linear-gradient(to bottom, #ffffff, #f8fafc) !important; border-top: 1px solid rgba(0,0,0,0.08) !important;">
-            <div class="container py-4">
-                <div class="row g-5">
-                    <div class="col-lg-4">
-                        <div class="d-flex align-items-center mb-4">
-                            <i class="bi bi-activity text-primary fs-2 me-2"></i>
-                            <h3 class="fw-bold mb-0 text-dark" style="font-family: 'Inter', sans-serif;">STEP</h3>
+        <!-- 4. Chân trang ấm áp, chữ to, rõ ràng chuẩn y tế -->
+        <footer class="bg-white py-5 mt-auto border-top" style="border-color: var(--color-border-card) !important;" role="contentinfo">
+            <div class="container py-3">
+                <div class="row g-4 justify-content-between">
+                    <!-- Cột 1: Giới thiệu & Hotline khẩn cấp -->
+                    <div class="col-lg-5">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="/images/logo/logo.png" alt="STEP Logo" style="height: 56px; width: auto; object-fit: contain;" />
+                            <div class="ms-2">
+                                <h4 class="mb-0 fw-bold" style="color: var(--color-primary);">Hệ Thống Phục Hồi Chức Năng STEP</h4>
+                                <span class="small" style="color: #334155;">Đồng hành cùng Bác và Gia đình mỗi ngày</span>
+                            </div>
                         </div>
-                        <p class="text-secondary mb-4" style="line-height: 1.8; font-size: 0.95rem; text-align: justify; font-family: 'Inter', sans-serif;">
-                            STEP – Kết nối bệnh nhân, bác sĩ và quá trình phục hồi. Nền tảng theo dõi và hỗ trợ phục hồi chức năng tại nhà bằng thiết bị đeo thông minh.
+                        <p class="mb-3" style="line-height: 1.7; font-size: 1.05rem; color: #334155;">
+                            Nền tảng hỗ trợ luyện tập phục hồi chức năng và vật lý trị liệu tại nhà. Kết nối trực tiếp giữa Bệnh nhân và Bác sĩ chuyên khoa, theo dõi tầm vận động chính xác qua thiết bị thông minh.
                         </p>
-                        <div class="d-flex gap-3">
-                            <a href="https://www.facebook.com/profile.php?id=61590138553379" target="_blank" class="btn btn-outline-secondary rounded-circle d-flex justify-content-center align-items-center p-0 border-light-subtle shadow-sm social-footer-btn" style="width: 40px; height: 40px; transition: all 0.3s; color: #4b5563;" title="Facebook STEP">
-                                <i class="bi bi-facebook"></i>
-                            </a>
-                            <a href="https://zalo.me/0787775716" target="_blank" class="btn btn-outline-secondary rounded-circle d-flex justify-content-center align-items-center p-0 border-light-subtle shadow-sm social-footer-btn bg-white" style="width: 40px; height: 40px; transition: all 0.3s;" title="Zalo STEP">
-                                <img src="https://page.widget.zalo.me/static/images/2.0/Logo.svg" style="width: 24px; height: 24px;" alt="Zalo" />
-                            </a>
+                        
+                        <div class="p-3 rounded-4 mb-3 border d-inline-flex align-items-center gap-3" style="background-color: var(--color-primary-surface); border-color: var(--color-primary-light) !important;">
+                            <i class="bi bi-headset fs-1 text-danger"></i>
+                            <div>
+                                <div class="small fw-bold" style="color: #334155;">Tổng đài tư vấn & trợ giúp Bác miễn phí:</div>
+                                <a href="tel:0787775716" class="fs-4 fw-bold text-danger text-decoration-none">0787.775.716</a>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="col-sm-6 col-lg-2 offset-lg-1">
-                        <h5 class="fw-bold text-dark mb-4" style="font-family: 'Inter', sans-serif;">Về chúng tôi</h5>
-                        <ul class="list-unstyled d-flex flex-column gap-3">
-                            <li><a href="/#team" class="text-secondary text-decoration-none footer-link-light" onclick="setTimeout(() => { var el = document.getElementById('team'); if(el) window.scrollTo({top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: 'smooth'}); }, 100)">Đội ngũ sáng lập</a></li>
-                            <li><a href="#features" class="text-secondary text-decoration-none footer-link-light">Về sản phẩm</a></li>
+                    <!-- Cột 2: Hướng dẫn người cao tuổi -->
+                    <div class="col-sm-6 col-lg-3">
+                        <h4 class="fw-bold mb-3" style="color: var(--color-text-main);">Dành cho Bệnh nhân</h4>
+                        <ul class="list-unstyled d-flex flex-column gap-2" style="font-size: 1.05rem;">
+                            <li><a href="/exercises" class="senior-footer-link"><i class="bi bi-arrow-right-short text-success"></i> Kho bài tập khớp gối & vai</a></li>
+                            <li><a href="/knowledge" class="senior-footer-link"><i class="bi bi-arrow-right-short text-success"></i> Cẩm nang dinh dưỡng phục hồi</a></li>
+                            <li><a href="/#faq" class="senior-footer-link"><i class="bi bi-arrow-right-short text-success"></i> Câu hỏi thường gặp</a></li>
+                            <li><a href="/#warranty-policy" class="senior-footer-link"><i class="bi bi-arrow-right-short text-success"></i> Chính sách bảo hành thiết bị</a></li>
                         </ul>
                     </div>
                     
-                    <div class="col-sm-6 col-lg-2">
-                        <h5 class="fw-bold text-dark mb-4" style="font-family: 'Inter', sans-serif;">Hỗ trợ</h5>
-                        <ul class="list-unstyled d-flex flex-column gap-3">
-                            <li><a href="/#shopping-guide" class="text-secondary text-decoration-none footer-link-light" onclick="setTimeout(() => document.getElementById('shopping-guide')?.scrollIntoView({behavior:'smooth'}), 100)">Hướng dẫn mua hàng</a></li>
-                            <li><a href="/#warranty-policy" class="text-secondary text-decoration-none footer-link-light" onclick="setTimeout(() => document.getElementById('warranty-policy')?.scrollIntoView({behavior:'smooth'}), 100)">Chính sách bảo hành</a></li>
-                            <li><a href="/#faq" class="text-secondary text-decoration-none footer-link-light" onclick="setTimeout(() => document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}), 100)">Câu hỏi thường gặp (FAQ)</a></li>
-                            <li><a href="/#privacy-policy" class="text-secondary text-decoration-none footer-link-light" onclick="setTimeout(() => document.getElementById('privacy-policy')?.scrollIntoView({behavior:'smooth'}), 100)">Chính sách bảo mật</a></li>
-                        </ul>
-                    </div>
-                    
-                    <div class="col-lg-3">
-                        <h5 class="fw-bold text-dark mb-4" style="font-family: 'Inter', sans-serif;">Liên hệ</h5>
-                        <ul class="list-unstyled d-flex flex-column gap-3 mb-4">
+                    <!-- Cột 3: Địa chỉ trung tâm -->
+                    <div class="col-sm-6 col-lg-3">
+                        <h4 class="fw-bold mb-3" style="color: var(--color-text-main);">Trung tâm Hỗ trợ</h4>
+                        <ul class="list-unstyled d-flex flex-column gap-2" style="font-size: 1.05rem;">
                             <li class="d-flex align-items-start">
-                                <i class="bi bi-geo-alt-fill text-primary mt-1 me-3"></i>
-                                <span class="text-secondary" style="font-size: 0.95rem;">600 Nguyễn Văn Cừ Nối Dài, An Bình, Cần Thơ</span>
+                                <i class="bi bi-geo-alt-fill text-danger fs-5 mt-1 me-2"></i>
+                                <span>600 Nguyễn Văn Cừ Nối Dài, P. An Bình, TP. Cần Thơ</span>
                             </li>
                             <li class="d-flex align-items-center">
-                                <i class="bi bi-envelope-fill text-primary me-3"></i>
-                                <span class="text-secondary" style="font-size: 0.95rem;">support@STEP.vn</span>
+                                <i class="bi bi-envelope-fill text-primary fs-5 me-2"></i>
+                                <span>hotro@STEP.vn</span>
                             </li>
                             <li class="d-flex align-items-center">
-                                <i class="bi bi-telephone-fill text-primary me-3"></i>
-                                <span class="text-secondary" style="font-size: 0.95rem;">0787775716</span>
+                                <i class="bi bi-clock-history text-success fs-5 me-2"></i>
+                                <span>7:00 - 21:00 (Cả Thứ 7 & CN)</span>
                             </li>
                         </ul>
                     </div>
                 </div>
                 
-                <hr class="border-secondary-subtle my-5 opacity-50">
+                <hr class="my-4" style="border-color: var(--color-border-card);">
                 
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                    <p class="text-secondary small mb-0">&copy; 2026 STEP. Bản quyền đã được bảo hộ.</p>
-                    <div class="d-flex gap-2 mt-3 mt-md-0 align-items-center">
-                        <span class="badge border border-light-subtle text-secondary rounded px-2 py-1 fw-semibold bg-white shadow-sm" style="font-size:0.7rem; letter-spacing:0.05em; color: #475569 !important;">VISA</span>
-                        <span class="badge border border-light-subtle text-secondary rounded px-2 py-1 fw-semibold bg-white shadow-sm" style="font-size:0.7rem; letter-spacing:0.05em; color: #475569 !important;">VNPAY</span>
-                        <span class="badge border border-light-subtle text-secondary rounded px-2 py-1 fw-semibold bg-white shadow-sm" style="font-size:0.7rem; letter-spacing:0.05em; color: #475569 !important;">MoMo</span>
-                        <span class="badge border border-light-subtle text-secondary rounded px-2 py-1 fw-semibold bg-white shadow-sm" style="font-size:0.7rem; letter-spacing:0.05em; color: #475569 !important;">ZaloPay</span>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+                    <p class="text-muted mb-0" style="font-size: 0.95rem;">
+                        &copy; 2026 STEP - Bản quyền đã được bảo hộ. 
+                        <a href="/terms" class="text-decoration-none text-primary ms-2"><i class="bi bi-shield-check me-1"></i>Điều khoản &amp; Bảo mật</a>
+                    </p>
+                    <div class="d-flex gap-2">
+                        <span class="badge border bg-light text-dark px-3 py-2 fw-semibold">Chuẩn Y Tế Phục Hồi</span>
+                        <span class="badge border bg-light text-dark px-3 py-2 fw-semibold">Bảo Mật Dữ Liệu</span>
                     </div>
                 </div>
             </div>
         </footer>
     </main>
+
+    <!-- 5. Thanh điều hướng cố định dưới màn hình điện thoại (Mobile Bottom Nav) -->
+    <SeniorBottomNav />
 </div>
 
 <div id="blazor-error-ui">
@@ -95,49 +100,16 @@
     </div>
 </div>
 
-<!-- Floating Contact Buttons -->
-<div class="floating-contact" style="position:fixed; bottom:24px; right:24px; z-index:1050; display:flex; flex-direction:column; gap:10px; align-items:flex-end;">
-    <a href="https://zalo.me/0787775716" target="_blank"
-       class="floating-btn"
-       style="width:50px;height:50px;border-radius:50%;background:#ffffff;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 15px rgba(0,104,255,0.4);transition:all 0.3s;"
-       title="Liên hệ qua Zalo">
-        <img src="https://page.widget.zalo.me/static/images/2.0/Logo.svg" style="width:32px;height:32px;" alt="Zalo" />
-    </a>
-    <a href="https://www.facebook.com/profile.php?id=61590138553379" target="_blank"
-       class="floating-btn"
-       style="width:50px;height:50px;border-radius:50%;background:#1877f2;color:white;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 15px rgba(24,119,242,0.4);transition:all 0.3s;font-size:1.5rem;"
-       title="Liên hệ qua Facebook">
-        <i class="bi bi-facebook"></i>
-    </a>
-</div>
-
 <style>
-    .floating-btn:hover {
-        transform: scale(1.15) translateY(-2px) !important;
-        filter: brightness(1.1);
-    }
-    .footer-link { color: rgba(255, 255, 255, 0.6) !important; transition: color 0.2s ease; }
-    .footer-link:hover { color: #38bdf8 !important; text-decoration: underline !important; }
-    .btn-outline-light:hover { background-color: var(--primary-color); border-color: var(--primary-color); }
-    
-    .footer-link-light {
-        color: #4b5563 !important;
-        transition: all 0.2s ease;
-        font-size: 0.95rem;
+    .senior-footer-link {
+        color: var(--color-text-main) !important;
+        text-decoration: none !important;
         display: inline-block;
+        transition: transform 0.2s ease, color 0.2s ease;
     }
-    .footer-link-light:hover {
-        color: #4f46e5 !important;
-        text-decoration: underline !important;
+    .senior-footer-link:hover {
+        color: var(--color-primary) !important;
         transform: translateX(4px);
-    }
-    .social-footer-btn:hover {
-        background-color: #f1f5f9 !important;
-        border-color: #4f46e5 !important;
-        color: #4f46e5 !important;
-        transform: translateY(-2px);
+        text-decoration: underline !important;
     }
 </style>
-
-@code {
-}

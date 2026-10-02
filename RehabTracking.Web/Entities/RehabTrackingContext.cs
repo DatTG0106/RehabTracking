@@ -42,6 +42,20 @@ public partial class RehabTrackingContext : DbContext
     public virtual DbSet<Voucher> Vouchers { get; set; }
     public virtual DbSet<Payment> Payments { get; set; }
 
+    public virtual DbSet<Exercise> Exercises { get; set; }
+    public virtual DbSet<RecoveryLog> RecoveryLogs { get; set; }
+    public virtual DbSet<GamificationProfile> GamificationProfiles { get; set; }
+    public virtual DbSet<Badge> Badges { get; set; }
+    public virtual DbSet<UserBadge> UserBadges { get; set; }
+    public virtual DbSet<NutritionArticle> NutritionArticles { get; set; }
+    public virtual DbSet<ElectronicHealthRecord> ElectronicHealthRecords { get; set; }
+    public virtual DbSet<AuditLog> AuditLogs { get; set; }
+    public virtual DbSet<InAppNotification> InAppNotifications { get; set; }
+    public virtual DbSet<ReminderSchedule> ReminderSchedules { get; set; }
+    public virtual DbSet<DoctorAppointment> DoctorAppointments { get; set; }
+    public virtual DbSet<UserQuest> UserQuests { get; set; }
+    public virtual DbSet<DietaryMealPlan> DietaryMealPlans { get; set; }
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -235,6 +249,184 @@ public partial class RehabTrackingContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Users_Roles");
+        });
+
+        modelBuilder.Entity<Exercise>(entity =>
+        {
+            entity.HasKey(e => e.ExerciseId);
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.TargetArea).HasMaxLength(100);
+            entity.Property(e => e.RecoveryPhase).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+        });
+
+        modelBuilder.Entity<RecoveryLog>(entity =>
+        {
+            entity.HasKey(e => e.LogId);
+            entity.Property(e => e.LogDate).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.Patient)
+                .WithMany(p => p.RecoveryLogs)
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Exercise)
+                .WithMany(e => e.RecoveryLogs)
+                .HasForeignKey(d => d.ExerciseId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(d => d.Doctor)
+                .WithMany()
+                .HasForeignKey(d => d.DoctorId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<GamificationProfile>(entity =>
+        {
+            entity.HasKey(e => e.ProfileId);
+            entity.HasIndex(e => e.UserId).IsUnique();
+            entity.Property(e => e.CurrentTier).HasMaxLength(50);
+            entity.Property(e => e.AnonymousDisplayName).HasMaxLength(100);
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.User)
+                .WithOne()
+                .HasForeignKey<GamificationProfile>(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Badge>(entity =>
+        {
+            entity.HasKey(e => e.BadgeId);
+            entity.HasIndex(e => e.Code).IsUnique();
+            entity.Property(e => e.Code).HasMaxLength(50);
+            entity.Property(e => e.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<UserBadge>(entity =>
+        {
+            entity.HasKey(e => e.UserBadgeId);
+            entity.Property(e => e.UnlockedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Badge)
+                .WithMany(b => b.UserBadges)
+                .HasForeignKey(d => d.BadgeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<NutritionArticle>(entity =>
+        {
+            entity.HasKey(e => e.ArticleId);
+            entity.Property(e => e.Title).HasMaxLength(250);
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+        });
+
+        modelBuilder.Entity<ElectronicHealthRecord>(entity =>
+        {
+            entity.HasKey(e => e.RecordId);
+            entity.Property(e => e.InitialDiagnosis).HasMaxLength(300);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.Patient)
+                .WithMany(p => p.ElectronicHealthRecords)
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.DoctorInCharge)
+                .WithMany()
+                .HasForeignKey(d => d.DoctorInChargeId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(e => e.AuditLogId);
+            entity.Property(e => e.Action).HasMaxLength(100);
+            entity.Property(e => e.UserRole).HasMaxLength(50);
+            entity.Property(e => e.EntityName).HasMaxLength(100);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.Timestamp).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InAppNotification>(entity =>
+        {
+            entity.HasKey(e => e.NotificationId);
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.Type).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ReminderSchedule>(entity =>
+        {
+            entity.HasKey(e => e.ReminderId);
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.ReminderType).HasMaxLength(50);
+            entity.Property(e => e.DaysOfWeek).HasMaxLength(200);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.Patient)
+                .WithMany()
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<DoctorAppointment>(entity =>
+        {
+            entity.HasKey(e => e.AppointmentId);
+            entity.Property(e => e.AppointmentType).HasMaxLength(50);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(getutcdate())");
+
+            entity.HasOne(d => d.Patient)
+                .WithMany()
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(d => d.Doctor)
+                .WithMany()
+                .HasForeignKey(d => d.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<UserQuest>(entity =>
+        {
+            entity.HasKey(e => e.QuestId);
+            entity.Property(e => e.Code).HasMaxLength(50);
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.QuestType).HasMaxLength(50);
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<DietaryMealPlan>(entity =>
+        {
+            entity.HasKey(e => e.MealPlanId);
+            entity.Property(e => e.Title).HasMaxLength(250);
+            entity.Property(e => e.TargetCondition).HasMaxLength(150);
+            entity.Property(e => e.Phase).HasMaxLength(100);
+            entity.Property(e => e.AuthorDoctor).HasMaxLength(150);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getutcdate())");
         });
 
         OnModelCreatingPartial(modelBuilder);
