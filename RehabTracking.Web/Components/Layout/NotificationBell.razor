@@ -1,0 +1,246 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using RehabTracking.Web.Services
+@inject IServiceScopeFactory ScopeFactory
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<div class="position-relative d-inline-block">
+    <button class="btn nav-link position-relative px-2 py-1 border-0 bg-transparent" 
+            @onclick="ToggleDropdown" 
+            @onclick:stopPropagation="true"
+            title="Thông báo y tế & nhắc nhở"
+            aria-label="Thông báo">
+        <i class="bi bi-bell-fill fs-5 text-secondary"></i>
+        @if (unreadCount > 0)
+        {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white"
+                  style="font-size:0.65rem; padding: 0.3em 0.5em; min-width:18px;">
+                @(unreadCount > 99 ? "99+" : unreadCount.ToString())
+            </span>
+        }
+    </button>
+
+    @if (isOpen)
+    {
+        <!-- Backdrop click to close -->
+        <div class="dropdown-overlay" @onclick="CloseDropdown" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:1040;"></div>
+
+        <div class="blazor-dropdown-menu shadow-lg rounded-4 p-0 border-0 bg-white" 
+             style="position:absolute; right:0; top:calc(100% + 8px); width:360px; max-width:92vw; z-index:1050; overflow:hidden;"
+             @onclick:stopPropagation="true">
+            
+            <!-- Header -->
+            <div class="px-3 py-2.5 bg-light border-bottom d-flex justify-content-between align-items-center">
+                <div class="fw-bold text-dark small">
+                    <i class="bi bi-bell-fill text-primary me-1"></i> Thông Báo (@unreadCount chưa đọc)
+                </div>
+                @if (unreadCount > 0)
+                {
+                    <button class="btn btn-link p-0 text-decoration-none small text-primary fw-semibold" 
+                            style="font-size:0.75rem;" 
+                            @onclick="MarkAllRead">
+                        Đánh dấu tất cả đã đọc
+                    </button>
+                }
+            </div>
+
+            <!-- List -->
+            <div style="max-height: 380px; overflow-y: auto;">
+                @if (isLoading)
+                {
+                    <div class="p-4 text-center text-muted small">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                        Đang tải thông báo...
+                    </div>
+                }
+                else if (notifications.Count == 0)
+                {
+                    <div class="p-4 text-center text-muted small">
+                        <i class="bi bi-bell-slash fs-3 d-block text-secondary opacity-50 mb-2"></i>
+                        Bạn chưa có thông báo nào.
+                    </div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var n in notifications)
+                        {
+                            <div class="list-group-item list-group-item-action px-3 py-2.5 border-bottom @(!n.IsRead ? "bg-light-subtle" : "")"
+                                 style="cursor: pointer;"
+                                 @onclick="() => HandleNotificationClick(n)">
+                                <div class="d-flex align-items-start gap-2.5">
+                                    <div class="rounded-circle p-2 d-flex align-items-center justify-content-center text-white flex-shrink-0"
+                                         style="width: 32px; height: 32px; font-size: 0.8rem; background-color: @GetBadgeColor(n.Type);">
+                                        <i class="bi @GetBadgeIcon(n.Type)"></i>
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="d-flex justify-content-between align-items-center mb-0.5">
+                                            <div class="fw-semibold text-dark text-truncate small" style="max-width: 190px;">@n.Title</div>
+                                            <small class="text-muted" style="font-size: 0.7rem;">@GetRelativeTime(n.CreatedAt)</small>
+                                        </div>
+                                        <div class="text-secondary small text-truncate-2" style="font-size: 0.8rem; line-height: 1.35;">
+                                            @n.Message
+                                        </div>
+                                    </div>
+                                    @if (!n.IsRead)
+                                    {
+                                        <span class="p-1 bg-primary rounded-circle align-self-center flex-shrink-0" style="width: 7px; height: 7px;"></span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Footer -->
+            <div class="p-2 text-center bg-light border-top">
+                <small class="text-muted" style="font-size:0.75rem;">Hệ thống thông báo và lịch nhắc y tế STEP</small>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isOpen = false;
+    private bool isLoading = false;
+    private int unreadCount = 0;
+    private int currentUserId = 0;
+    private List<NotificationDto> notifications = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(idClaim, out int id))
+            {
+                currentUserId = id;
+                await RefreshUnreadCount();
+            }
+        }
+    }
+
+    private async Task RefreshUnreadCount()
+    {
+        if (currentUserId > 0)
+        {
+            try
+            {
+                using var scope = ScopeFactory.CreateScope();
+                var notifService = scope.ServiceProvider.GetRequiredService<AppNotificationService>();
+                unreadCount = await notifService.GetUnreadCountAsync(currentUserId);
+            }
+            catch
+            {
+                // Tránh lỗi ngắt mạch giao diện chính
+            }
+        }
+    }
+
+    private async Task ToggleDropdown()
+    {
+        isOpen = !isOpen;
+        if (isOpen && currentUserId > 0)
+        {
+            isLoading = true;
+            try
+            {
+                using var scope = ScopeFactory.CreateScope();
+                var notifService = scope.ServiceProvider.GetRequiredService<AppNotificationService>();
+                notifications = await notifService.GetNotificationsAsync(currentUserId, 15);
+            }
+            catch
+            {
+                notifications = new();
+            }
+            finally
+            {
+                isLoading = false;
+            }
+        }
+    }
+
+    private void CloseDropdown()
+    {
+        isOpen = false;
+    }
+
+    private async Task MarkAllRead()
+    {
+        if (currentUserId > 0)
+        {
+            try
+            {
+                using var scope = ScopeFactory.CreateScope();
+                var notifService = scope.ServiceProvider.GetRequiredService<AppNotificationService>();
+                await notifService.MarkAllAsReadAsync(currentUserId);
+                unreadCount = 0;
+                foreach (var n in notifications)
+                {
+                    n.IsRead = true;
+                }
+            }
+            catch
+            {
+                // Silent fail
+            }
+        }
+    }
+
+    private async Task HandleNotificationClick(NotificationDto notif)
+    {
+        if (!notif.IsRead && currentUserId > 0)
+        {
+            try
+            {
+                using var scope = ScopeFactory.CreateScope();
+                var notifService = scope.ServiceProvider.GetRequiredService<AppNotificationService>();
+                await notifService.MarkAsReadAsync(notif.NotificationId, currentUserId);
+                notif.IsRead = true;
+                unreadCount = Math.Max(0, unreadCount - 1);
+            }
+            catch
+            {
+                // Silent fail
+            }
+        }
+        isOpen = false;
+        if (!string.IsNullOrEmpty(notif.ActionUrl))
+        {
+            Navigation.NavigateTo(notif.ActionUrl);
+        }
+    }
+
+    private string GetBadgeColor(string type) => type switch
+    {
+        "Reminder" => "#3b82f6",       // Xanh dương
+        "Appointment" => "#10b981",    // Xanh lục
+        "Gamification" => "#f59e0b",   // Vàng cam
+        "ClinicalAlert" => "#ef4444",  // Đỏ cảnh báo
+        _ => "#6b7280"
+    };
+
+    private string GetBadgeIcon(string type) => type switch
+    {
+        "Reminder" => "bi-alarm-fill",
+        "Appointment" => "bi-calendar-check-fill",
+        "Gamification" => "bi-trophy-fill",
+        "ClinicalAlert" => "bi-exclamation-triangle-fill",
+        _ => "bi-info-circle-fill"
+    };
+
+    private string GetRelativeTime(DateTime dt)
+    {
+        var span = DateTime.UtcNow - dt;
+        if (span.TotalMinutes < 1) return "Vừa xong";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}p trước";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}h trước";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays} ngày trước";
+        return dt.ToString("dd/MM");
+    }
+}

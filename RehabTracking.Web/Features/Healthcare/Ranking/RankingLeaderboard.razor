@@ -1,0 +1,487 @@
+@page "/patient/ranking"
+@page "/ranking"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Services
+@attribute [Authorize]
+@inject RehabTrackingContext Db
+@inject GamificationService GamificationService
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Bảng Xếp Hạng & Nhiệm Vụ Phục Hồi – STEP</PageTitle>
+
+<div class="container py-4">
+    <!-- Header Banner Thân Thiện Người Cao Tuổi -->
+    <div class="senior-card p-4 p-md-5 mb-4" style="background-color: var(--color-accent-surface); border: 2.5px solid var(--color-accent-light);">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="senior-badge senior-badge-warning mb-2">
+                    <i class="bi bi-award-fill"></i> Tôn Vinh Sự Kiên Trì & Nỗ Lực Mỗi Ngày
+                </span>
+                <h1 class="fw-bold mb-2 fs-1" style="color: var(--color-text-main);">
+                    <i class="bi bi-trophy-fill text-warning me-2"></i>Bảng Vàng Kiên Trì
+                </h1>
+                <p class="text-muted fs-5 mb-0" style="line-height: 1.6;">
+                    Ghi nhận từng bước tiến nhỏ nhưng đều đặn của Bác. Ở đây không có sự cạnh tranh mệt mỏi, chỉ có niềm vui vì sức khỏe đang dần hồi phục từng ngày!
+                </p>
+            </div>
+            <div class="col-lg-4 text-center text-lg-end mt-3 mt-lg-0">
+                @if (myProfile != null)
+                {
+                    <div class="bg-white p-3 rounded-4 border d-inline-block text-start shadow-sm">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="anonymousSwitch" 
+                                   checked="@myProfile.IsAnonymousLeaderboard" 
+                                   @onchange="ToggleAnonymousMode" style="cursor: pointer; transform: scale(1.2); margin-top: 0.2rem;">
+                            <label class="form-check-label text-dark fw-bold small ms-2" for="anonymousSwitch">
+                                Ẩn danh (Bảo mật tên riêng)
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            Tên hiển thị: <strong>@(myProfile.IsAnonymousLeaderboard ? myProfile.AnonymousDisplayName : "Tên thật của Bác")</strong>
+                        </small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(alertMessage))
+    {
+        <div class="alert @(isSuccessAlert ? "alert-success border-success-subtle" : "alert-danger border-danger-subtle") alert-dismissible fade show rounded-4 p-3 mb-4 shadow-sm" role="alert">
+            <i class="bi @(isSuccessAlert ? "bi-check-circle-fill text-success" : "bi-exclamation-triangle-fill text-danger") me-2"></i>
+            @alertMessage
+            <button type="button" class="btn-close" @onclick="() => alertMessage = string.Empty"></button>
+        </div>
+    }
+
+    <!-- Personal Stats Row -->
+    @if (myProfile != null)
+    {
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-start border-4 border-primary">
+                    <div class="text-muted small fw-semibold text-uppercase mb-1">Điểm Kinh Nghiệm (XP)</div>
+                    <div class="display-5 fw-bold text-primary mb-1">@myProfile.TotalXP</div>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1">
+                        Hạng: @myProfile.CurrentTier
+                    </span>
+                    <small class="text-muted d-block mt-2">Trần an toàn y tế: 200 XP/ngày</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-start border-4 border-danger">
+                    <div class="text-muted small fw-semibold text-uppercase mb-1">Chuỗi Ngày Tập (Streak)</div>
+                    <div class="display-5 fw-bold text-danger mb-1">
+                        <i class="bi bi-fire me-1"></i>@myProfile.CurrentStreak
+                    </div>
+                    <span class="text-muted small">Kỷ lục dài nhất: @myProfile.LongestStreak ngày</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100 border-start border-4 border-warning">
+                    <div class="text-muted small fw-semibold text-uppercase mb-1">Khiên Bảo Vệ Chuỗi</div>
+                    <div class="display-5 fw-bold text-warning mb-1">
+                        <i class="bi bi-shield-shaded me-1"></i>@myProfile.StreakShieldCount
+                    </div>
+                    <span class="text-muted small">Tự động kích hoạt khi bạn bận đột xuất</span>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- SECTION: NHIỆM VỤ THỬ THÁCH (DAILY & WEEKLY QUESTS) -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="bi bi-star-fill text-warning me-2"></i>Nhiệm Vụ Thử Thách Phục Hồi
+            </h5>
+            <span class="badge bg-light text-muted rounded-pill px-3 py-1.5 small">
+                Tự động làm mới mỗi ngày & mỗi tuần
+            </span>
+        </div>
+
+        @if (quests == null)
+        {
+            <div class="text-center py-3">
+                <div class="spinner-border spinner-border-sm text-primary"></div>
+                <span class="ms-2 small text-muted">Đang tải danh sách nhiệm vụ...</span>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var q in quests)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 bg-light rounded-4 p-3 h-100 d-flex flex-column position-relative border-start border-4 @(q.IsCompleted ? "border-success" : "border-primary")">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: @(q.QuestType == "Daily" ? "#e0f2fe" : "#e0e7ff"); color: @(q.QuestType == "Daily" ? "#0369a1" : "#3730a3"); border: 1px solid @(q.QuestType == "Daily" ? "#bae6fd" : "#c7d2fe");">
+                                    @(q.QuestType == "Daily" ? "Hàng Ngày" : "Hàng Tuần")
+                                </span>
+                                <span class="badge rounded-pill px-2.5 py-1 fw-bold small" style="background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a;">
+                                    +@q.XPBonus XP
+                                </span>
+                            </div>
+
+                            <h6 class="fw-bold text-dark mb-1">@q.Title</h6>
+                            <p class="text-muted small mb-2 flex-grow-1" style="font-size: 0.82rem;">
+                                @q.Description
+                            </p>
+
+                            <!-- Progress Bar -->
+                            <div class="mb-2.5">
+                                <div class="d-flex justify-content-between small text-muted mb-1" style="font-size: 0.75rem;">
+                                    <span>Tiến độ: @q.Progress / @q.Target</span>
+                                    <span>@((int)q.ProgressPercentage)%</span>
+                                </div>
+                                <div class="progress rounded-pill" style="height: 6px;">
+                                    <div class="progress-bar @(q.IsCompleted ? "bg-success" : "bg-primary")" 
+                                         role="progressbar" 
+                                         aria-label="@($"Tiến độ nhiệm vụ {q.Title}")"
+                                         aria-valuenow="@((int)q.ProgressPercentage)"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100"
+                                         style="width: @q.ProgressPercentage%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Nút nhận thưởng -->
+                            @if (q.IsClaimed)
+                            {
+                                <button class="btn btn-sm btn-outline-secondary rounded-pill w-100 py-1.5 disabled small" disabled>
+                                    <i class="bi bi-check-circle-fill text-success me-1"></i> Đã nhận thưởng
+                                </button>
+                            }
+                            else if (q.IsCompleted)
+                            {
+                                <button class="btn btn-sm btn-success rounded-pill w-100 py-1.5 fw-semibold small shadow-sm animate-pulse"
+                                        @onclick="() => ClaimQuest(q.QuestId)">
+                                    <i class="bi bi-gift-fill me-1"></i> Nhận +@q.XPBonus XP
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-light border text-muted rounded-pill w-100 py-1.5 small disabled" disabled>
+                                    Chưa hoàn thành
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Leaderboard Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+        <div class="p-4 border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+            <div>
+                <h5 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-trophy-fill text-warning me-2"></i>Bảng Vinh Danh Bệnh Nhân Kiên Trì
+                </h5>
+                <p class="text-muted small mb-0">Xếp hạng theo điểm kinh nghiệm (XP) tích lũy an toàn</p>
+            </div>
+            
+            <!-- Timeframe Filter -->
+            <div class="btn-group btn-group-sm rounded-pill p-1 bg-light">
+                <button class="btn rounded-pill px-3 @(selectedTimeframe == "week" ? "btn-primary text-white" : "btn-light text-dark")"
+                        @onclick='() => SetTimeframe("week")'>
+                    Tuần Này
+                </button>
+                <button class="btn rounded-pill px-3 @(selectedTimeframe == "month" ? "btn-primary text-white" : "btn-light text-dark")"
+                        @onclick='() => SetTimeframe("month")'>
+                    Tháng Này
+                </button>
+                <button class="btn rounded-pill px-3 @(selectedTimeframe == "all" ? "btn-primary text-white" : "btn-light text-dark")"
+                        @onclick='() => SetTimeframe("all")'>
+                    Toàn Thời Gian
+                </button>
+            </div>
+        </div>
+
+        <div class="table-responsive" tabindex="0" role="region" aria-label="Bảng vinh danh bệnh nhân kiên trì">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4" style="width: 80px;">Thứ hạng</th>
+                        <th>Bệnh nhân / Bí danh</th>
+                        <th>Cấp bậc</th>
+                        <th>Chuỗi ngày (Streak)</th>
+                        <th class="pe-4 text-end">Tổng XP</th>
+                        @if (isDoctorOrAdmin)
+                        {
+                            <th class="text-center" style="width: 120px;">Giám sát</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (leaderboard == null)
+                    {
+                        <tr>
+                            <td colspan="@(isDoctorOrAdmin ? 6 : 5)" class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status"></div>
+                            </td>
+                        </tr>
+                    }
+                    else if (leaderboard.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="@(isDoctorOrAdmin ? 6 : 5)" class="text-center py-4 text-muted">
+                                Chưa có dữ liệu bảng xếp hạng.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var entry in leaderboard)
+                        {
+                            <tr class="@(entry.IsCurrentUser ? "table-primary table-opacity-10" : "")">
+                                <td class="ps-4">
+                                    @if (entry.Rank == 1)
+                                    {
+                                        <span class="badge rounded-circle p-2 bg-warning text-dark"><i class="bi bi-trophy-fill fs-6"></i></span>
+                                    }
+                                    else if (entry.Rank == 2)
+                                    {
+                                        <span class="badge rounded-circle p-2 bg-secondary text-white"><i class="bi bi-award-fill fs-6"></i></span>
+                                    }
+                                    else if (entry.Rank == 3)
+                                    {
+                                        <span class="badge rounded-circle p-2 text-white" style="background: #b45309;"><i class="bi bi-award-fill fs-6"></i></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fw-bold ps-2">#@entry.Rank</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 38px; height: 38px;">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-dark fw-semibold">@entry.DisplayName</div>
+                                            @if (entry.IsCurrentUser)
+                                            {
+                                                <small class="badge bg-primary text-white rounded-pill px-2">Bạn</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge @GetTierBadgeClass(entry.Tier) rounded-pill px-2.5 py-1">
+                                        @entry.Tier
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-danger fw-bold"><i class="bi bi-fire me-1"></i>@entry.Streak ngày</span>
+                                </td>
+                                <td class="pe-4 text-end fw-bold" style="color: #1e40af;">
+                                    @entry.TotalXP.ToString("N0") XP
+                                </td>
+                                @if (isDoctorOrAdmin)
+                                {
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
+                                                title="Thu hồi điểm nghi vấn gian lận"
+                                                aria-label="@($"Thu hồi điểm nghi vấn của {entry.DisplayName}")"
+                                                @onclick="() => OpenRevokeModal(entry)">
+                                            <i class="bi bi-shield-slash"></i>
+                                         </button>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thu hồi điểm nghi vấn (Bác sĩ / Admin) -->
+@if (selectedRevokeEntry != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                    <h5 class="modal-title fw-bold text-danger">
+                        <i class="bi bi-shield-slash me-2"></i>Thu Hồi Điểm Nghi Vấn (Anti-Cheat)
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseRevokeModal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">
+                        Thao tác này sẽ trừ điểm XP của bệnh nhân và ghi lại <strong>Audit Log</strong> chuyên môn y tế bắt buộc.
+                    </p>
+
+                    <div class="p-3 bg-light rounded-3 mb-3 small">
+                        <div><strong>Bệnh nhân:</strong> @selectedRevokeEntry.DisplayName</div>
+                        <div><strong>Tổng XP hiện tại:</strong> @selectedRevokeEntry.TotalXP XP</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Số điểm XP cần thu hồi <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control rounded-3" min="1" max="@selectedRevokeEntry.TotalXP" @bind="revokeAmount" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark small">Lý do lâm sàng / Bằng chứng nghi vấn <span class="text-danger">*</span></label>
+                        <textarea class="form-control rounded-3" rows="3" 
+                                  placeholder="Ví dụ: Thời gian hoàn thành bài tập chỉ 5 giây, không khớp với dữ liệu đo cảm biến..."
+                                  @bind="revokeReason"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @onclick="CloseRevokeModal">Hủy</button>
+                    <button type="button" class="btn btn-danger rounded-pill px-4 fw-semibold" @onclick="SubmitRevokeXP">
+                        Xác Nhận Thu Hồi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+    }
+    .animate-pulse {
+        animation: pulse 1.8s infinite;
+    }
+</style>
+
+@code {
+    private GamificationProfile? myProfile;
+    private List<LeaderboardEntryDto>? leaderboard;
+    private List<QuestDto>? quests;
+    private int currentUserId = 0;
+    private string currentUserRole = "Patient";
+    private bool isDoctorOrAdmin = false;
+    private string selectedTimeframe = "all";
+    private string alertMessage = string.Empty;
+    private bool isSuccessAlert = true;
+
+    // Revoke XP Modal
+    private LeaderboardEntryDto? selectedRevokeEntry = null;
+    private int revokeAmount = 50;
+    private string revokeReason = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roleClaim = user.FindFirst(ClaimTypes.Role)?.Value;
+        currentUserRole = roleClaim ?? "Patient";
+        isDoctorOrAdmin = currentUserRole == "Doctor" || currentUserRole == "Admin";
+
+        var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(idClaim, out int uid))
+        {
+            currentUserId = uid;
+            myProfile = await GamificationService.GetOrCreateProfileAsync(currentUserId);
+            quests = await GamificationService.GetActiveQuestsAsync(currentUserId);
+        }
+
+        await LoadLeaderboard();
+    }
+
+    private async Task LoadLeaderboard()
+    {
+        leaderboard = await GamificationService.GetLeaderboardAsync(currentUserId, selectedTimeframe, 20);
+    }
+
+    private async Task SetTimeframe(string timeframe)
+    {
+        selectedTimeframe = timeframe;
+        await LoadLeaderboard();
+    }
+
+    private async Task ToggleAnonymousMode(ChangeEventArgs e)
+    {
+        if (myProfile == null) return;
+        myProfile.IsAnonymousLeaderboard = (bool)(e.Value ?? false);
+        await Db.SaveChangesAsync();
+        await LoadLeaderboard();
+    }
+
+    private async Task ClaimQuest(int questId)
+    {
+        if (currentUserId <= 0) return;
+
+        var result = await GamificationService.ClaimQuestRewardAsync(questId, currentUserId);
+        if (result.Success)
+        {
+            alertMessage = result.Message;
+            isSuccessAlert = true;
+            myProfile = await GamificationService.GetOrCreateProfileAsync(currentUserId);
+            quests = await GamificationService.GetActiveQuestsAsync(currentUserId);
+            await LoadLeaderboard();
+        }
+        else
+        {
+            alertMessage = result.Message;
+            isSuccessAlert = false;
+        }
+    }
+
+    private void OpenRevokeModal(LeaderboardEntryDto entry)
+    {
+        selectedRevokeEntry = entry;
+        revokeAmount = Math.Min(50, entry.TotalXP);
+        revokeReason = string.Empty;
+    }
+
+    private void CloseRevokeModal()
+    {
+        selectedRevokeEntry = null;
+    }
+
+    private async Task SubmitRevokeXP()
+    {
+        if (selectedRevokeEntry == null) return;
+        if (string.IsNullOrWhiteSpace(revokeReason))
+        {
+            alertMessage = "Vui lòng nhập lý do lâm sàng hoặc bằng chứng nghi vấn.";
+            isSuccessAlert = false;
+            return;
+        }
+
+        var result = await GamificationService.RevokeSuspiciousXPAsync(
+            currentUserId,
+            currentUserRole,
+            selectedRevokeEntry.UserId,
+            revokeAmount,
+            revokeReason);
+
+        if (result.Success)
+        {
+            alertMessage = result.Message;
+            isSuccessAlert = true;
+            CloseRevokeModal();
+            await LoadLeaderboard();
+        }
+        else
+        {
+            alertMessage = result.Message;
+            isSuccessAlert = false;
+        }
+    }
+
+    private static string GetTierBadgeClass(string tier) => tier switch
+    {
+        "Mastery" => "bg-danger text-white",
+        "Warrior" => "bg-primary text-white",
+        "Resilient" => "bg-success text-white",
+        _ => "bg-secondary text-white"
+    };
+}

@@ -1,0 +1,428 @@
+@page "/patient/appointments"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using RehabTracking.Web.Entities
+@using RehabTracking.Web.Services
+@attribute [Authorize(Roles = "Patient")]
+@inject AppointmentService AppointmentService
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Lịch Hẹn Khám & Tái Khám – STEP</PageTitle>
+
+<div class="container py-4">
+    <!-- Header Thân Thiện Người Cao Tuổi -->
+    <div class="senior-card p-4 mb-4" style="background-color: var(--color-primary-surface); border: 2px solid var(--color-primary-light);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="senior-badge senior-badge-success mb-2">
+                    <i class="bi bi-calendar2-heart-fill"></i> Chăm Sóc Y Khoa Chuyên Biệt
+                </span>
+                <h1 class="fw-bold text-dark fs-2 mb-1">
+                    <i class="bi bi-calendar-check text-success me-2"></i>Lịch Hẹn Khám & Tái Khám
+                </h1>
+                <p class="text-muted fs-5 mb-0">Đặt lịch hẹn tư vấn phục hồi chức năng và đánh giá tầm vận động khớp với Bác sĩ chuyên khoa.</p>
+            </div>
+            <div>
+                <button class="senior-btn senior-btn-accent shadow" @onclick="OpenBookModal">
+                    <i class="bi bi-plus-circle-fill fs-5"></i> ĐẶT LỊCH HẸN MỚI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(alertMessage))
+    {
+        <div class="alert @(isSuccessAlert ? "alert-success border-success-subtle" : "alert-danger border-danger-subtle") alert-dismissible fade show rounded-4 p-3 mb-4 shadow-sm" role="alert">
+            <i class="bi @(isSuccessAlert ? "bi-check-circle-fill text-success" : "bi-exclamation-triangle-fill text-danger") me-2"></i>
+            @alertMessage
+            <button type="button" class="btn-close" @onclick="() => alertMessage = string.Empty"></button>
+        </div>
+    }
+
+    <!-- Tabs Lọc Lịch Hẹn -->
+    <div class="card border-0 shadow-sm rounded-4 p-2 mb-4 bg-white">
+        <ul class="nav nav-pills nav-fill gap-2">
+            <li class="nav-item">
+                <button class="nav-link rounded-pill fw-semibold py-2 @(activeTab == "All" ? "active bg-primary text-white" : "text-secondary")"
+                        @onclick='() => activeTab = "All"'>
+                    Tất Cả (@appointments.Count)
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill fw-semibold py-2 @(activeTab == "Pending" ? "active bg-primary text-white" : "text-secondary")"
+                        @onclick='() => activeTab = "Pending"'>
+                    <i class="bi bi-clock-history me-1"></i> Chờ Xác Nhận (@appointments.Count(a => a.Status == "Pending"))
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill fw-semibold py-2 @(activeTab == "Confirmed" ? "active bg-primary text-white" : "text-secondary")"
+                        @onclick='() => activeTab = "Confirmed"'>
+                    <i class="bi bi-calendar-check me-1"></i> Sắp Tới (@appointments.Count(a => a.Status == "Confirmed"))
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill fw-semibold py-2 @(activeTab == "Completed" ? "active bg-primary text-white" : "text-secondary")"
+                        @onclick='() => activeTab = "Completed"'>
+                    <i class="bi bi-check2-circle me-1"></i> Đã Khám (@appointments.Count(a => a.Status == "Completed"))
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Danh sách cuộc hẹn -->
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">Đang tải danh sách cuộc hẹn...</p>
+        </div>
+    }
+    else if (FilteredAppointments.Count == 0)
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white my-3">
+            <div class="mb-3">
+                <i class="bi bi-calendar-x text-muted opacity-50" style="font-size: 3.5rem;"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Không có lịch hẹn nào</h5>
+            <p class="text-muted mb-3">Bạn chưa có lịch hẹn nào trong mục này. Hãy đặt lịch hẹn để được Bác sĩ tư vấn lộ trình phục hồi!</p>
+            <div>
+                <button class="btn btn-outline-primary rounded-pill px-4 py-2" @onclick="OpenBookModal">
+                    <i class="bi bi-plus-lg me-1"></i> Đặt Lịch Ngay
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var apt in FilteredAppointments)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 bg-white p-3.5 transition-hover position-relative border-start border-4 @GetStatusBorderColor(apt.Status)">
+                        <div class="d-flex justify-content-between align-items-start mb-2.5">
+                            <span class="badge @GetStatusBadgeClass(apt.Status) rounded-pill px-3 py-1.5 fw-semibold small">
+                                @GetStatusLabel(apt.Status)
+                            </span>
+                            <span class="badge bg-light text-secondary rounded-pill px-2.5 py-1 small">
+                                <i class="bi bi-stopwatch me-1"></i>@apt.DurationMinutes phút
+                            </span>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2.5 mb-3">
+                            <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold"
+                                 style="width: 44px; height: 44px; font-size: 1.1rem; flex-shrink: 0;">
+                                <i class="bi bi-person-fill-gear"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">BS. @apt.DoctorName</h6>
+                                <span class="text-muted small">@GetAppointmentTypeLabel(apt.AppointmentType)</span>
+                            </div>
+                        </div>
+
+                        <div class="p-2.5 bg-light rounded-3 mb-3 small">
+                            <div class="d-flex align-items-center gap-2 mb-1.5 text-dark fw-semibold">
+                                <i class="bi bi-calendar3 text-primary"></i>
+                                <span>@apt.AppointmentDate.ToString("dd/MM/yyyy • HH:mm")</span>
+                            </div>
+                            <div class="text-muted text-truncate-2">
+                                <i class="bi bi-chat-left-quote me-1"></i>
+                                <em>"@(string.IsNullOrWhiteSpace(apt.PatientReason) ? "Không có ghi chú thêm" : apt.PatientReason)"</em>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(apt.DoctorNotes))
+                        {
+                            <div class="p-2.5 bg-info-subtle border border-info-subtle rounded-3 mb-3 small text-dark">
+                                <div class="fw-semibold text-info-emphasis mb-1">
+                                    <i class="bi bi-clipboard2-pulse me-1"></i> Nhận xét của Bác sĩ:
+                                </div>
+                                @apt.DoctorNotes
+                            </div>
+                        }
+
+                        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Tạo lúc: @apt.CreatedAt.ToString("dd/MM/yyyy")</small>
+                            @if (apt.Status == "Confirmed" && !string.IsNullOrEmpty(apt.MeetingLink))
+                            {
+                                <a href="@apt.MeetingLink" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold">
+                                    <i class="bi bi-camera-video-fill me-1"></i> Vào Phòng Khám
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal Đặt Lịch Hẹn Mới -->
+@if (showBookModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-bottom px-4 py-3 bg-light">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="bi bi-calendar-plus text-primary me-2"></i>Đặt Lịch Khám & Tư Vấn
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseBookModal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <!-- Chọn Bác sĩ -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Bác sĩ / Kỹ thuật viên phụ trách <span class="text-danger">*</span></label>
+                            <select class="form-select rounded-3 py-2" @bind="newDoctorId">
+                                <option value="0">-- Chọn Bác sĩ điều trị --</option>
+                                @foreach (var doc in doctorsList)
+                                {
+                                    <option value="@doc.UserId">BS. @doc.FullName (@doc.Email)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Loại cuộc hẹn -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Hình thức & Mục đích khám</label>
+                            <select class="form-select rounded-3 py-2" @bind="newAppointmentType">
+                                <option value="PeriodicReview">Tái khám định kỳ & Đánh giá phác đồ</option>
+                                <option value="InitialConsultation">Khám ban đầu & Thiết lập mục tiêu</option>
+                                <option value="OnlineROMCheck">Kiểm tra tầm vận động (ROM) từ xa</option>
+                                <option value="InPersonClinic">Khám trực tiếp tại Trung tâm VLTL</option>
+                            </select>
+                        </div>
+
+                        <!-- Ngày giờ hẹn -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-dark small">Ngày hẹn <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control rounded-3 py-2" 
+                                   min="@DateTime.UtcNow.AddHours(7).ToString("yyyy-MM-dd")" 
+                                   @bind="newDate" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-dark small">Giờ khám <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control rounded-3 py-2" @bind="newTime" />
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-dark small">Thời lượng dự kiến</label>
+                            <select class="form-select rounded-3 py-2" @bind="newDuration">
+                                <option value="15">15 phút</option>
+                                <option value="30">30 phút</option>
+                                <option value="45">45 phút</option>
+                                <option value="60">60 phút</option>
+                            </select>
+                        </div>
+
+                        <!-- Lý do & Triệu chứng -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-dark small">Mô tả triệu chứng / Mong muốn thăm khám <span class="text-danger">*</span></label>
+                            <textarea class="form-control rounded-3" rows="3" 
+                                      placeholder="Ví dụ: Khớp gối còn đau nhẹ sau khi gập 90 độ, muốn bác sĩ kiểm tra và hướng dẫn bài tập tăng cường tiếp theo..."
+                                      @bind="newReason"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @onclick="CloseBookModal">Hủy bỏ</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold" @onclick="SubmitBooking" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            <span>Đang gửi...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-check2-circle me-1"></i>
+                            <span>Xác Nhận Đặt Lịch</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .transition-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .transition-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+    }
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+
+@code {
+    private int currentUserId = 0;
+    private bool isLoading = true;
+    private bool showBookModal = false;
+    private bool isSubmitting = false;
+    private string activeTab = "All";
+    private string alertMessage = string.Empty;
+    private bool isSuccessAlert = true;
+
+    private List<AppointmentDto> appointments = new();
+    private List<User> doctorsList = new();
+
+    // Form inputs
+    private int newDoctorId = 0;
+    private string newAppointmentType = "PeriodicReview";
+    private DateTime newDate = DateTime.Today.AddDays(1);
+    private DateTime newTime = DateTime.Today.AddHours(9);
+    private int newDuration = 30;
+    private string newReason = string.Empty;
+
+    private List<AppointmentDto> FilteredAppointments => activeTab switch
+    {
+        "Pending" => appointments.Where(a => a.Status == "Pending").ToList(),
+        "Confirmed" => appointments.Where(a => a.Status == "Confirmed").ToList(),
+        "Completed" => appointments.Where(a => a.Status == "Completed").ToList(),
+        _ => appointments
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var idClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(idClaim, out int id))
+            {
+                currentUserId = id;
+                await LoadData();
+            }
+        }
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            appointments = await AppointmentService.GetPatientAppointmentsAsync(currentUserId);
+            doctorsList = await AppointmentService.GetDoctorsListAsync();
+            if (doctorsList.Count > 0 && newDoctorId == 0)
+            {
+                newDoctorId = doctorsList[0].UserId;
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OpenBookModal()
+    {
+        newDate = DateTime.Today.AddDays(1);
+        newTime = DateTime.Today.AddHours(9);
+        newReason = string.Empty;
+        showBookModal = true;
+    }
+
+    private void CloseBookModal()
+    {
+        showBookModal = false;
+    }
+
+    private async Task SubmitBooking()
+    {
+        if (newDoctorId <= 0)
+        {
+            alertMessage = "Vui lòng chọn Bác sĩ phụ trách.";
+            isSuccessAlert = false;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(newReason))
+        {
+            alertMessage = "Vui lòng mô tả ngắn gọn lý do hoặc triệu chứng bạn cần thăm khám.";
+            isSuccessAlert = false;
+            return;
+        }
+
+        var fullDateTime = new DateTime(
+            newDate.Year, newDate.Month, newDate.Day, 
+            newTime.Hour, newTime.Minute, 0, DateTimeKind.Utc);
+
+        isSubmitting = true;
+        try
+        {
+            var req = new BookAppointmentRequest
+            {
+                PatientId = currentUserId,
+                DoctorId = newDoctorId,
+                AppointmentDate = fullDateTime,
+                DurationMinutes = newDuration,
+                AppointmentType = newAppointmentType,
+                PatientReason = newReason
+            };
+
+            var result = await AppointmentService.BookAppointmentAsync(req);
+            if (result.Success)
+            {
+                alertMessage = result.Message;
+                isSuccessAlert = true;
+                showBookModal = false;
+                await LoadData();
+            }
+            else
+            {
+                alertMessage = result.Message;
+                isSuccessAlert = false;
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private string GetStatusLabel(string status) => status switch
+    {
+        "Pending" => "Chờ duyệt",
+        "Confirmed" => "Đã xác nhận",
+        "Completed" => "Đã hoàn thành",
+        "Cancelled" => "Đã hủy",
+        _ => status
+    };
+
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "Pending" => "bg-warning-subtle text-warning-emphasis",
+        "Confirmed" => "bg-success-subtle text-success-emphasis",
+        "Completed" => "bg-primary-subtle text-primary-emphasis",
+        "Cancelled" => "bg-danger-subtle text-danger-emphasis",
+        _ => "bg-secondary-subtle text-secondary"
+    };
+
+    private string GetStatusBorderColor(string status) => status switch
+    {
+        "Pending" => "border-warning",
+        "Confirmed" => "border-success",
+        "Completed" => "border-primary",
+        "Cancelled" => "border-danger",
+        _ => "border-secondary"
+    };
+
+    private string GetAppointmentTypeLabel(string type) => type switch
+    {
+        "InitialConsultation" => "Khám ban đầu",
+        "PeriodicReview" => "Tái khám định kỳ",
+        "OnlineROMCheck" => "Đo ROM trực tuyến",
+        "InPersonClinic" => "Khám trực tiếp tại viện",
+        _ => type
+    };
+}
